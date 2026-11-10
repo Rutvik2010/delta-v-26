@@ -1,0 +1,27 @@
+{
+  "won": [
+    "Balancing life support systems early creates a critical safety cushion for unforeseen space hazards.",
+    "Every operational decision in space exploration carries a real cost in power, oxygen, or shielding.",
+    "Careful resource stewardship allows human scientific research to thrive even on hostile worlds."
+  ],
+  "lost_oxygen": [
+    "Colony air recycling loops must remain airtight; even small leaks or scrubber faults threaten crew survival.",
+    "Humans consume oxygen every single second, making scrubber maintenance and backup tanks top priorities.",
+    "When oxygen levels drop, astronaut focus and energy fall rapidly, making emergency repairs much harder."
+  ],
+  "lost_power": [
+    "Extraterrestrial power grids depend on solar arrays that must be protected from dust, shadows, and freezing cold.",
+    "Power drives life support, heating, and oxygen generation—without electricity, all other colony systems shut down.",
+    "Managing battery reserves is essential to endure long planetary nights and solar eclipses."
+  ],
+  "lost_food": [
+    "Hydroponic plants require carefully regulated light, moisture, and radiation shielding to produce calories.",
+    "Deep space outposts are too distant for emergency supply drops, making continuous food conservation essential.",
+    "Maintaining stable nutrition is required to keep astronaut energy, immune health, and mission morale high."
+  ],
+  "lost_shielding": [
+    "Cosmic rays and solar storms deliver dangerous radiation doses unless stopped by thick regolith or water barriers.",
+    "Shielding degradation exposes both astronaut cells and fragile computer microchips to permanent damage.",
+    "Subsurface habitats and storm bunkers are essential protections against relentless deep-space radiation."
+  ]
+}

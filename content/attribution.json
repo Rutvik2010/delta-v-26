@@ -1,0 +1,32 @@
+[
+  {
+    "name": "NASA Solar System Exploration: Moon",
+    "url": "https://science.nasa.gov/moon/",
+    "live": true
+  },
+  {
+    "name": "NASA Mars Exploration Program",
+    "url": "https://mars.nasa.gov/",
+    "live": true
+  },
+  {
+    "name": "NASA Artemis Mission Architecture",
+    "url": "https://www.nasa.gov/humans-in-space/artemis/",
+    "live": true
+  },
+  {
+    "name": "NASA Space Radiation Analysis Group (SRAG)",
+    "url": "https://www.nasa.gov/johnson/space-radiation-analysis-group/",
+    "live": true
+  },
+  {
+    "name": "NASA JPL Deep Space Network (DSN)",
+    "url": "https://www.jpl.nasa.gov/missions/deep-space-network-dsn",
+    "live": true
+  },
+  {
+    "name": "ESA Human and Robotic Exploration Archive",
+    "url": "https://www.esa.int/Science_Exploration/Human_and_Robotic_Exploration",
+    "live": false
+  }
+]

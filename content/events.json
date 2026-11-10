@@ -1,0 +1,110 @@
+[
+  {
+    "id": "evt-01",
+    "title": "Lunar Night Freeze",
+    "text": "The Sun has dipped below the lunar horizon. Night has arrived at your Moon base, and it will last for two weeks. Temperatures are plummeting fast!",
+    "realFact": "A single night on the Moon lasts about 14 Earth days because the Moon rotates very slowly as it orbits our planet.",
+    "site": "moon"
+  },
+  {
+    "id": "evt-02",
+    "title": "Martian Dust Devil",
+    "text": "A towering whirlwind of red dust is spinning straight toward your habitat. It kicks sand across your solar panels and rattles the airlock.",
+    "realFact": "Dust devils on Mars can grow up to 8 kilometers (5 miles) tall, which is five times higher than dust devils on Earth.",
+    "site": "mars",
+    "verify": true
+  },
+  {
+    "id": "evt-03",
+    "title": "Solar Flare Incoming",
+    "text": "The colony orbital satellite detects an intense explosion on the Sun. High-energy radiation waves will strike our base in less than 30 minutes!",
+    "realFact": "Solar flares shoot radiation into space at the speed of light, reaching planets and moons in mere minutes.",
+    "site": "both"
+  },
+  {
+    "id": "evt-04",
+    "title": "Micrometeoroid Hail",
+    "text": "Tiny space rocks are zipping through the vacuum of space. With no atmosphere to burn them up, they are striking the base's outer hull.",
+    "realFact": "The Moon has no atmosphere, so even sand-sized micrometeoroids hit the ground traveling faster than a rifle bullet.",
+    "site": "moon"
+  },
+  {
+    "id": "evt-05",
+    "title": "Earth Communication Delay",
+    "text": "A life support glitch has popped up! Mission Control on Earth sends advice, but their reply takes nearly twenty minutes to reach your receiver.",
+    "realFact": "Because Mars is so far away, radio signals can take anywhere from 4 to 24 minutes to travel between Earth and Mars.",
+    "site": "mars"
+  },
+  {
+    "id": "evt-06",
+    "title": "Abrasive Moon Dust",
+    "text": "Moon dirt has coated the astronauts' space suits and airlock hinges. The tiny particles are grinding against the rubber seals.",
+    "realFact": "Lunar dust is extremely sharp like jagged glass because there is no wind or water on the Moon to smooth down the edges.",
+    "site": "moon"
+  },
+  {
+    "id": "evt-07",
+    "title": "Planet-Wide Mars Dust Storm",
+    "text": "What started as a small sandstorm has now covered the entire planet of Mars. Dark red clouds have blotted out the Sun for days.",
+    "realFact": "Mars experiences global dust storms that can shroud the entire world and block over 99% of sunlight from reaching solar panels.",
+    "site": "mars"
+  },
+  {
+    "id": "evt-08",
+    "title": "Oxygen Scrubber Alarm",
+    "text": "The machines that remove carbon dioxide from the habitat air are clogged. The crew must clean the filters before the air becomes unsafe.",
+    "realFact": "Astronauts breathe in oxygen and breathe out carbon dioxide, which must be constantly scrubbed away to keep the air breathable.",
+    "site": "both"
+  },
+  {
+    "id": "evt-09",
+    "title": "Shadowed Lunar Crater Ice",
+    "text": "A robotic rover discovers frozen water ice hidden inside a dark crater at the Moon's South Pole where the Sun never shines.",
+    "realFact": "Permanently shadowed craters at the lunar poles can be as cold as -246°C (-410°F), preserving water ice for billions of years.",
+    "site": "moon",
+    "verify": true
+  },
+  {
+    "id": "evt-10",
+    "title": "Perchlorates in the Soil",
+    "text": "Your botany team collects Martian soil to grow fresh crops, but laboratory tests detect toxic salts that must first be washed out.",
+    "realFact": "Martian soil contains chemical salts called perchlorates that are harmful to humans and must be filtered out before growing food.",
+    "site": "mars"
+  },
+  {
+    "id": "evt-11",
+    "title": "Galactic Cosmic Ray Burst",
+    "text": "Deep-space cosmic rays are penetrating through the habitat roof. Astronauts need to retreat into the reinforced storm shelter.",
+    "realFact": "Galactic cosmic rays are atomic particles shot out by exploding stars outside our solar system.",
+    "site": "both"
+  },
+  {
+    "id": "evt-12",
+    "title": "Lunar Noon Heatwave",
+    "text": "The Sun sits directly overhead in the black sky. With no clouds or atmosphere, the Moon rocks outside have heated up to boiling point!",
+    "realFact": "During the lunar daytime, surface temperatures can soar above 120°C (250°F), which is hot enough to boil liquid water.",
+    "site": "moon"
+  },
+  {
+    "id": "evt-13",
+    "title": "Thin Atmosphere Shiver",
+    "text": "A valve outside your Mars habitat rattles. The Martian air is so thin that sound travels differently and trapped heat escapes quickly into space.",
+    "realFact": "The air pressure on Mars is less than 1% of Earth's air pressure, making it impossible for humans to breathe without a pressurized suit.",
+    "site": "mars"
+  },
+  {
+    "id": "evt-14",
+    "title": "Hydroponic Greenhouse Blight",
+    "text": "A patch of fungus is spreading across the lettuce trays in your hydroponic garden. You need to sanitize the racks before the harvest spoils.",
+    "realFact": "Plants grown in space need artificial LED lights and careful humidity control because natural soil and fresh rain are unavailable.",
+    "site": "both"
+  },
+  {
+    "id": "evt-15",
+    "title": "Solar Conjunction Blackout",
+    "text": "The Sun moves directly between Earth and your outpost, completely blocking all radio and television transmissions for several days.",
+    "realFact": "During solar conjunction, charged particles emitted by the Sun disrupt and block all radio communications between Earth and Mars.",
+    "site": "both",
+    "verify": true
+  }
+]
