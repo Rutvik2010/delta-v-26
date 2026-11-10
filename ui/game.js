@@ -1,5 +1,5 @@
 // ui/game.js - Space Colony UI Controller & Renderer
-// Handles DOM creation, reactive updates, Sol loop, events, and engine binding.
+// Handles DOM creation, reactive updates, Sol loop, events, action preview, and engine binding.
 
 import * as engine from './_stub_engine.js';
 
@@ -9,6 +9,8 @@ const RESOURCE_ICONS = {
   shielding: "🛡️",
   food: "🍞"
 };
+
+let latestState = null;
 
 /**
  * Returns accessible status indicator and styling.
@@ -59,6 +61,59 @@ function formatDeltas(cost = {}, gain = {}) {
   }
 
   return parts.join(" ");
+}
+
+/**
+ * Clear all ghost markers and preview delta text from resource bars.
+ */
+function clearPreview(container) {
+  container.querySelectorAll(".bar-ghost").forEach(el => el.remove());
+  container.querySelectorAll(".preview-delta").forEach(el => el.remove());
+}
+
+/**
+ * Display ghost markers on resource bars projecting results of an action.
+ */
+function showPreview(action, state, container) {
+  clearPreview(container);
+  if (!action || !state) return;
+
+  const resources = ["power", "oxygen", "shielding", "food"];
+
+  resources.forEach(res => {
+    const cost = action.cost?.[res] || 0;
+    const gain = action.gain?.[res] || 0;
+    const delta = gain - cost;
+    if (delta === 0) return;
+
+    const current = state.resources[res] || 0;
+    const projected = Math.max(0, Math.min(100, current + delta));
+
+    const wrapper = container.querySelector(`#res-${res}`);
+    if (!wrapper) return;
+
+    const track = wrapper.querySelector(".bar-track");
+    const numEl = wrapper.querySelector(".resource-number");
+
+    if (track) {
+      const ghost = document.createElement("div");
+      ghost.className = `bar-ghost ${delta > 0 ? "bar-ghost-gain" : "bar-ghost-loss"}`;
+
+      const left = Math.min(current, projected);
+      const width = Math.abs(projected - current);
+
+      ghost.style.left = `${left}%`;
+      ghost.style.width = `${width}%`;
+      track.appendChild(ghost);
+    }
+
+    if (numEl) {
+      const deltaSpan = document.createElement("span");
+      deltaSpan.className = `preview-delta ${delta > 0 ? "gain" : "loss"}`;
+      deltaSpan.textContent = `➔ ${projected} (${delta > 0 ? '+' : ''}${delta})`;
+      numEl.appendChild(deltaSpan);
+    }
+  });
 }
 
 /**
@@ -118,6 +173,9 @@ function showModal({ title, text, realFact, buttonText = "Acknowledge", onClose 
  * Pure UI render function: synchronizes DOM with current state.
  */
 function render(state, container) {
+  latestState = state;
+  clearPreview(container);
+
   // Top bar updates
   const solCounter = container.querySelector("#sol-counter");
   const siteName = container.querySelector("#site-name");
@@ -187,6 +245,8 @@ function render(state, container) {
         <div class="action-tip">${action.tip}</div>
       </button>
     `).join("");
+
+    attachPreviewListeners(cardsContainer, container);
   }
 
   // Log panel (last 5 entries)
@@ -195,6 +255,56 @@ function render(state, container) {
     const displayLogs = (state.logs || []).slice(-5);
     logList.innerHTML = displayLogs.map(entry => `<li class="log-entry">${entry}</li>`).join("");
   }
+}
+
+/**
+ * Attach hover, touch, and focus listeners to action cards for live preview.
+ */
+function attachPreviewListeners(cardsContainer, container) {
+  const cards = cardsContainer.querySelectorAll(".action-card");
+
+  cards.forEach(card => {
+    const actionId = card.dataset.actionId;
+    if (!actionId) return;
+
+    const startPreview = () => {
+      if (card.disabled || card.classList.contains("disabled")) return;
+      if (!latestState) return;
+      const action = latestState.actions.find(a => a.id === actionId);
+      if (action) {
+        showPreview(action, latestState, container);
+      }
+    };
+
+    const stopPreview = () => {
+      clearPreview(container);
+    };
+
+    // Pointer hover (mouse / stylus)
+    card.addEventListener("pointerenter", startPreview);
+    card.addEventListener("pointerleave", stopPreview);
+
+    // Keyboard focus
+    card.addEventListener("focus", startPreview);
+    card.addEventListener("blur", stopPreview);
+
+    // Touch tap-and-hold for mobile
+    let touchTimer = null;
+    card.addEventListener("touchstart", () => {
+      touchTimer = setTimeout(startPreview, 120);
+    }, { passive: true });
+
+    card.addEventListener("touchend", () => {
+      if (touchTimer) clearTimeout(touchTimer);
+      // Give a brief moment to see preview, then clear on tap release
+      setTimeout(stopPreview, 400);
+    });
+
+    card.addEventListener("touchcancel", () => {
+      if (touchTimer) clearTimeout(touchTimer);
+      stopPreview();
+    });
+  });
 }
 
 /**
@@ -268,6 +378,7 @@ function setupDOM(container, onGameEndCallback) {
 
     const actionId = card.dataset.actionId;
     if (actionId) {
+      clearPreview(container);
       const newState = engine.applyAction(actionId);
       render(newState, container);
     }
@@ -277,6 +388,7 @@ function setupDOM(container, onGameEndCallback) {
   const endSolBtn = container.querySelector("#end-sol-btn");
   endSolBtn.addEventListener("click", async () => {
     endSolBtn.disabled = true;
+    clearPreview(container);
 
     try {
       // Advance Sol via engine
@@ -284,7 +396,7 @@ function setupDOM(container, onGameEndCallback) {
       const state = result.state || result;
       const event = result.event || null;
 
-      // Render updated state (bars animate smoothly with CSS transition)
+      // Render updated state
       render(state, container);
 
       // Check for event popup or game conclusion
