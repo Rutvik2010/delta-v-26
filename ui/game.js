@@ -1,7 +1,8 @@
 // ui/game.js - Space Colony UI Controller & Renderer
-// Handles DOM creation, reactive updates, Sol loop, events, action preview, and engine binding.
+// Handles DOM creation, reactive updates, Sol loop, events, action preview, sound hooks, and engine binding.
 
 import * as engine from './_stub_engine.js';
+import { playSfx } from './audio.js';
 
 const RESOURCE_ICONS = {
   power: "⚡",
@@ -11,6 +12,7 @@ const RESOURCE_ICONS = {
 };
 
 let latestState = null;
+let previousResources = null;
 
 /**
  * Returns accessible status indicator and styling.
@@ -152,6 +154,7 @@ function showModal({ title, text, realFact, buttonText = "Acknowledge", onClose 
   });
 
   const closeModal = () => {
+    playSfx("click");
     backdrop.classList.remove("open");
     backdrop.addEventListener("transitionend", () => {
       backdrop.remove();
@@ -175,6 +178,20 @@ function showModal({ title, text, realFact, buttonText = "Acknowledge", onClose 
 function render(state, container) {
   latestState = state;
   clearPreview(container);
+
+  // Sound hook: Check if any resource dropped below 25
+  if (previousResources) {
+    let triggeredWarning = false;
+    for (const [key, val] of Object.entries(state.resources)) {
+      if ((previousResources[key] ?? 100) >= 25 && val < 25) {
+        triggeredWarning = true;
+      }
+    }
+    if (triggeredWarning) {
+      playSfx("warning");
+    }
+  }
+  previousResources = { ...state.resources };
 
   // Top bar updates
   const solCounter = container.querySelector("#sol-counter");
@@ -296,7 +313,6 @@ function attachPreviewListeners(cardsContainer, container) {
 
     card.addEventListener("touchend", () => {
       if (touchTimer) clearTimeout(touchTimer);
-      // Give a brief moment to see preview, then clear on tap release
       setTimeout(stopPreview, 400);
     });
 
@@ -378,6 +394,7 @@ function setupDOM(container, onGameEndCallback) {
 
     const actionId = card.dataset.actionId;
     if (actionId) {
+      playSfx("click");
       clearPreview(container);
       const newState = engine.applyAction(actionId);
       render(newState, container);
@@ -388,6 +405,7 @@ function setupDOM(container, onGameEndCallback) {
   const endSolBtn = container.querySelector("#end-sol-btn");
   endSolBtn.addEventListener("click", async () => {
     endSolBtn.disabled = true;
+    playSfx("click");
     clearPreview(container);
 
     try {
@@ -396,8 +414,18 @@ function setupDOM(container, onGameEndCallback) {
       const state = result.state || result;
       const event = result.event || null;
 
-      // Render updated state
+      // Render updated state (triggers playSfx("warning") if any bar < 25)
       render(state, container);
+
+      // Sound hook: Check event type
+      if (event) {
+        const titleAndText = `${event.title} ${event.text || ''}`.toLowerCase();
+        if (titleAndText.includes("flare") || titleAndText.includes("solar")) {
+          playSfx("flare");
+        } else if (event.isGain || event.gain) {
+          playSfx("good");
+        }
+      }
 
       // Check for event popup or game conclusion
       const checkEndStatus = () => {
@@ -451,6 +479,9 @@ export function mountGame(container, site = "Shackleton Crater", onGameEnd = nul
     console.error("mountGame: container element not found");
     return;
   }
+
+  // Reset tracking
+  previousResources = null;
 
   // 1. Initialize new game state from engine
   const initialState = engine.newGame(site);

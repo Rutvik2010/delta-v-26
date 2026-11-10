@@ -52,12 +52,38 @@ const DEFAULT_STATE = {
   status: "playing" // 'playing' | 'won' | 'lost'
 };
 
+const SAMPLE_EVENTS = [
+  {
+    title: "Solar Flare Eruption",
+    text: "Coronal mass ejection bombarded the local grid. Magnetic shielding degraded.",
+    realFact: "Solar storms can disrupt satellites, spacecraft electronics, and increase radiation doses on planetary bodies without atmospheres.",
+    cost: { shielding: 18, power: 8 },
+    isGain: false
+  },
+  {
+    title: "Orbital Supply Capsule Recovery",
+    text: "Autonomous resupply pod touched down safely with fresh emergency nutrient packs.",
+    realFact: "NASA relies on commercial cargo resupply flights (COTS/CRS) to maintain sustained space habitats.",
+    gain: { food: 25, power: 10 },
+    isGain: true
+  },
+  {
+    title: "Micrometeorite Shower",
+    text: "High-speed debris grazed the outer dome sector 4.",
+    realFact: "NASA's Lunar Reconnaissance Orbiter has cataloged hundreds of new craters formed by recent impacts.",
+    cost: { shielding: 12 },
+    isGain: false
+  }
+];
+
+let eventIndex = 0;
 let currentState = JSON.parse(JSON.stringify(DEFAULT_STATE));
 
 export function newGame(site = "Shackleton Crater") {
   currentState = JSON.parse(JSON.stringify(DEFAULT_STATE));
   currentState.site = site;
   currentState.planet = site.toLowerCase().includes("mars") || site.toLowerCase().includes("jezero") ? "mars" : "moon";
+  eventIndex = 0;
   return currentState;
 }
 
@@ -94,10 +120,26 @@ export function nextSol() {
   currentState.sol += 1;
   currentState.actionsLeft = 2;
 
-  // Ambient drain
+  // Baseline Sol drain
   currentState.resources.oxygen = Math.max(0, currentState.resources.oxygen - 8);
-  currentState.resources.power = Math.max(0, currentState.resources.power - 5);
+  currentState.resources.power = Math.max(0, currentState.resources.power - 6);
   currentState.resources.food = Math.max(0, currentState.resources.food - 6);
+
+  // Pick next event in rotation
+  const sampleEvent = JSON.parse(JSON.stringify(SAMPLE_EVENTS[eventIndex % SAMPLE_EVENTS.length]));
+  eventIndex += 1;
+
+  // Apply event effects to resources
+  if (sampleEvent.cost) {
+    for (const [res, val] of Object.entries(sampleEvent.cost)) {
+      currentState.resources[res] = Math.max(0, currentState.resources[res] - val);
+    }
+  }
+  if (sampleEvent.gain) {
+    for (const [res, val] of Object.entries(sampleEvent.gain)) {
+      currentState.resources[res] = Math.min(100, currentState.resources[res] + val);
+    }
+  }
 
   // Check game over or win
   if (Object.values(currentState.resources).some(v => v <= 0)) {
@@ -106,15 +148,7 @@ export function nextSol() {
     currentState.status = "won";
   }
 
-  const sampleEvent = {
-    title: "Micrometeorite Shower",
-    text: "High-speed debris grazed the outer dome sector 4.",
-    realFact: "NASA's Lunar Reconnaissance Orbiter has cataloged hundreds of new craters formed by recent impacts.",
-    cost: { shielding: 10 }
-  };
-
-  currentState.resources.shielding = Math.max(0, currentState.resources.shielding - 10);
-  currentState.logs.push(`Sol ${currentState.sol}: Micrometeorite alert.`);
+  currentState.logs.push(`Sol ${currentState.sol}: ${sampleEvent.title}`);
 
   return {
     state: currentState,
