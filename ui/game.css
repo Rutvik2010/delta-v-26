@@ -1,0 +1,379 @@
+/* ui/game.css - Space Colony UI Theme */
+
+:root {
+  --bg-dark: #0a0c10;
+  --bg-panel: #131722;
+  --bg-card: #1b2130;
+  --bg-card-hover: #262e42;
+  --border-color: #2b3345;
+  --text-main: #e6edf3;
+  --text-muted: #8b949e;
+  --accent-cyan: #38bdf8;
+  
+  /* Status colors */
+  --color-green: #34d399;
+  --color-yellow: #fbbf24;
+  --color-red: #f87171;
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --font-base: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-base);
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* TOP BAR */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.25rem;
+  background-color: var(--bg-panel);
+  border-bottom: 2px solid var(--border-color);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.sol-counter {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--accent-cyan);
+}
+
+.site-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  flex: 1;
+}
+
+.weather-badge {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* MAIN CONTENT AREA */
+.main-content {
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  padding: 1rem;
+  min-height: 0;
+}
+
+/* LEFT: RESOURCE PANEL */
+.resources-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 260px;
+  background: var(--bg-panel);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.resource-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.resource-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.resource-icon-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.resource-number {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.bar-track {
+  width: 100%;
+  height: 14px;
+  background-color: #1f2736;
+  border-radius: 7px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.bar-green {
+  background-color: var(--color-green);
+}
+
+.bar-yellow {
+  background-color: var(--color-yellow);
+}
+
+.bar-red {
+  background-color: var(--color-red);
+}
+
+/* CENTER: SCENE VIEW */
+.scene-view {
+  flex: 1;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  min-height: 320px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1rem;
+  overflow: hidden;
+  /* Default moon fallback gradient if bg-moon.png is not yet present */
+  background: radial-gradient(circle at 50% 30%, #2a3348 0%, #0d121c 70%), url('../assets/bg-moon.png');
+}
+
+.scene-view[data-planet="mars"] {
+  background: radial-gradient(circle at 50% 30%, #4a221b 0%, #150907 70%), url('../assets/bg-mars.png');
+}
+
+.scene-overlay {
+  background: rgba(10, 12, 16, 0.7);
+  backdrop-filter: blur(4px);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* RIGHT: LOG PANEL */
+.log-panel {
+  width: 280px;
+  background: var(--bg-panel);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.log-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.log-entry {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--border-color);
+}
+
+.log-entry:last-child {
+  color: var(--text-main);
+  border-left-color: var(--accent-cyan);
+}
+
+/* BOTTOM: ACTION CARD ROW & CONTROLS */
+.actions-container {
+  background: var(--bg-panel);
+  border-top: 2px solid var(--border-color);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.actions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.actions-left-badge {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.actions-left-count {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.end-sol-btn {
+  min-height: 44px;
+  min-width: 120px;
+  padding: 0.6rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #000;
+  background-color: var(--accent-cyan);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.end-sol-btn:hover {
+  opacity: 0.9;
+}
+
+.end-sol-btn:active {
+  transform: scale(0.98);
+}
+
+.action-cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+/* Action Card */
+.action-card {
+  min-height: 44px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-main);
+  transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.action-card:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+  transform: translateY(-2px);
+}
+
+.action-card:active {
+  transform: translateY(0);
+}
+
+.action-card-header {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.action-deltas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+.delta-cost {
+  color: var(--color-red);
+  font-weight: 600;
+}
+
+.delta-gain {
+  color: var(--color-green);
+  font-weight: 600;
+}
+
+.action-tip {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+/* RESPONSIVE LAYOUT (Mobile friendly down to 375px) */
+@media (max-width: 900px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .resources-panel, .log-panel {
+    width: 100%;
+  }
+
+  .scene-view {
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-bar {
+    padding: 0.6rem 0.85rem;
+  }
+
+  .sol-counter, .site-name {
+    font-size: 1rem;
+  }
+
+  .action-cards-row {
+    grid-template-columns: 1fr;
+  }
+}
