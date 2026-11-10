@@ -1,5 +1,5 @@
 // ui/game.js - Space Colony UI Controller & Renderer
-// Handles DOM creation, reactive updates, and engine event binding.
+// Handles DOM creation, reactive updates, Sol loop, events, and engine binding.
 
 import * as engine from './_stub_engine.js';
 
@@ -62,6 +62,59 @@ function formatDeltas(cost = {}, gain = {}) {
 }
 
 /**
+ * Display an accessible event or alert modal dialog.
+ */
+function showModal({ title, text, realFact, buttonText = "Acknowledge", onClose }) {
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  backdrop.setAttribute("role", "dialog");
+  backdrop.setAttribute("aria-modal", "true");
+  backdrop.setAttribute("aria-labelledby", "modal-title");
+
+  backdrop.innerHTML = `
+    <div class="modal-dialog">
+      <h3 class="modal-title" id="modal-title">
+        <span aria-hidden="true">🛰️</span> ${title}
+      </h3>
+      <div class="modal-body">${text}</div>
+      ${realFact ? `
+        <div class="nasa-fact-box">
+          <strong>Real NASA fact:</strong>
+          <span>${realFact}</span>
+        </div>
+      ` : ''}
+      <button type="button" class="modal-ok-btn">${buttonText}</button>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+
+  // Trigger smooth enter animation
+  requestAnimationFrame(() => {
+    backdrop.classList.add("open");
+    const okBtn = backdrop.querySelector(".modal-ok-btn");
+    if (okBtn) okBtn.focus();
+  });
+
+  const closeModal = () => {
+    backdrop.classList.remove("open");
+    backdrop.addEventListener("transitionend", () => {
+      backdrop.remove();
+      if (typeof onClose === "function") onClose();
+    }, { once: true });
+  };
+
+  const okBtn = backdrop.querySelector(".modal-ok-btn");
+  okBtn.addEventListener("click", closeModal);
+
+  backdrop.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" || e.key === "Enter") {
+      closeModal();
+    }
+  });
+}
+
+/**
  * Pure UI render function: synchronizes DOM with current state.
  */
 function render(state, container) {
@@ -74,7 +127,7 @@ function render(state, container) {
   if (siteName) siteName.textContent = state.site;
   if (weatherBadge) weatherBadge.innerHTML = `<span aria-hidden="true">☀️</span> ${state.weather}`;
 
-  // Resource bars update
+  // Resource bars update with animation
   for (const [key, val] of Object.entries(state.resources)) {
     const status = getResourceStatus(val);
     const wrapper = container.querySelector(`#res-${key}`);
@@ -147,7 +200,7 @@ function render(state, container) {
 /**
  * Builds static shell and sets up event listeners.
  */
-function setupDOM(container) {
+function setupDOM(container, onGameEndCallback) {
   container.innerHTML = `
     <!-- Top Bar -->
     <header class="top-bar">
@@ -207,7 +260,7 @@ function setupDOM(container) {
     </footer>
   `;
 
-  // Attach event listener once to the container using delegation
+  // Action cards click delegation
   const cardsContainer = container.querySelector("#action-cards");
   cardsContainer.addEventListener("click", (e) => {
     const card = e.target.closest(".action-card");
@@ -219,14 +272,69 @@ function setupDOM(container) {
       render(newState, container);
     }
   });
+
+  // End Sol button handler
+  const endSolBtn = container.querySelector("#end-sol-btn");
+  endSolBtn.addEventListener("click", async () => {
+    endSolBtn.disabled = true;
+
+    try {
+      // Advance Sol via engine
+      const result = await Promise.resolve(engine.nextSol());
+      const state = result.state || result;
+      const event = result.event || null;
+
+      // Render updated state (bars animate smoothly with CSS transition)
+      render(state, container);
+
+      // Check for event popup or game conclusion
+      const checkEndStatus = () => {
+        if (state.status && state.status !== "playing") {
+          if (typeof onGameEndCallback === "function") {
+            onGameEndCallback(state);
+          }
+
+          const isWin = state.status === "won";
+          showModal({
+            title: isWin ? "🏆 Mission Completed!" : "💀 Habitat Depleted",
+            text: isWin
+              ? `Congratulations Commander! You survived all ${state.maxSols} Sols at ${state.site}.`
+              : "Vital systems dropped to 0%. Life support failed.",
+            realFact: isWin
+              ? "NASA's Artemis program plans to establish a permanent human presence on the Moon and prepare for Mars missions."
+              : "In space, a loss of pressure or oxygen must be addressed in seconds to avoid catastrophic loss of life.",
+            buttonText: "Restart Mission",
+            onClose: () => {
+              mountGame(container, state.site, onGameEndCallback);
+            }
+          });
+        }
+      };
+
+      if (event) {
+        showModal({
+          title: event.title || "Colony Event",
+          text: event.text || "An event occurred at the outpost.",
+          realFact: event.realFact,
+          buttonText: "Acknowledge",
+          onClose: checkEndStatus
+        });
+      } else {
+        checkEndStatus();
+      }
+    } finally {
+      endSolBtn.disabled = false;
+    }
+  });
 }
 
 /**
  * Mount the game UI into the specified DOM element.
  * @param {HTMLElement} container - Root element to mount into.
  * @param {string} site - Initial site name (default: "Shackleton Crater").
+ * @param {Function} onGameEnd - Callback triggered when state.status !== 'playing'.
  */
-export function mountGame(container, site = "Shackleton Crater") {
+export function mountGame(container, site = "Shackleton Crater", onGameEnd = null) {
   if (!container) {
     console.error("mountGame: container element not found");
     return;
@@ -235,8 +343,8 @@ export function mountGame(container, site = "Shackleton Crater") {
   // 1. Initialize new game state from engine
   const initialState = engine.newGame(site);
 
-  // 2. Build DOM shell
-  setupDOM(container);
+  // 2. Build DOM shell & wire handlers
+  setupDOM(container, onGameEnd);
 
   // 3. Render initial state
   render(initialState, container);
