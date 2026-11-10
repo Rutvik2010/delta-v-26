@@ -1,5 +1,5 @@
 // ui/game.js - Space Colony UI Controller & Renderer
-// Handles DOM creation, reactive updates, Sol loop, events, action preview, sound hooks, and engine binding.
+// Handles DOM creation, reactive updates, Sol loop, events, action preview, sound hooks, accessibility, and engine binding.
 
 import * as engine from './_stub_engine.js';
 import { playSfx } from './audio.js';
@@ -13,6 +13,26 @@ const RESOURCE_ICONS = {
 
 let latestState = null;
 let previousResources = null;
+let lastFocusedElement = null;
+
+/**
+ * Live region for screen reader announcements.
+ */
+let liveRegion = null;
+function announce(message) {
+  if (!liveRegion) {
+    liveRegion = document.createElement("div");
+    liveRegion.setAttribute("role", "status");
+    liveRegion.setAttribute("aria-live", "assertive");
+    liveRegion.setAttribute("aria-atomic", "true");
+    liveRegion.className = "sr-only";
+    document.body.appendChild(liveRegion);
+  }
+  liveRegion.textContent = "";
+  requestAnimationFrame(() => {
+    liveRegion.textContent = message;
+  });
+}
 
 /**
  * Returns accessible status indicator and styling.
@@ -63,6 +83,19 @@ function formatDeltas(cost = {}, gain = {}) {
   }
 
   return parts.join(" ");
+}
+
+/**
+ * Build rich descriptive aria-label for action cards.
+ */
+function buildActionAriaLabel(action) {
+  const costDesc = Object.entries(action.cost || {})
+    .map(([k, v]) => `${v} ${k}`)
+    .join(", ") || "none";
+  const gainDesc = Object.entries(action.gain || {})
+    .map(([k, v]) => `${v} ${k}`)
+    .join(", ") || "none";
+  return `${action.label}. Cost: ${costDesc}. Gain: ${gainDesc}. ${action.tip || ""}`;
 }
 
 /**
@@ -119,9 +152,11 @@ function showPreview(action, state, container) {
 }
 
 /**
- * Display an accessible event or alert modal dialog.
+ * Display an accessible event or alert modal dialog with focus trapping and focus restore.
  */
 function showModal({ title, text, realFact, buttonText = "Acknowledge", onClose }) {
+  lastFocusedElement = document.activeElement;
+
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
   backdrop.setAttribute("role", "dialog");
@@ -140,29 +175,50 @@ function showModal({ title, text, realFact, buttonText = "Acknowledge", onClose 
           <span>${realFact}</span>
         </div>
       ` : ''}
-      <button type="button" class="modal-ok-btn">${buttonText}</button>
+      <button type="button" class="modal-ok-btn" aria-label="${buttonText}">${buttonText}</button>
     </div>
   `;
 
   document.body.appendChild(backdrop);
 
-  // Trigger smooth enter animation
+  // Focus trap implementation
+  const okBtn = backdrop.querySelector(".modal-ok-btn");
+  const focusable = backdrop.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+  const firstFocusable = focusable[0];
+  const lastFocusable = focusable[focusable.length - 1];
+
+  function handleTrap(e) {
+    if (e.key === "Tab") {
+      if (e.shiftKey && document.activeElement === firstFocusable) {
+        e.preventDefault();
+        lastFocusable.focus();
+      } else if (!e.shiftKey && document.activeElement === lastFocusable) {
+        e.preventDefault();
+        firstFocusable.focus();
+      }
+    }
+  }
+  backdrop.addEventListener("keydown", handleTrap);
+
+  // Trigger smooth enter animation and focus initial button
   requestAnimationFrame(() => {
     backdrop.classList.add("open");
-    const okBtn = backdrop.querySelector(".modal-ok-btn");
     if (okBtn) okBtn.focus();
   });
 
   const closeModal = () => {
     playSfx("click");
     backdrop.classList.remove("open");
+    backdrop.removeEventListener("keydown", handleTrap);
     backdrop.addEventListener("transitionend", () => {
       backdrop.remove();
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
       if (typeof onClose === "function") onClose();
     }, { once: true });
   };
 
-  const okBtn = backdrop.querySelector(".modal-ok-btn");
   okBtn.addEventListener("click", closeModal);
 
   backdrop.addEventListener("keydown", (e) => {
@@ -179,16 +235,17 @@ function render(state, container) {
   latestState = state;
   clearPreview(container);
 
-  // Sound hook: Check if any resource dropped below 25
+  // Sound hook & screen reader announcement: Check if any resource dropped below 25
   if (previousResources) {
-    let triggeredWarning = false;
+    const dropped = [];
     for (const [key, val] of Object.entries(state.resources)) {
       if ((previousResources[key] ?? 100) >= 25 && val < 25) {
-        triggeredWarning = true;
+        dropped.push(key);
       }
     }
-    if (triggeredWarning) {
+    if (dropped.length > 0) {
       playSfx("warning");
+      announce(`Warning: Critical life support level on ${dropped.join(", ")}!`);
     }
   }
   previousResources = { ...state.resources };
@@ -254,6 +311,7 @@ function render(state, container) {
         data-action-id="${action.id}"
         ${isOut ? 'disabled' : ''}
         aria-disabled="${isOut}"
+        aria-label="${buildActionAriaLabel(action)}"
       >
         <div class="action-card-header">${action.label}</div>
         <div class="action-deltas">
@@ -329,14 +387,14 @@ function attachPreviewListeners(cardsContainer, container) {
 function setupDOM(container, onGameEndCallback) {
   container.innerHTML = `
     <!-- Top Bar -->
-    <header class="top-bar">
+    <header class="top-bar" role="banner">
       <div class="sol-counter" id="sol-counter" aria-label="Sol progress"></div>
       <h1 class="site-name" id="site-name"></h1>
       <div class="weather-badge" id="weather-badge" aria-label="Weather status"></div>
     </header>
 
     <!-- Main Layout Grid -->
-    <main class="main-content">
+    <main class="main-content" role="main">
       <!-- Left: Resource Bars -->
       <aside class="resources-panel" aria-label="Colony Life Support and Resources">
         <h2 class="panel-title">Vital Systems</h2>
@@ -377,12 +435,12 @@ function setupDOM(container, onGameEndCallback) {
         <span class="actions-left-badge">
           Actions Remaining: <strong class="actions-left-count" id="actions-left">0</strong>
         </span>
-        <button type="button" class="end-sol-btn" id="end-sol-btn">
+        <button type="button" class="end-sol-btn" id="end-sol-btn" aria-label="End current Sol and advance to next Sol">
           End Sol ➔
         </button>
       </div>
 
-      <div class="action-cards-row" id="action-cards"></div>
+      <div class="action-cards-row" id="action-cards" role="group" aria-label="Colony Action Cards"></div>
     </footer>
   `;
 
@@ -414,7 +472,7 @@ function setupDOM(container, onGameEndCallback) {
       const state = result.state || result;
       const event = result.event || null;
 
-      // Render updated state (triggers playSfx("warning") if any bar < 25)
+      // Render updated state (triggers playSfx("warning") and screen reader alerts if any bar < 25)
       render(state, container);
 
       // Sound hook: Check event type
