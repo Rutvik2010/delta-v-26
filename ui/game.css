@@ -139,6 +139,38 @@ body {
 .resource-number {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Status badges for accessible, non-color-alone status */
+.status-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge.nominal {
+  background: rgba(52, 211, 153, 0.2);
+  color: var(--color-green);
+  border: 1px solid var(--color-green);
+}
+
+.status-badge.caution {
+  background: rgba(251, 191, 36, 0.2);
+  color: var(--color-yellow);
+  border: 1px solid var(--color-yellow);
+}
+
+.status-badge.critical {
+  background: rgba(248, 113, 113, 0.2);
+  color: var(--color-red);
+  border: 1px solid var(--color-red);
 }
 
 .bar-track {
@@ -317,6 +349,16 @@ body {
 
 .action-card:active {
   transform: translateY(0);
+}
+
+.action-card:disabled,
+.action-card.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: var(--border-color);
+  background-color: var(--bg-card);
+  transform: none;
 }
 
 .action-card-header {
