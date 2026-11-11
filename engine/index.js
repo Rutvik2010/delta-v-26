@@ -6,10 +6,10 @@ const RESOURCES = ["power", "oxygen", "shielding", "food"];
 const WIN_SOL = 30;
 const ACTIONS_PER_SOL = 2;
 
-// ---- Balance numbers. Tune these in Task 3. ----
+// ---- Balance numbers. Tuned with tests/sim.js. Rerun it after any change. ----
 
 // Every resource drops a little each sol.
-const DAILY_DRAIN = { power: 4, oxygen: 4, shielding: 2, food: 4 };
+const DAILY_DRAIN = { power: 2, oxygen: 5, shielding: 3, food: 5 };
 
 // Space weather wears the shield down faster.
 const WEATHER_SHIELD_DRAIN = { calm: 0, active: 3, storm: 7 };
@@ -22,7 +22,7 @@ const SICK_DRAIN = { calm: 0, active: 4, storm: 6 };
 const WEATHER_ODDS = { calm: 0.6, active: 0.28, storm: 0.12 };
 
 // Chance that an event fires on a new sol.
-const EVENT_CHANCE = 0.35;
+const EVENT_CHANCE = 0.4;
 
 // Moon: 14 sols of light, then 14 sols of night. Rest makes less power at night.
 const MOON_DAY_LENGTH = 14;
@@ -33,22 +33,22 @@ const ACTIONS = [
   {
     id: "oxygen_gen",
     label: "Make Oxygen",
-    cost: { power: 8 },
-    gain: { oxygen: 16 },
+    cost: { power: 5 },
+    gain: { oxygen: 14 },
     tip: "The oxygen machine gives the crew air to breathe. It uses power.",
   },
   {
     id: "reinforce_shield",
     label: "Fix the Shield",
-    cost: { power: 8 },
-    gain: { shielding: 16 },
+    cost: { power: 5 },
+    gain: { shielding: 14 },
     tip: "A strong shield keeps the crew safe from space rays. It uses power.",
   },
   {
     id: "grow_food",
     label: "Grow Food",
-    cost: { power: 8 },
-    gain: { food: 16 },
+    cost: { power: 5 },
+    gain: { food: 14 },
     tip: "Plants need light to grow. The grow lights use power.",
   },
   {
@@ -61,7 +61,7 @@ const ACTIONS = [
   {
     id: "science",
     label: "Do Science",
-    cost: { power: 8, oxygen: 4 },
+    cost: { power: 5, oxygen: 4 },
     gain: { science: 10 },
     tip: "Science is why we came here! It uses power and air.",
   },
@@ -83,11 +83,11 @@ const EVENTS = [
   {
     id: "dust_storm",
     title: "Dust Storm!",
-    text: "Dust fills the sky and covers the solar panels. They cannot make much power.",
+    text: "Dust fills the sky and covers the solar panels. They cannot make much power, and the plants get less light.",
     realFact:
       "In 2018, a dust storm covered all of Mars. The Opportunity rover lost power and never woke up again.",
-    effects: { power: -18 },
-    weight: (s) => (s.site === "mars" ? 3 : 0),
+    effects: { power: -14, food: -6 },
+    weight: (s) => (s.site === "mars" ? 4 : 0),
   },
   {
     id: "micrometeorite",
@@ -95,7 +95,7 @@ const EVENTS = [
     text: "A rock as small as a grain of sand hit the outpost. It made a small hole. Some air leaked out.",
     realFact:
       "The Moon has no air to burn up tiny space rocks. They hit the ground faster than a bullet.",
-    effects: { shielding: -8, oxygen: -8 },
+    effects: { shielding: -8, oxygen: -6 },
     weight: (s) => (s.site === "moon" ? 3 : 0),
   },
   {

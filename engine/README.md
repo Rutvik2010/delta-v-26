@@ -54,30 +54,31 @@ The engine has already applied the effects to the state it returns.
 
 | Action | Cost | Gain |
 | --- | --- | --- |
-| `oxygen_gen` | power 8 | oxygen 16 |
-| `reinforce_shield` | power 8 | shielding 16 |
-| `grow_food` | power 8 | food 16 |
+| `oxygen_gen` | power 5 | oxygen 14 |
+| `reinforce_shield` | power 5 | shielding 14 |
+| `grow_food` | power 5 | food 14 |
 | `rest` | food 6 | power 16 (11 in the Moon night) |
-| `science` | power 8, oxygen 4 | science 10 |
+| `science` | power 5, oxygen 4 | science 10 |
 
 Each sol:
 
-- **Daily drain:** power 4, oxygen 4, food 4, shielding 2.
+- **Daily drain:** power 2, oxygen 5, food 5, shielding 3.
 - **Weather:** calm 60%, active 28%, storm 12%. Active drains 3 more shielding, storm 7 more.
 - **Sick crew:** if shielding is under 30 in active or storm weather, food and
   oxygen drop by 4 more (active) or 6 more (storm).
 - **Moon:** sols 1-14 are day, sols 15-28 are night. Rest gives less power at night.
-- **Events:** 35% chance per sol.
+- **Events:** 40% chance per sol.
 
 | Event | Where | Effect |
 | --- | --- | --- |
 | `solar_flare` | both, only in active or storm weather | shielding -15 |
-| `dust_storm` | Mars | power -18 |
-| `micrometeorite` | Moon | shielding -8, oxygen -8 |
+| `dust_storm` | Mars | power -14, food -6 |
+| `micrometeorite` | Moon | shielding -8, oxygen -6 |
 | `equipment_failure` | both | oxygen -12 |
 | `comm_blackout` | both | one less action this sol |
 
-All the numbers are constants at the top of `index.js`.
+All the numbers are constants at the top of `index.js`. They were tuned with
+`node tests/sim.js` (needs Node 22.12+). Rerun it after changing any number.
 
 ## Example
 
