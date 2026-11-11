@@ -18,6 +18,11 @@ const WEATHER_SHIELD_DRAIN = { calm: 0, active: 3, storm: 7 };
 const WEAK_SHIELD = 30;
 const SICK_DRAIN = { calm: 0, active: 4, storm: 6 };
 
+// Real weather plans can be much stormier than random weather. May 2024 was
+// the stormiest month in 20 years. So in a real-weather game, each bit of
+// storm damage is scaled down by this much to keep the mission fair.
+const REAL_WEATHER_SCALE = 0.65;
+
 // Chance of each kind of weather on a new sol. Must add up to 1.
 const WEATHER_ODDS = { calm: 0.6, active: 0.28, storm: 0.12 };
 
@@ -161,6 +166,12 @@ function rollWeather(rng) {
   return "storm";
 }
 
+// Real weather plan: one entry per sol, { weather, class, date }. Null if there is none.
+function plannedDay(state, sol) {
+  const plan = state.weatherPlan;
+  return (Array.isArray(plan) && plan[sol - 1]) || null;
+}
+
 // Maybe pick an event for this sol. Returns the event to hand to the UI, or null.
 function rollEvent(state, rng) {
   if (rng() >= EVENT_CHANCE) return null;
@@ -231,6 +242,38 @@ export function newGame(site, seed) {
   };
 }
 
+// Use real space weather for this game. plan is a list with one entry per sol:
+// { weather, class, date }. Get it from loadRealWeather() in donki.js.
+// Returns a new state. Sol 1 takes the first entry's weather.
+export function withRealWeather(state, plan) {
+  const next = copy(state);
+  if (!Array.isArray(plan) || plan.length === 0) return next;
+  next.weatherPlan = plan.map((d) => ({ weather: d.weather, class: d.class || null, date: d.date || null }));
+  next.weather = next.weatherPlan[0].weather;
+  return next;
+}
+
+// The weather for the next few sols, so the player can plan ahead.
+// Returns [{ sol, weather, flare: { class, date } | null, real }].
+// real is true only when the entry comes from a real weather plan.
+export function getForecast(state, count = 3) {
+  const out = [];
+  for (let sol = state.sol + 1; sol <= WIN_SOL && out.length < count; sol++) {
+    const planned = plannedDay(state, sol);
+    if (planned) {
+      out.push({ sol, weather: planned.weather, flare: planned.class ? { class: planned.class, date: planned.date } : null, real: true });
+    } else {
+      out.push({ sol, weather: rollWeather(rngForSol(state.seed >>> 0, sol)), flare: null, real: false });
+    }
+  }
+  return out;
+}
+
+// True during the Moon's 14-sol night. Always false on Mars.
+export function isNight(state) {
+  return isMoonNight(state);
+}
+
 // The 5 actions the player can pick, with the real numbers for this sol.
 export function getActions(state) {
   const night = isMoonNight(state);
@@ -281,23 +324,31 @@ export function nextSol(state) {
   const tag = "Sol " + next.sol + ": ";
 
   const rng = rngForSol(next.seed >>> 0, next.sol);
-  next.weather = rollWeather(rng);
+  const rolled = rollWeather(rng); // always roll, so events stay the same with or without a plan
+  const planned = plannedDay(next, next.sol);
+  next.weather = planned ? planned.weather : rolled;
 
   // Daily drain.
   for (const key of RESOURCES) {
     next[key] = clamp(next[key] - DAILY_DRAIN[key]);
   }
-  next.shielding = clamp(next.shielding - WEATHER_SHIELD_DRAIN[next.weather]);
+  const scale = planned ? REAL_WEATHER_SCALE : 1;
+  next.shielding = clamp(next.shielding - Math.round(WEATHER_SHIELD_DRAIN[next.weather] * scale));
 
   // Weak shield in bad weather makes the crew sick.
   const sick = next.shielding < WEAK_SHIELD && next.weather !== "calm";
   if (sick) {
-    next.food = clamp(next.food - SICK_DRAIN[next.weather]);
-    next.oxygen = clamp(next.oxygen - SICK_DRAIN[next.weather]);
+    next.food = clamp(next.food - Math.round(SICK_DRAIN[next.weather] * scale));
+    next.oxygen = clamp(next.oxygen - Math.round(SICK_DRAIN[next.weather] * scale));
   }
 
   // Maybe an event.
   const event = rollEvent(next, rng);
+  if (event && event.id === "solar_flare" && planned && planned.class) {
+    // Real weather: tell the UI which real flare this was.
+    event.flare = { class: planned.class, date: planned.date };
+    event.effects.shielding = Math.round(event.effects.shielding * scale);
+  }
   if (event) {
     for (const key in event.effects) {
       next[key] = key === "actionsLeft"

@@ -131,3 +131,27 @@ const { weather, source } = await getSpaceWeather();
 - The engine does not call it. To start a game with today's weather:
   `state = { ...newGame(site), weather }`. After sol 1 the engine rolls its own.
 - The real dataset mapping comes after 13 Nov. See the TODO comments.
+
+## Real space weather (May 2024)
+
+```js
+import { newGame, withRealWeather, getForecast, isNight } from "./engine/index.js";
+import { loadRealWeather } from "./engine/donki.js";
+
+const plan = await loadRealWeather();          // null if the file cannot be read
+let state = newGame("moon");
+if (plan) state = withRealWeather(state, plan);
+getForecast(state, 3); // [{ sol, weather, flare: { class, date } | null, real }]
+```
+
+- `data/flares_2024_05.json` is **REAL data**: the strongest flare NASA DONKI
+  recorded on each day of May 2024. Sol 1 is 1 May, sol 30 is 30 May.
+- `withRealWeather(state, plan)` adds one more field to the state,
+  `weatherPlan`. `nextSol` then uses that day's real weather, not a random roll.
+- A `solar_flare` event in a real-weather game carries `event.flare`
+  (`{ class, date }`) so the UI can show which real flare it was.
+- May 2024 was very stormy (12 storm days, 13 active). Storm damage is scaled
+  by `REAL_WEATHER_SCALE` (0.65) in real-weather games to keep it fair. With
+  it, the greedy strategy wins about 80% on the Moon and 77% on Mars.
+- `getForecast` also works without a plan. Then `real` is `false`.
+- `isNight(state)` is true during the Moon's 14-sol night.
