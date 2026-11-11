@@ -2,9 +2,8 @@
 
 Game rules for Delta-V 26. No UI, no sound, just state in and state out.
 
-**This is the MOCK engine.** The API is final, but the logic is simple:
-no events, no weather changes, no random, and the seed is ignored.
-The real engine will replace the insides without changing the API.
+This is the **real engine**. It has the same API as the mock, so nothing
+that used the mock needs to change.
 
 ## State
 
@@ -13,13 +12,16 @@ state = {
   sol: 1, power: 70, oxygen: 70, shielding: 50, food: 60,
   science: 0, actionsLeft: 2, site: "moon" | "mars",
   weather: "calm" | "active" | "storm",
-  log: [string], status: "playing" | "won" | "lost", lossReason: null | string
+  log: [string], status: "playing" | "won" | "lost", lossReason: null | string,
+  seed: number
 }
 ```
 
 - `power`, `oxygen`, `shielding`, `food` stay between 0 and 100.
 - Lose if any of those four hits 0. `lossReason` is one short sentence for kids.
 - Win by reaching sol 30.
+- `seed` is the one field added to the contract. The engine needs it to stay
+  pure and still give the same game for the same seed. The UI can ignore it.
 
 ## API
 
@@ -28,36 +30,61 @@ Every function returns a new object.
 
 | Function | Returns | What it does |
 | --- | --- | --- |
-| `newGame(site, seed?)` | `state` | Starts a game. `site` is `"moon"` or `"mars"`. |
-| `getActions(state)` | `[{id, label, cost, gain, tip}]` | The 5 actions the player can pick. |
+| `newGame(site, seed?)` | `state` | Starts a game. `site` is `"moon"` or `"mars"`. No seed = a random one. |
+| `getActions(state)` | `[{id, label, cost, gain, tip}]` | The 5 actions, with the real numbers for this sol. |
 | `applyAction(state, actionId)` | `state` | Pays the cost, adds the gain, `actionsLeft - 1`. |
-| `nextSol(state)` | `{state, event}` | Ends the sol. Drains resources, resets `actionsLeft` to 2, checks win/loss. |
+| `nextSol(state)` | `{state, event}` | Ends the sol. Rolls weather, drains resources, may fire an event, checks win/loss. |
 
 Action ids: `oxygen_gen`, `reinforce_shield`, `grow_food`, `rest`, `science`.
 
-`event` is `null` or `{id, title, text, realFact, effects}`. In the mock it is always `null`.
+`event` is `null` or `{id, title, text, realFact, effects}`.
+`effects` uses state field names, for example `{ shielding: -15 }`.
+The engine has already applied the effects to the state it returns.
 
 ### Good to know
 
 - `applyAction` does nothing (returns an unchanged copy) if `actionsLeft` is 0,
   the game is over, or the action id is unknown.
 - Win and loss are only checked in `nextSol`.
-- Mock numbers: each sol drains 3 from every resource.
+- Always call `getActions(state)` with the current state. The rest gain
+  changes during the Moon night.
+- After a radio blackout, `actionsLeft` starts the sol at 1 instead of 2.
+
+## Rules
 
 | Action | Cost | Gain |
 | --- | --- | --- |
-| `oxygen_gen` | power 10 | oxygen 15 |
-| `reinforce_shield` | power 10 | shielding 15 |
-| `grow_food` | power 10 | food 15 |
-| `rest` | food 5 | power 15 |
-| `science` | power 10, oxygen 5 | science 10 |
+| `oxygen_gen` | power 8 | oxygen 16 |
+| `reinforce_shield` | power 8 | shielding 16 |
+| `grow_food` | power 8 | food 16 |
+| `rest` | food 6 | power 16 (11 in the Moon night) |
+| `science` | power 8, oxygen 4 | science 10 |
+
+Each sol:
+
+- **Daily drain:** power 4, oxygen 4, food 4, shielding 2.
+- **Weather:** calm 60%, active 28%, storm 12%. Active drains 3 more shielding, storm 7 more.
+- **Sick crew:** if shielding is under 30 in active or storm weather, food and
+  oxygen drop by 4 more (active) or 6 more (storm).
+- **Moon:** sols 1-14 are day, sols 15-28 are night. Rest gives less power at night.
+- **Events:** 35% chance per sol.
+
+| Event | Where | Effect |
+| --- | --- | --- |
+| `solar_flare` | both, only in active or storm weather | shielding -15 |
+| `dust_storm` | Mars | power -18 |
+| `micrometeorite` | Moon | shielding -8, oxygen -8 |
+| `equipment_failure` | both | oxygen -12 |
+| `comm_blackout` | both | one less action this sol |
+
+All the numbers are constants at the top of `index.js`.
 
 ## Example
 
 ```js
 import { newGame, getActions, applyAction, nextSol } from "./engine/index.js";
 
-let state = newGame("moon");
+let state = newGame("moon", 1234); // same seed = same game
 
 // Show the buttons.
 for (const a of getActions(state)) {
@@ -71,7 +98,10 @@ state = applyAction(state, "rest");
 // End the sol.
 const result = nextSol(state);
 state = result.state;
-if (result.event) console.log(result.event.title, result.event.text);
+if (result.event) {
+  console.log(result.event.title, result.event.text);
+  console.log("Real fact:", result.event.realFact);
+}
 
 if (state.status === "won") console.log("Mission complete!");
 if (state.status === "lost") console.log(state.lossReason);
