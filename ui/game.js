@@ -103,12 +103,12 @@ function buildActionAriaLabel(action) {
 }
 
 /**
- * Clear ghost markers and preview text strictly via opacity/visibility (never removing DOM elements).
+ * Clear ghost markers and preview text strictly via visibility (never removing DOM elements or using display:none).
  */
 function clearPreview(container) {
-  const previews = container.querySelectorAll(".res-col-preview");
+  const previews = container.querySelectorAll(".res-preview");
   previews.forEach(el => {
-    el.classList.add("res-col-preview--hidden");
+    el.classList.add("res-preview--hidden");
     el.classList.remove("gain", "loss");
   });
 
@@ -122,7 +122,7 @@ function clearPreview(container) {
 
 /**
  * Display ghost markers on resource bars projecting results of an action.
- * Toggled strictly via visibility/opacity without DOM insertion/deletion.
+ * Toggled strictly via visibility without DOM insertion/deletion or layout shift.
  */
 function showPreview(action, state, container) {
   clearPreview(container);
@@ -143,7 +143,7 @@ function showPreview(action, state, container) {
     if (!row) return;
 
     const ghost = row.querySelector(".bar-ghost");
-    const previewEl = row.querySelector(".res-col-preview");
+    const previewEl = row.querySelector(".res-preview");
 
     if (ghost) {
       const left = Math.min(current, projected);
@@ -156,9 +156,9 @@ function showPreview(action, state, container) {
     }
 
     if (previewEl) {
-      previewEl.className = `res-col-preview ${delta > 0 ? "gain" : "loss"}`;
+      previewEl.className = `res-preview ${delta > 0 ? "gain" : "loss"}`;
       previewEl.textContent = `➔ ${projected} (${delta > 0 ? '+' : ''}${delta})`;
-      previewEl.classList.remove("res-col-preview--hidden");
+      previewEl.classList.remove("res-preview--hidden");
     }
   });
 }
@@ -272,7 +272,7 @@ function render(state, container, playSfx = () => {}) {
   if (siteName) siteName.textContent = SITE_NAMES[state.site] || state.site;
   if (weatherBadge) weatherBadge.innerHTML = `<span aria-hidden="true">☀️</span> ${state.weather}`;
 
-  // Resource rows update with animation (fixed grid cells)
+  // Resource rows update with animation
   for (const [key, val] of Object.entries(state.resources)) {
     const status = getResourceStatus(val);
     const row = container.querySelector(`#res-${key}`);
@@ -411,7 +411,7 @@ function setupDOM(container, { normalizedSite, onGameEnd, playSfx }) {
       <div class="weather-badge" id="weather-badge" aria-label="Weather status"></div>
     </header>
 
-    <!-- Main Layout Grid -->
+    <!-- Main Layout Grid (3 matching 340px panels with min-width: 0) -->
     <main class="main-content" role="main">
       <!-- Left: Resource Bars -->
       <aside class="resources-panel" aria-label="Colony Life Support and Resources">
@@ -420,28 +420,32 @@ function setupDOM(container, { normalizedSite, onGameEnd, playSfx }) {
         ${["power", "oxygen", "shielding", "food"].map(key => `
           <div class="resource-row" id="res-${key}">
             <span class="res-col-icon" aria-hidden="true">${RESOURCE_ICONS[key]}</span>
-            <span class="res-col-label-val">
-              <span class="res-name">${key}</span>
-              <span class="res-num">--</span>
-            </span>
-            <div class="bar-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="${key} level">
-              <div class="bar-fill" style="width: 0%"></div>
-              <div class="bar-ghost bar-ghost--hidden" aria-hidden="true"></div>
+            <div class="res-col-middle">
+              <div class="res-middle-top">
+                <span class="res-label-val">
+                  <span class="res-name">${key}</span>
+                  <span class="res-num">--</span>
+                </span>
+                <span class="res-preview res-preview--hidden" aria-hidden="true"></span>
+              </div>
+              <div class="bar-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="${key} level">
+                <div class="bar-fill" style="width: 0%"></div>
+                <div class="bar-ghost bar-ghost--hidden" aria-hidden="true"></div>
+              </div>
             </div>
             <span class="status-badge nominal" aria-label="Status">--</span>
-            <span class="res-col-preview res-col-preview--hidden" aria-hidden="true"></span>
           </div>
         `).join("")}
       </aside>
 
-      <!-- Center: Scene Viewport (Fixed height) -->
+      <!-- Center: Scene Viewport (340px fixed height, background-size: cover) -->
       <section class="scene-view" data-planet="${normalizedSite}" aria-label="Colony Surface Viewport">
         <div class="scene-overlay">
           <span>Surface Art Viewport</span>
         </div>
       </section>
 
-      <!-- Right: Mission Log Panel (Fixed height) -->
+      <!-- Right: Mission Log Panel (340px fixed height, overflow-wrap: anywhere, auto-scroll) -->
       <aside class="log-panel" aria-label="Colony Activity Log">
         <h2 class="panel-title">Mission Log</h2>
         <ul class="log-list" id="log-list" role="log" aria-live="polite"></ul>

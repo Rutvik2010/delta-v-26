@@ -31,7 +31,7 @@ html {
   overflow-y: scroll;
 }
 
-/* Align container to top (not vertically centered) with fixed min-height */
+/* Page container: align to top (remove vertical centering) */
 body {
   font-family: var(--font-base);
   background-color: var(--bg-dark);
@@ -46,15 +46,18 @@ body {
   overflow-x: hidden;
 }
 
+/* Page container: max-width 1100px, width 100%, margin 0 auto, padding-top 24px */
 #app {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
   min-height: 100vh;
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: 1100px;
   width: 100%;
+  margin: 0 auto;
+  padding-top: 24px;
+  box-sizing: border-box;
   overflow-x: hidden;
 }
 
@@ -87,6 +90,8 @@ body {
   border-bottom: 2px solid var(--border-color);
   gap: 1rem;
   flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sol-counter {
@@ -116,28 +121,38 @@ body {
   gap: 0.4rem;
 }
 
-/* MAIN CONTENT AREA */
+/* 1. MAIN 3-PANEL ROW: CSS Grid with 1.3fr 1fr 1fr, gap 16px, 340px fixed height */
 .main-content {
-  display: flex;
-  flex: 1;
-  gap: 1rem;
-  padding: 1rem;
-  min-height: 0;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
 }
 
-/* LEFT: RESOURCE PANEL */
+/* Every panel gets min-width: 0 and matching 340px height */
+.resources-panel,
+.scene-view,
+.log-panel {
+  min-width: 0;
+  height: 340px;
+  min-height: 340px;
+  max-height: 340px;
+  box-sizing: border-box;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-panel);
+}
+
+/* 2. VITAL SYSTEMS PANEL: 4 rows, clean spacing */
 .resources-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  width: 480px;
-  background: var(--bg-panel);
+  justify-content: space-between;
   padding: 1rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  flex-shrink: 0;
-  box-sizing: border-box;
+  gap: 0.5rem;
 }
 
 .panel-title {
@@ -146,38 +161,54 @@ body {
   letter-spacing: 1px;
   color: var(--text-muted);
   font-weight: 700;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
-/* Fixed 5-column Grid: icon | label+value | bar | status badge | preview */
+/* Vital Systems row grid: 28px minmax(0, 1fr) 90px */
 .resource-row {
   display: grid;
-  grid-template-columns: 24px 125px 1fr 92px 84px;
+  grid-template-columns: 28px minmax(0, 1fr) 90px;
   align-items: center;
-  height: 38px;
-  min-height: 38px;
-  max-height: 38px;
-  gap: 0.5rem;
+  gap: 10px;
   box-sizing: border-box;
+  min-height: 52px;
 }
 
 .res-col-icon {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
+  width: 28px;
 }
 
-.res-col-label-val {
+/* Middle column: stacks [name+value & preview] above [full-width bar] */
+.res-col-middle {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+.res-middle-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.res-label-val {
   display: flex;
   align-items: baseline;
-  gap: 0.35rem;
+  gap: 0.4rem;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
   font-size: 0.88rem;
   font-weight: 600;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .res-name {
@@ -192,17 +223,106 @@ body {
   white-space: nowrap;
 }
 
-/* Fixed min-width for status badges (NOMINAL, CAUTION, CRITICAL) */
+/* Hover preview text: right-aligned, min-width 70px, white-space: nowrap, visibility only */
+.res-preview {
+  display: inline-block;
+  min-width: 70px;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+  font-weight: 700;
+  visibility: visible;
+  box-sizing: border-box;
+}
+
+.res-preview--hidden {
+  visibility: hidden;
+}
+
+.res-preview.gain {
+  color: var(--color-green);
+}
+
+.res-preview.loss {
+  color: var(--color-red);
+}
+
+/* Full width bar directly below name/value text */
+.bar-track {
+  width: 100%;
+  height: 12px;
+  background-color: #1f2736;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.4s ease-out, background-color 0.3s ease;
+}
+
+.bar-green {
+  background-color: var(--color-green);
+}
+
+.bar-yellow {
+  background-color: var(--color-yellow);
+}
+
+.bar-red {
+  background-color: var(--color-red);
+}
+
+/* Ghost Preview Markers */
+.bar-ghost {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 5px;
+  opacity: 0.85;
+  visibility: visible;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.15s ease;
+}
+
+.bar-ghost--hidden {
+  visibility: hidden;
+}
+
+.bar-ghost-gain {
+  background: rgba(52, 211, 153, 0.55);
+  border: 1px dashed #34d399;
+}
+
+.bar-ghost-loss {
+  background: rgba(248, 113, 113, 0.55);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(248, 113, 113, 0.4) 4px,
+    rgba(248, 113, 113, 0.4) 8px
+  );
+  border: 1px solid #f87171;
+}
+
+/* Status badge: fixed width 90px, centered, no wrapping */
 .status-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 92px;
-  width: 92px;
+  width: 90px;
+  min-width: 90px;
+  max-width: 90px;
   height: 24px;
   padding: 0 4px;
   border-radius: 4px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -228,109 +348,8 @@ body {
   border: 1px solid var(--color-red);
 }
 
-/* Fixed width preview column: toggled strictly via opacity/visibility (never display:none) */
-.res-col-preview {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 84px;
-  min-width: 84px;
-  max-width: 84px;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  font-size: 0.78rem;
-  font-weight: 700;
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.15s ease;
-  box-sizing: border-box;
-}
-
-.res-col-preview--hidden {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.res-col-preview.gain {
-  color: var(--color-green);
-}
-
-.res-col-preview.loss {
-  color: var(--color-red);
-}
-
-/* Progress bar track & transitions (animate only width, background-color) */
-.bar-track {
-  width: 100%;
-  height: 14px;
-  background-color: #1f2736;
-  border-radius: 7px;
-  overflow: hidden;
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.bar-fill {
-  height: 100%;
-  border-radius: 6px;
-  transition: width 0.4s ease-out, background-color 0.3s ease;
-}
-
-.bar-green {
-  background-color: var(--color-green);
-}
-
-.bar-yellow {
-  background-color: var(--color-yellow);
-}
-
-.bar-red {
-  background-color: var(--color-red);
-}
-
-/* Ghost Preview Markers */
-.bar-ghost {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  border-radius: 6px;
-  opacity: 0.85;
-  visibility: visible;
-  pointer-events: none;
-  z-index: 2;
-  transition: opacity 0.15s ease;
-}
-
-.bar-ghost--hidden {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.bar-ghost-gain {
-  background: rgba(52, 211, 153, 0.55);
-  border: 1px dashed #34d399;
-}
-
-.bar-ghost-loss {
-  background: rgba(248, 113, 113, 0.55);
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 4px,
-    rgba(248, 113, 113, 0.4) 4px,
-    rgba(248, 113, 113, 0.4) 8px
-  );
-  border: 1px solid #f87171;
-}
-
-/* CENTER: SCENE VIEW (Fixed height) */
+/* 4. SCENE VIEWPORT: min-height equals other panels (340px), background-size: cover */
 .scene-view {
-  flex: 1;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  height: 260px;
-  min-height: 260px;
-  max-height: 260px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -340,39 +359,30 @@ body {
   justify-content: flex-end;
   padding: 1rem;
   overflow: hidden;
-  box-sizing: border-box;
-  background: radial-gradient(circle at 50% 30%, #2a3348 0%, #0d121c 70%), url('../assets/bg-moon.png');
+  background-image: radial-gradient(circle at 50% 30%, #2a3348 0%, #0d121c 70%), url('../assets/bg-moon.png');
 }
 
 .scene-view[data-planet="mars"] {
-  background: radial-gradient(circle at 50% 30%, #4a221b 0%, #150907 70%), url('../assets/bg-mars.png');
+  background-image: radial-gradient(circle at 50% 30%, #4a221b 0%, #150907 70%), url('../assets/bg-mars.png');
 }
 
 .scene-overlay {
   background: rgba(10, 12, 16, 0.7);
   backdrop-filter: blur(4px);
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 0.85rem;
   border-radius: var(--radius-sm);
   display: inline-block;
   align-self: flex-start;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
 }
 
-/* RIGHT: LOG PANEL (Fixed height, auto scroll) */
+/* 3. MISSION LOG: overflow-x: hidden, overflow-y: auto, overflow-wrap: anywhere */
 .log-panel {
-  width: 280px;
-  background: var(--bg-panel);
   padding: 1rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
-  height: 260px;
-  min-height: 260px;
-  max-height: 260px;
-  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .log-list {
@@ -382,8 +392,11 @@ body {
   gap: 0.6rem;
   margin-top: 0.5rem;
   flex: 1;
-  overflow-y: auto;
   overflow-x: hidden;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  padding-right: 4px;
 }
 
 .log-entry {
@@ -392,6 +405,7 @@ body {
   line-height: 1.35;
   padding-left: 0.5rem;
   border-left: 2px solid var(--border-color);
+  overflow-wrap: anywhere;
 }
 
 .log-entry:last-child {
@@ -407,6 +421,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .actions-header {
@@ -529,76 +545,59 @@ body {
   line-height: 1.3;
 }
 
-/* RESPONSIVE LAYOUT */
-@media (max-width: 1024px) {
+/* 6. UNDER 800PX WIDTH: Stack the 3 panels in one column, auto heights */
+@media (max-width: 800px) {
   .main-content {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .resources-panel, .log-panel {
-    width: 100%;
+  .resources-panel {
+    height: auto;
+    min-height: auto;
+    max-height: none;
+    gap: 0.85rem;
   }
 
   .scene-view {
-    height: 240px;
-    min-height: 240px;
-    max-height: 240px;
-    width: 100%;
-  }
-
-  .log-panel {
     height: 180px;
     min-height: 180px;
     max-height: 180px;
   }
-}
 
-@media (max-width: 480px) {
-  .top-bar {
-    padding: 0.6rem 0.85rem;
+  .log-panel {
+    height: auto;
+    min-height: auto;
+    max-height: 200px;
   }
 
-  .sol-counter, .site-name {
-    font-size: 1rem;
+  .log-list {
+    max-height: 150px;
   }
 
   .action-cards-row {
     grid-template-columns: 1fr;
   }
-
-  .resource-row {
-    grid-template-columns: 20px 92px 1fr 78px 68px;
-    gap: 0.35rem;
-  }
-
-  .res-col-label-val {
-    font-size: 0.8rem;
-  }
-
-  .status-badge {
-    min-width: 78px;
-    width: 78px;
-    font-size: 0.65rem;
-  }
-
-  .res-col-preview {
-    width: 68px;
-    min-width: 68px;
-    max-width: 68px;
-    font-size: 0.72rem;
-  }
 }
 
-/* Mobile Small Viewports (375px) */
+/* 7. SMALL MOBILE (375px) - Zero horizontal scroll guaranteed */
 @media (max-width: 375px) {
+  #app {
+    padding-top: 12px;
+  }
+
   .top-bar {
     padding: 0.5rem 0.65rem;
     gap: 0.4rem;
   }
 
+  .sol-counter, .site-name {
+    font-size: 0.95rem;
+  }
+
   .main-content {
-    padding: 0.5rem;
-    gap: 0.65rem;
+    padding: 10px 0.5rem;
+    gap: 10px;
   }
 
   .resources-panel {
@@ -606,29 +605,24 @@ body {
   }
 
   .resource-row {
-    grid-template-columns: 18px 86px 1fr 74px 64px;
-    gap: 0.25rem;
-  }
-
-  .res-col-label-val {
-    font-size: 0.76rem;
+    grid-template-columns: 24px minmax(0, 1fr) 82px;
+    gap: 6px;
   }
 
   .status-badge {
-    min-width: 74px;
-    width: 74px;
+    width: 82px;
+    min-width: 82px;
+    max-width: 82px;
     font-size: 0.62rem;
   }
 
-  .res-col-preview {
-    width: 64px;
-    min-width: 64px;
-    max-width: 64px;
-    font-size: 0.68rem;
+  .res-preview {
+    min-width: 60px;
+    font-size: 0.72rem;
   }
 
-  .action-card {
-    padding: 0.75rem;
+  .res-label-val {
+    font-size: 0.78rem;
   }
 
   .actions-container {
