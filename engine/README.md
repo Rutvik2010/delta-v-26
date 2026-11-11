@@ -110,3 +110,24 @@ if (state.status === "lost") console.log(state.lossReason);
 
 Run it with a static server, for example `python -m http.server`, because
 ES modules do not load from `file://`.
+
+## Space weather (`engine/donki.js`)
+
+```js
+import { getSpaceWeather } from "./engine/donki.js";
+
+const { weather, source } = await getSpaceWeather();
+// weather: "calm" | "active" | "storm"
+// source:  "live" | "embedded"
+```
+
+- Tries NASA's live DONKI solar flare feed for the last 3 days and takes the
+  strongest flare. C class or no flares = calm, M = active, X = storm.
+- On any failure (offline, timeout, bad answer) it picks a record from
+  `data/space_weather_fallback.json` and returns `source: "embedded"`.
+- That file is **SAMPLE data**, not real measurements. Do not show embedded
+  weather as live. Show the player which one they got.
+- It never throws.
+- The engine does not call it. To start a game with today's weather:
+  `state = { ...newGame(site), weather }`. After sol 1 the engine rolls its own.
+- The real dataset mapping comes after 13 Nov. See the TODO comments.

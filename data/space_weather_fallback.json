@@ -1,0 +1,26 @@
+{
+  "_label": "SAMPLE DATA. These are made-up, plausible solar flare records for offline use. They are NOT real NASA measurements.",
+  "_todo": "Replace with records from the real dataset after 13 Nov.",
+  "flares": [
+    { "class": "C1.4", "date": "2026-01-03" },
+    { "class": "C3.2", "date": "2026-01-09" },
+    { "class": "M1.1", "date": "2026-01-17" },
+    { "class": "C2.7", "date": "2026-01-25" },
+    { "class": "C5.6", "date": "2026-02-02" },
+    { "class": "M2.3", "date": "2026-02-11" },
+    { "class": "C1.9", "date": "2026-02-19" },
+    { "class": "X1.2", "date": "2026-02-27" },
+    { "class": "C4.1", "date": "2026-03-06" },
+    { "class": "C2.2", "date": "2026-03-14" },
+    { "class": "M5.4", "date": "2026-03-22" },
+    { "class": "C7.8", "date": "2026-03-30" },
+    { "class": "C1.1", "date": "2026-04-08" },
+    { "class": "M1.7", "date": "2026-04-16" },
+    { "class": "C3.9", "date": "2026-04-24" },
+    { "class": "C6.3", "date": "2026-05-03" },
+    { "class": "X2.1", "date": "2026-05-12" },
+    { "class": "C2.5", "date": "2026-05-20" },
+    { "class": "M3.6", "date": "2026-05-29" },
+    { "class": "C1.6", "date": "2026-06-07" }
+  ]
+}
