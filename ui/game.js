@@ -2,7 +2,11 @@
 // Handles DOM creation, reactive updates, Sol loop, events, action preview, sound hooks, accessibility, and engine binding.
 
 import * as engine from './_stub_engine.js';
-import { playSfx } from './audio.js';
+
+const SITE_NAMES = {
+  moon: "Shackleton Crater",
+  mars: "Jezero Crater"
+};
 
 const RESOURCE_ICONS = {
   power: "⚡",
@@ -99,15 +103,26 @@ function buildActionAriaLabel(action) {
 }
 
 /**
- * Clear all ghost markers and preview delta text from resource bars.
+ * Clear ghost markers and preview text strictly via opacity/visibility (never removing DOM elements).
  */
 function clearPreview(container) {
-  container.querySelectorAll(".bar-ghost").forEach(el => el.remove());
-  container.querySelectorAll(".preview-delta").forEach(el => el.remove());
+  const previews = container.querySelectorAll(".res-col-preview");
+  previews.forEach(el => {
+    el.classList.add("res-col-preview--hidden");
+    el.classList.remove("gain", "loss");
+  });
+
+  const ghosts = container.querySelectorAll(".bar-ghost");
+  ghosts.forEach(el => {
+    el.classList.add("bar-ghost--hidden");
+    el.classList.remove("bar-ghost-gain", "bar-ghost-loss");
+    el.style.width = "0%";
+  });
 }
 
 /**
  * Display ghost markers on resource bars projecting results of an action.
+ * Toggled strictly via visibility/opacity without DOM insertion/deletion.
  */
 function showPreview(action, state, container) {
   clearPreview(container);
@@ -124,29 +139,26 @@ function showPreview(action, state, container) {
     const current = state.resources[res] || 0;
     const projected = Math.max(0, Math.min(100, current + delta));
 
-    const wrapper = container.querySelector(`#res-${res}`);
-    if (!wrapper) return;
+    const row = container.querySelector(`#res-${res}`);
+    if (!row) return;
 
-    const track = wrapper.querySelector(".bar-track");
-    const numEl = wrapper.querySelector(".resource-number");
+    const ghost = row.querySelector(".bar-ghost");
+    const previewEl = row.querySelector(".res-col-preview");
 
-    if (track) {
-      const ghost = document.createElement("div");
-      ghost.className = `bar-ghost ${delta > 0 ? "bar-ghost-gain" : "bar-ghost-loss"}`;
-
+    if (ghost) {
       const left = Math.min(current, projected);
       const width = Math.abs(projected - current);
 
       ghost.style.left = `${left}%`;
       ghost.style.width = `${width}%`;
-      track.appendChild(ghost);
+      ghost.className = `bar-ghost ${delta > 0 ? "bar-ghost-gain" : "bar-ghost-loss"}`;
+      ghost.classList.remove("bar-ghost--hidden");
     }
 
-    if (numEl) {
-      const deltaSpan = document.createElement("span");
-      deltaSpan.className = `preview-delta ${delta > 0 ? "gain" : "loss"}`;
-      deltaSpan.textContent = `➔ ${projected} (${delta > 0 ? '+' : ''}${delta})`;
-      numEl.appendChild(deltaSpan);
+    if (previewEl) {
+      previewEl.className = `res-col-preview ${delta > 0 ? "gain" : "loss"}`;
+      previewEl.textContent = `➔ ${projected} (${delta > 0 ? '+' : ''}${delta})`;
+      previewEl.classList.remove("res-col-preview--hidden");
     }
   });
 }
@@ -154,7 +166,7 @@ function showPreview(action, state, container) {
 /**
  * Display an accessible event or alert modal dialog with focus trapping and focus restore.
  */
-function showModal({ title, text, realFact, buttonText = "Acknowledge", onClose }) {
+function showModal({ title, text, realFact, buttonText = "Acknowledge", onClose, playSfx = () => {} }) {
   lastFocusedElement = document.activeElement;
 
   const backdrop = document.createElement("div");
@@ -231,7 +243,7 @@ function showModal({ title, text, realFact, buttonText = "Acknowledge", onClose 
 /**
  * Pure UI render function: synchronizes DOM with current state.
  */
-function render(state, container) {
+function render(state, container, playSfx = () => {}) {
   latestState = state;
   clearPreview(container);
 
@@ -256,23 +268,27 @@ function render(state, container) {
   const weatherBadge = container.querySelector("#weather-badge");
 
   if (solCounter) solCounter.textContent = `Sol ${state.sol} / ${state.maxSols}`;
-  if (siteName) siteName.textContent = state.site;
+  // Use SITE_NAMES map strictly for display text
+  if (siteName) siteName.textContent = SITE_NAMES[state.site] || state.site;
   if (weatherBadge) weatherBadge.innerHTML = `<span aria-hidden="true">☀️</span> ${state.weather}`;
 
-  // Resource bars update with animation
+  // Resource rows update with animation (fixed grid cells)
   for (const [key, val] of Object.entries(state.resources)) {
     const status = getResourceStatus(val);
-    const wrapper = container.querySelector(`#res-${key}`);
-    if (wrapper) {
-      const numEl = wrapper.querySelector(".resource-number");
-      const barFill = wrapper.querySelector(".bar-fill");
-      const track = wrapper.querySelector(".bar-track");
+    const row = container.querySelector(`#res-${key}`);
+    if (row) {
+      const numEl = row.querySelector(".res-num");
+      const badgeEl = row.querySelector(".status-badge");
+      const barFill = row.querySelector(".bar-fill");
+      const track = row.querySelector(".bar-track");
 
       if (numEl) {
-        numEl.innerHTML = `
-          <span>${val} / 100</span>
-          <span class="status-badge ${status.badgeClass}" aria-label="${status.ariaLabel}">${status.text}</span>
-        `;
+        numEl.textContent = `${val} / 100`;
+      }
+      if (badgeEl) {
+        badgeEl.className = `status-badge ${status.badgeClass}`;
+        badgeEl.textContent = status.text;
+        badgeEl.setAttribute("aria-label", status.ariaLabel);
       }
       if (barFill) {
         barFill.style.width = `${Math.min(100, Math.max(0, val))}%`;
@@ -287,10 +303,11 @@ function render(state, container) {
   // Scene update
   const scene = container.querySelector(".scene-view");
   if (scene) {
-    scene.dataset.planet = state.planet || "moon";
+    scene.dataset.planet = state.site || "moon";
     const overlay = scene.querySelector(".scene-overlay span");
     if (overlay) {
-      overlay.textContent = `Surface Art Viewport [${state.planet === 'mars' ? 'Mars' : 'Lunar'} Outpost]`;
+      const displayName = SITE_NAMES[state.site] || state.site;
+      overlay.textContent = `Surface Art Viewport [${displayName}]`;
     }
   }
 
@@ -324,11 +341,12 @@ function render(state, container) {
     attachPreviewListeners(cardsContainer, container);
   }
 
-  // Log panel (last 5 entries)
+  // Log panel (last 5 entries, auto-scrolled to bottom so it never grows page)
   const logList = container.querySelector("#log-list");
   if (logList) {
     const displayLogs = (state.logs || []).slice(-5);
     logList.innerHTML = displayLogs.map(entry => `<li class="log-entry">${entry}</li>`).join("");
+    logList.scrollTop = logList.scrollHeight;
   }
 }
 
@@ -384,7 +402,7 @@ function attachPreviewListeners(cardsContainer, container) {
 /**
  * Builds static shell and sets up event listeners.
  */
-function setupDOM(container, onGameEndCallback) {
+function setupDOM(container, { normalizedSite, onGameEnd, playSfx }) {
   container.innerHTML = `
     <!-- Top Bar -->
     <header class="top-bar" role="banner">
@@ -400,29 +418,30 @@ function setupDOM(container, onGameEndCallback) {
         <h2 class="panel-title">Vital Systems</h2>
         
         ${["power", "oxygen", "shielding", "food"].map(key => `
-          <div class="resource-bar-wrapper" id="res-${key}">
-            <div class="resource-header">
-              <span class="resource-icon-label">
-                <span aria-hidden="true">${RESOURCE_ICONS[key]}</span>
-                <span style="text-transform: capitalize;">${key}</span>
-              </span>
-              <span class="resource-number">--</span>
-            </div>
+          <div class="resource-row" id="res-${key}">
+            <span class="res-col-icon" aria-hidden="true">${RESOURCE_ICONS[key]}</span>
+            <span class="res-col-label-val">
+              <span class="res-name">${key}</span>
+              <span class="res-num">--</span>
+            </span>
             <div class="bar-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="${key} level">
               <div class="bar-fill" style="width: 0%"></div>
+              <div class="bar-ghost bar-ghost--hidden" aria-hidden="true"></div>
             </div>
+            <span class="status-badge nominal" aria-label="Status">--</span>
+            <span class="res-col-preview res-col-preview--hidden" aria-hidden="true"></span>
           </div>
         `).join("")}
       </aside>
 
-      <!-- Center: Scene Viewport -->
-      <section class="scene-view" data-planet="moon" aria-label="Colony Surface Viewport">
+      <!-- Center: Scene Viewport (Fixed height) -->
+      <section class="scene-view" data-planet="${normalizedSite}" aria-label="Colony Surface Viewport">
         <div class="scene-overlay">
           <span>Surface Art Viewport</span>
         </div>
       </section>
 
-      <!-- Right: Mission Log Panel -->
+      <!-- Right: Mission Log Panel (Fixed height) -->
       <aside class="log-panel" aria-label="Colony Activity Log">
         <h2 class="panel-title">Mission Log</h2>
         <ul class="log-list" id="log-list" role="log" aria-live="polite"></ul>
@@ -455,7 +474,7 @@ function setupDOM(container, onGameEndCallback) {
       playSfx("click");
       clearPreview(container);
       const newState = engine.applyAction(actionId);
-      render(newState, container);
+      render(newState, container, playSfx);
     }
   });
 
@@ -473,9 +492,9 @@ function setupDOM(container, onGameEndCallback) {
       const event = result.event || null;
 
       // Render updated state (triggers playSfx("warning") and screen reader alerts if any bar < 25)
-      render(state, container);
+      render(state, container, playSfx);
 
-      // Sound hook: Check event type
+      // Sound hook: Check event type (allowed sfx names: click, good, warning, flare, win, lose)
       if (event) {
         const titleAndText = `${event.title} ${event.text || ''}`.toLowerCase();
         if (titleAndText.includes("flare") || titleAndText.includes("solar")) {
@@ -488,22 +507,31 @@ function setupDOM(container, onGameEndCallback) {
       // Check for event popup or game conclusion
       const checkEndStatus = () => {
         if (state.status && state.status !== "playing") {
-          if (typeof onGameEndCallback === "function") {
-            onGameEndCallback(state);
+          const isWin = state.status === "won";
+          // Play win or lose sound
+          if (isWin) {
+            playSfx("win");
+          } else {
+            playSfx("lose");
           }
 
-          const isWin = state.status === "won";
+          if (typeof onGameEnd === "function") {
+            onGameEnd(state);
+          }
+
+          const displaySite = SITE_NAMES[state.site] || state.site;
           showModal({
             title: isWin ? "🏆 Mission Completed!" : "💀 Habitat Depleted",
             text: isWin
-              ? `Congratulations Commander! You survived all ${state.maxSols} Sols at ${state.site}.`
+              ? `Congratulations Commander! You survived all ${state.maxSols} Sols at ${displaySite}.`
               : "Vital systems dropped to 0%. Life support failed.",
             realFact: isWin
               ? "NASA's Artemis program plans to establish a permanent human presence on the Moon and prepare for Mars missions."
               : "In space, a loss of pressure or oxygen must be addressed in seconds to avoid catastrophic loss of life.",
             buttonText: "Restart Mission",
+            playSfx,
             onClose: () => {
-              mountGame(container, state.site, onGameEndCallback);
+              mountGame(container, { site: normalizedSite, onGameEnd, playSfx });
             }
           });
         }
@@ -515,6 +543,7 @@ function setupDOM(container, onGameEndCallback) {
           text: event.text || "An event occurred at the outpost.",
           realFact: event.realFact,
           buttonText: "Acknowledge",
+          playSfx,
           onClose: checkEndStatus
         });
       } else {
@@ -528,25 +557,40 @@ function setupDOM(container, onGameEndCallback) {
 
 /**
  * Mount the game UI into the specified DOM element.
+ * Contract signature: mountGame(container, options)
  * @param {HTMLElement} container - Root element to mount into.
- * @param {string} site - Initial site name (default: "Shackleton Crater").
- * @param {Function} onGameEnd - Callback triggered when state.status !== 'playing'.
+ * @param {Object} options - Configuration options:
+ *   - site {string}: "moon" or "mars" (default: "moon")
+ *   - onGameEnd {Function|null}: Callback triggered when state.status !== 'playing' (default: null)
+ *   - playSfx {Function}: Sound effect trigger (default: () => {})
  */
-export function mountGame(container, site = "Shackleton Crater", onGameEnd = null) {
+export function mountGame(container, options = {}) {
   if (!container) {
     console.error("mountGame: container element not found");
     return;
   }
 
+  // Destructure options with defaults as specified by the contract
+  const {
+    site = "moon",
+    onGameEnd = null,
+    playSfx = () => {}
+  } = options || {};
+
+  // Normalize site to "moon" or "mars" (default "moon")
+  const normalizedSite = (typeof site === "string" && site.toLowerCase() === "mars") ? "mars" : "moon";
+  const safePlaySfx = typeof playSfx === "function" ? playSfx : () => {};
+  const safeOnGameEnd = typeof onGameEnd === "function" ? onGameEnd : null;
+
   // Reset tracking
   previousResources = null;
 
-  // 1. Initialize new game state from engine
-  const initialState = engine.newGame(site);
+  // 1. Initialize new game state from engine (site is strictly "moon" or "mars")
+  const initialState = engine.newGame(normalizedSite);
 
   // 2. Build DOM shell & wire handlers
-  setupDOM(container, onGameEnd);
+  setupDOM(container, { normalizedSite, onGameEnd: safeOnGameEnd, playSfx: safePlaySfx });
 
   // 3. Render initial state
-  render(initialState, container);
+  render(initialState, container, safePlaySfx);
 }
