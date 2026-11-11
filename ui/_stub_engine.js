@@ -4,8 +4,7 @@
 const DEFAULT_STATE = {
   sol: 3,
   maxSols: 30,
-  site: "Shackleton Crater",
-  planet: "moon", // 'moon' or 'mars'
+  site: "moon", // strictly "moon" or "mars" as per contract
   weather: "Clear / Low Rad",
   resources: {
     power: 75,
@@ -45,7 +44,7 @@ const DEFAULT_STATE = {
     }
   ],
   logs: [
-    "Mission Sol 1: Landed safely at Shackleton Crater.",
+    "Mission Sol 1: Landed safely at colony site.",
     "Mission Sol 2: Environmental life support initiated.",
     "Mission Sol 3: Power grid nominal. Awaiting crew commands."
   ],
@@ -79,10 +78,10 @@ const SAMPLE_EVENTS = [
 let eventIndex = 0;
 let currentState = JSON.parse(JSON.stringify(DEFAULT_STATE));
 
-export function newGame(site = "Shackleton Crater") {
+export function newGame(site = "moon") {
   currentState = JSON.parse(JSON.stringify(DEFAULT_STATE));
-  currentState.site = site;
-  currentState.planet = site.toLowerCase().includes("mars") || site.toLowerCase().includes("jezero") ? "mars" : "moon";
+  const normalized = (typeof site === "string" && site.toLowerCase().includes("mars")) ? "mars" : "moon";
+  currentState.site = normalized;
   eventIndex = 0;
   return currentState;
 }
