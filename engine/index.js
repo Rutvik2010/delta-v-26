@@ -126,7 +126,7 @@ const EVENTS = [
       { id: "clean", label: "Clean the panels", text: "The panels keep working, but you lose one job today.", effects: { actionsLeft: -1 } },
       { id: "leave", label: "Leave them dusty", text: "You keep your jobs, but you lose power and food.", effects: { power: -18, food: -8 } },
     ],
-    weight: (s) => (s.site === "mars" ? 6 : 0),
+    weight: (s) => (s.site === "mars" ? 4 : 0),
   },
   {
     id: "micrometeorite",

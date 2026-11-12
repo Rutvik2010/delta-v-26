@@ -155,3 +155,61 @@ getForecast(state, 3); // [{ sol, weather, flare: { class, date } | null, real }
   it, the greedy strategy wins about 80% on the Moon and 77% on Mars.
 - `getForecast` also works without a plan. Then `real` is `false`.
 - `isNight(state)` is true during the Moon's 14-sol night.
+
+## Crew, choices, upgrades and tasks
+
+These are optional. Old calls (`applyAction(state, id)` with no crew, never
+answering an event) still work.
+
+```js
+import { newGame, getActions, applyAction, nextSol, resolveEvent,
+         getUpgrades, buyUpgrade, getTasks, getStars } from "./engine/index.js";
+
+let state = newGame("moon");
+getActions(state, "leo");                 // numbers for Leo: skill and tiredness counted
+state = applyAction(state, "grow_food", { crew: "leo", bonus: true });
+
+const out = nextSol(state);
+state = out.state;
+if (out.event && out.event.choices) {     // the event waits for the player
+  state = resolveEvent(state, out.event.choices[0].id);
+}
+state = buyUpgrade(state, "recycler");    // costs science, uses no job
+getTasks(state);                          // [{ id, label, progress, goal, reward, status }]
+getStars(state);                          // 0-3, once the mission is won
+```
+
+- **Crew:** `maya` is best at `oxygen_gen` and `reinforce_shield`, `leo` at
+  `grow_food`, `zuri` at `science`. A matching skill adds 4 to the main gain.
+  Each crew member can do one job per sol.
+- **Tired:** someone who worked (not rested) last sol gives 4 less. A rest or
+  a sol off fixes it. With 3 crew and 2 jobs, someone can always sit out.
+- **Bonus:** `opts.bonus` (the player won the job's minigame) adds 2.
+- **Choice events:** `solar_flare`, `dust_storm`, `micrometeorite` and
+  `equipment_failure` come back with `choices: [{ id, label, text, effects }]`
+  and nothing is applied yet. `state.pendingEvent` holds the event and no
+  action can be taken until `resolveEvent`. If `nextSol` is called first, the
+  second ("do nothing") choice is taken. `comm_blackout` has no choice.
+- **Upgrades** (science cost): `solar_array` 30 (rest +4 power),
+  `greenhouse2` 30 (grow food +4), `recycler` 40 (2 less oxygen drain per
+  sol), `thick_shield` 50 (Sun storms do half the shield damage).
+- **Tasks:** do 3 science jobs by sol 10 (+15 food), tend the garden 4 times
+  by sol 18 (+10 power), keep the shield above 40 from sol 9 to 15
+  (+20 science). Stars: 1 for surviving, 2 with two tasks, 3 with all three.
+- **Mars:** rest gives 3 less power, because the Sun is weaker there.
+- **New state fields:** `crew`, `upgrades`, `stats`, `tasksDone`,
+  `tasksFailed`, `pendingEvent`.
+
+### Balance now (1000 games each, `node tests/sim.js`)
+
+Daily drain is now power 3, oxygen 6, food 6, shielding 4.
+`REAL_WEATHER_SCALE` is 0.55. Moon night rest gives 12.
+
+| Weather | Site | Random | Greedy | Greedy + every minigame won |
+| --- | --- | --- | --- | --- |
+| Random | Moon | 0% | 90.0% | 100% |
+| Random | Mars | 0% | 86.0% | 100% |
+| Real May 2024 | Moon | 0% | 80.5% | 100% |
+| Real May 2024 | Mars | 0% | 74.6% | 99.8% |
+
+The tables near the top of this file show the numbers before these changes.
