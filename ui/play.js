@@ -85,7 +85,7 @@ export function startGame(app, site, plan, onEnd) {
 <div class="stage"><div class="scene" id="scene">${sceneSvg(site, "The base at " + SITES[site].place + ": solar tower, oxygen plant, home covered in soil, greenhouse, rover and crater")}
   <div class="fore"><div class="hd">Sun forecast <span class="tagreal${plan ? "" : " practice"}">${plan ? "REAL NASA, MAY 2024" : "PRACTICE"}</span></div><div class="days" id="days"></div></div>
   ${Object.keys(JOBS).map((id) => `<button class="spot" data-job="${id}" style="left:${pct(JOBS[id].spot[0], 1024)};top:${pct(JOBS[id].spot[1], 436)};--c:var(--${JOBS[id].res})"><span class="ring">${icon(JOBS[id].res)}</span><span class="lbl">${JOBS[id].short}</span></button>`).join("")}
-  ${CREW.map((c) => `<div class="walker" id="w-${c.id}" style="color:${c.color}"><span class="nm">${c.name}</span><div class="fig">${astro(c.color)}</div></div>`).join("")}
+  ${CREW.map((c) => `<div class="walker" id="w-${c.id}" style="color:${c.color}"><span class="w-timer" hidden><i class="w-fill"></i><b class="w-sec"></b></span><span class="nm">${c.name}</span><div class="fig">${astro(c.color)}</div></div>`).join("")}
   <div class="sheet" id="sheet" hidden></div>
 </div></div>
 <footer class="bar">
@@ -178,7 +178,7 @@ export function startGame(app, site, plan, onEnd) {
     const worried = RES.some((k) => g[k] < 30);
     CREW.forEach((c) => {
       const m = g.crew[c.id], w = $("w-" + c.id);
-      $("c-" + c.id).querySelector("em").textContent = m.job ? JOBS[m.job].where : m.tired ? "Tired" : "Ready";
+      $("c-" + c.id).querySelector("em").textContent = m.job ? ("Done: " + JOBS[m.job].short) : m.tired ? "Tired" : "Ready";
       $("c-" + c.id).classList.toggle("off", !!m.job);
       $("c-" + c.id).classList.toggle("tired", m.tired && !m.job);
       w.classList.toggle("sad", worried || m.tired);
@@ -248,6 +248,23 @@ export function startGame(app, site, plan, onEnd) {
     await wait(1150);
     w.classList.remove("walking"); w.classList.add("working");
     const bonus = minigamesOn ? await playMinigame(id, mars) : false;
+    const timer = w.querySelector(".w-timer");
+    const fill = timer.querySelector(".w-fill");
+    const sec = timer.querySelector(".w-sec");
+    const chipEm = $("c-" + crewId).querySelector("em");
+    timer.hidden = false;
+    fill.style.transition = "none";
+    fill.style.width = "0%";
+    void fill.offsetWidth;
+    fill.style.transition = "width 3s linear";
+    fill.style.width = "100%";
+    for (let s = 3; s >= 1; s--) {
+      sec.textContent = `${s}s`;
+      chipEm.textContent = `Working (${s}s)...`;
+      await wait(1000);
+    }
+    sec.textContent = "Done!";
+    chipEm.textContent = "Done: " + job.short;
     const before = g[job.res];
     change((s) => applyAction(s, id, { crew: crewId, bonus }));
     sfx("good");
@@ -255,6 +272,8 @@ export function startGame(app, site, plan, onEnd) {
     say = { who: who.name, line: job.line(mars), real: job.real(mars) };
     busy = false;
     draw();
+    await wait(600);
+    timer.hidden = true;
   }
 
   async function endSol() {
@@ -263,7 +282,7 @@ export function startGame(app, site, plan, onEnd) {
     closeSheet();
     sfx("click");
     say = null;
-    CREW.forEach((c) => { const w = $("w-" + c.id); w.classList.remove("working"); w.classList.add("walking"); place(w, c.home); });
+    CREW.forEach((c) => { const w = $("w-" + c.id); w.classList.remove("working"); w.classList.add("walking"); w.querySelector(".w-timer").hidden = true; place(w, c.home); });
     let event = null;
     change((s) => { const out = nextSol(s); event = out.event; return out.state; });
     const banner = document.createElement("div");
