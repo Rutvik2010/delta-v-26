@@ -96,6 +96,28 @@ async function fromEmbedded() {
   return weatherForClass(pick.class);
 }
 
+// REAL DATA: the strongest flare NASA DONKI recorded on each day of May 2024.
+// Returns one entry per sol: [{ weather, class, date }], or null if the file
+// cannot be read. Pass it to withRealWeather() in index.js.
+const REAL_URL = new URL("../data/flares_2024_05.json", import.meta.url);
+
+export async function loadRealWeather() {
+  try {
+    let data;
+    if (REAL_URL.protocol === "file:") {
+      const { readFile } = await import("node:fs/promises");
+      data = JSON.parse(await readFile(REAL_URL, "utf8"));
+    } else {
+      const res = await fetch(REAL_URL);
+      if (!res.ok) throw new Error("Real weather file answered " + res.status);
+      data = await res.json();
+    }
+    return data.days.map((d) => ({ weather: weatherForClass(d.class), class: d.class, date: d.date }));
+  } catch (error) {
+    return null;
+  }
+}
+
 // Returns { weather: "calm" | "active" | "storm", source: "live" | "embedded" }.
 // Never throws.
 export async function getSpaceWeather() {
