@@ -17,10 +17,38 @@ export function stars() {
 export function sceneSvg(site, label) {
   const m = site === "mars";
   const c = m
-    ? { sky: "#c99a6b", far: "#a8643e", mid: "#8f4e2c", near: "#74391f", rim: "#a8643e", pit: "#5a2a16", berm: "#8f4e2c", berm2: "#a8643e" }
+    ? { sky: "#b8764a", far: "#a8643e", mid: "#8f4e2c", near: "#74391f", rim: "#a8643e", pit: "#5a2a16", berm: "#8f4e2c", berm2: "#a8643e" }
     : { sky: "#05070f", far: "#a3a9b8", mid: "#868c9b", near: "#666c7b", rim: "#a3a9b8", pit: "#0a0c12", berm: "#868c9b", berm2: "#a3a9b8" };
+  const bgImg = m ? "./assets/bg-mars.png" : "./assets/bg-moon.png";
   return `<svg viewBox="0 0 1024 436" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(label)}">
+<defs>
+  <linearGradient id="hudShade" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#05070f" stop-opacity="0.8"/>
+    <stop offset="30%" stop-color="#05070f" stop-opacity="0.35"/>
+    <stop offset="60%" stop-color="#05070f" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="marsSkyGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#5a2c14" stop-opacity="0.85"/>
+    <stop offset="35%" stop-color="#8c4e28" stop-opacity="0.45"/>
+    <stop offset="70%" stop-color="#b8764a" stop-opacity="0.1"/>
+    <stop offset="100%" stop-color="#000000" stop-opacity="0.4"/>
+  </linearGradient>
+  <linearGradient id="moonSkyGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#020308" stop-opacity="0.95"/>
+    <stop offset="50%" stop-color="#05070f" stop-opacity="0.7"/>
+    <stop offset="100%" stop-color="#000000" stop-opacity="0.5"/>
+  </linearGradient>
+  <linearGradient id="marsHorizonHaze" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#b8764a" stop-opacity="0"/>
+    <stop offset="65%" stop-color="#a8643e" stop-opacity="0.3"/>
+    <stop offset="100%" stop-color="#a8643e" stop-opacity="0.6"/>
+  </linearGradient>
+</defs>
 <rect width="1024" height="436" fill="${c.sky}"/>
+<image href="${bgImg}" x="0" y="${m ? -45 : -35}" width="1024" height="${m ? 430 : 420}" preserveAspectRatio="xMidYMid slice" opacity="${m ? 0.85 : 0.65}"/>
+<rect width="1024" height="436" fill="${m ? "url(#marsSkyGrad)" : "url(#moonSkyGrad)"}"/>
+<rect width="1024" height="130" fill="url(#hudShade)"/>
+${m ? `<rect x="0" y="140" width="1024" height="100" fill="url(#marsHorizonHaze)"/>` : ""}
 ${m ? "" : stars() + `<line class="shoot" x1="980" y1="20" x2="560" y2="190" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`}
 <g class="sun"><circle class="sunglow" cx="70" cy="212" r="44" fill="#fff6d6" opacity=".18"/><circle cx="70" cy="212" r="${m ? 17 : 26}" fill="#fff6d6"/>
 <g class="streaks" stroke="#ffb27a" stroke-width="3" stroke-linecap="round"><line x1="90" y1="200" x2="520" y2="120"/><line x1="90" y1="214" x2="540" y2="190"/><line x1="90" y1="226" x2="500" y2="250"/><line x1="90" y1="190" x2="460" y2="60"/></g></g>
