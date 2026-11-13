@@ -4,6 +4,7 @@ import { newGame, getActions, applyAction, nextSol, resolveEvent, getUpgrades, b
 import { playSfx } from "./audio.js";
 import { playMinigame } from "./minigames.js";
 import { astro, sceneSvg, esc } from "./scene.js";
+import { addTooltips } from "../content/tooltips.js";
 
 export const RES = ["power", "oxygen", "shielding", "food"];
 export const NAMES = { power: "Power", oxygen: "Oxygen", shielding: "Shield", food: "Food", science: "Science" };
@@ -59,7 +60,7 @@ const pct = (v, of) => (v / of * 100).toFixed(2) + "%";
 const icon = (k) => `<svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONS[k]}"/></svg>`;
 const sign = (n) => (n > 0 ? "+" : "−") + Math.abs(n);
 // { power: -8, actionsLeft: -1 } -> ["−8 Power", "−1 job today"]
-export const effectList = (fx) => Object.keys(fx).map((k) => (k === "actionsLeft" ? sign(fx[k]) + " job today" : sign(fx[k]) + " " + NAMES[k]));
+export const effectList = (fx = {}) => Object.keys(fx || {}).map((k) => (k === "actionsLeft" ? sign(fx[k]) + " job today" : sign(fx[k]) + " " + (NAMES[k] || k)));
 
 let minigamesOn = true;
 
@@ -83,7 +84,7 @@ export function startGame(app, site, plan, onEnd) {
   <div class="meters">${RES.map((k) => `<div class="meter" id="m-${k}" style="--c:var(--${k})"><div class="top">${icon(k)}<span class="nm">${NAMES[k]}</span><span class="lowtxt"></span><span class="val">0</span><span class="delta"></span></div><div class="track"><div class="ghost"></div><div class="fill"></div></div></div>`).join("")}</div>
 </header>
 <div class="stage"><div class="scene" id="scene">${sceneSvg(site, "The base at " + SITES[site].place + ": solar tower, oxygen plant, home covered in soil, greenhouse, rover and crater")}
-  <div class="fore"><div class="hd">Sun forecast <span class="tagreal${plan ? "" : " practice"}">${plan ? "REAL NASA, MAY 2024" : "PRACTICE"}</span></div><div class="days" id="days"></div></div>
+  <div class="fore"><div class="hd">Sun forecast <span class="tagreal${plan ? "" : " practice"}">${plan ? "REAL NASA 2026" : "PRACTICE"}</span></div><div class="days" id="days"></div></div>
   ${Object.keys(JOBS).map((id) => `<button class="spot" data-job="${id}" style="left:${pct(JOBS[id].spot[0], 1024)};top:${pct(JOBS[id].spot[1], 436)};--c:var(--${JOBS[id].res})"><span class="ring">${icon(JOBS[id].res)}</span><span class="lbl">${JOBS[id].short}</span></button>`).join("")}
   ${CREW.map((c) => `<div class="walker" id="w-${c.id}" style="color:${c.color}"><span class="w-timer" hidden><i class="w-fill"></i><b class="w-sec"></b></span><span class="nm">${c.name}</span><div class="fig">${astro(c.color)}</div></div>`).join("")}
   <div class="sheet" id="sheet" hidden></div>
@@ -183,7 +184,7 @@ export function startGame(app, site, plan, onEnd) {
       $("c-" + c.id).classList.toggle("tired", m.tired && !m.job);
       w.classList.toggle("sad", worried || m.tired);
     });
-    scene.className = "scene weather-" + g.weather + (isNight(g) ? " night" : "") + g.upgrades.map((u) => " has-" + u).join("");
+    scene.className = "scene site-" + site + " weather-" + g.weather + (isNight(g) ? " night" : "") + g.upgrades.map((u) => " has-" + u).join("");
     const dome = scene.querySelector(".dome");
     dome.style.opacity = (0.15 + g.shielding / 100 * 0.85).toFixed(2);
     dome.classList.toggle("weak", g.shielding < 30);
@@ -300,27 +301,31 @@ export function startGame(app, site, plan, onEnd) {
   }
 
   // The event card. Events with choices wait for the player to pick one.
-  function showEvent(ev) {
+  function showEvent(ev = {}) {
     facts += 1;
     sfx(ev.id === "solar_flare" ? "flare" : "warning");
     scene.classList.add("shake");
     setTimeout(() => scene.classList.remove("shake"), 500);
     const date = ev.flare ? new Date(ev.flare.date + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) : "";
-    const chips = (fx) => effectList(fx).map((c) => `<span class="chip">${esc(c)}</span>`).join("");
+    const chips = (fx) => effectList(fx || {}).map((c) => `<span class="chip">${esc(c)}</span>`).join("");
+    const choices = ev.choices || [{ label: "Continue", effects: ev.effects || {} }];
+    const hasChoices = Boolean(ev.choices && Array.isArray(ev.choices) && ev.choices.length > 0);
     const veil = document.createElement("div");
     veil.className = "veil";
     veil.innerHTML = `<section class="event" role="dialog" aria-modal="true" aria-labelledby="evt">
 <div class="head"><svg viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="26" fill="#ffc93c"/><path d="M48 10V2M48 94v-8M10 48H2M94 48h-8M21 21l-6-6M81 81l-6-6M21 75l-6 6M81 15l-6 6" stroke="#ff9a5c" stroke-width="6" stroke-linecap="round"/><path d="M48 34v18M48 60v3" stroke="#0b1026" stroke-width="7" stroke-linecap="round"/></svg>
-<div><div class="kicker" style="color:var(--warn)">SOL ${g.sol} EVENT</div><h2 id="evt">${esc(ev.title)}</h2></div></div>
-<p>${esc(ev.text)}</p>
+<div><div class="kicker" style="color:var(--warn)">SOL ${g.sol} EVENT</div><h2 id="evt">${esc(ev.title || "Mission Event")}</h2></div></div>
+<p>${esc(ev.text || "")}</p>
 ${ev.flare ? `<div class="realline"><span class="tagreal">REAL NASA DATA</span><span>Class ${esc(ev.flare.class)} flare, recorded on ${esc(date)}</span></div>` : ""}
-${ev.choices
-    ? `<div class="choices">${ev.choices.map((c) => `<button class="choice" data-choice="${esc(c.id)}"><b>${esc(c.label)}</b><span>${esc(c.text)}</span><span class="chips">${chips(c.effects)}</span></button>`).join("")}</div>`
-    : `<div class="chips">${chips(ev.effects)}</div>`}
-<div class="fact"><b>Did you know? This is real!</b><span>${esc(ev.realFact)}</span></div>
-${ev.choices ? "" : `<button class="btn" data-ok>Got it! Back to the base</button>`}</section>`;
+${hasChoices
+    ? `<div class="choices">${choices.map((c) => `<button class="choice" data-choice="${esc(c.id || "continue")}"><b>${esc(c.label || "Continue")}</b><span>${esc(c.text || "")}</span><span class="chips">${chips(c.effects || {})}</span></button>`).join("")}</div>`
+    : `<div class="chips">${chips(ev.effects || {})}</div>`}
+<div class="fact"><b>Did you know? This is real!</b><span>${esc(ev.realFact || "")}</span></div>
+${hasChoices ? "" : `<button class="btn" data-ok>Got it! Back to the base</button>`}</section>`;
     document.body.appendChild(veil);
-    veil.querySelector("button").focus();
+    try { addTooltips(veil); } catch (e) {}
+    const firstBtn = veil.querySelector("button");
+    if (firstBtn) firstBtn.focus();
     return new Promise((done) => {
       const close = () => { sfx("click"); veil.remove(); done(); };
       veil.querySelectorAll("[data-choice]").forEach((b) => b.addEventListener("click", () => { change((s) => resolveEvent(s, b.dataset.choice)); close(); }));
@@ -358,6 +363,7 @@ ${getUpgrades(g).map((u) => `<div class="upcard${u.owned ? " owned" : ""}"><b>${
         draw();
       }));
     }
+    try { addTooltips(d); } catch (e) {}
     d.querySelector(".x").addEventListener("click", () => { d.hidden = true; });
   }
 

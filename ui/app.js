@@ -6,19 +6,26 @@ import { loadRealWeather } from "../engine/donki.js";
 import { playSfx } from "./audio.js";
 import { astro, sceneSvg, skyBackdrop, esc } from "./scene.js";
 import { startGame, SITES, CREW, RES } from "./play.js";
+import { addTooltips } from "../content/tooltips.js";
 
 const app = document.getElementById("app");
 const sfx = (name) => { try { playSfx(name); } catch (e) { /* sound is optional */ } };
-const TIPS = {
-  power: "Rest when power gets low. Every machine at the base needs power to run.",
-  oxygen: "Run the oxygen plant before the air gets thin. It needs power, so keep the batteries charged.",
-  shielding: "Check the Sun forecast. Pile soil on the base before a storm arrives.",
-  food: "Send someone to the garden often. Resting uses up food too.",
-};
+
+let lessonsData = null;
+async function getLessons() {
+  if (lessonsData) return lessonsData;
+  try {
+    const res = await fetch("./content/lessons.json");
+    if (res.ok) lessonsData = await res.json();
+  } catch (e) { /* ignore */ }
+  return lessonsData || {};
+}
+
 const STAR = "M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.5 6.1 20.7l1.2-6.6L2.5 9.5l6.6-.9z";
 
 function menu(inner, wide) {
   app.innerHTML = `<main class="menu">${skyBackdrop()}<section class="card${wide ? " wide" : ""}">${inner}</section></main>`;
+  try { addTooltips(app); } catch (e) {}
 }
 
 function bindGo() {
@@ -53,7 +60,7 @@ async function showBriefing(site) {
 ${crewCards(true)}
 <div class="note"><div><b>How to play</b>Tap a building, then pick who to send. Each astronaut is best at their own job, and gets tired if they work two sols in a row. Win the little task for a bonus!</div></div>
 <div class="note"><div>${plan
-    ? `<b>The Sun in this mission is real</b>Every Sun storm you face really happened in May 2024. NASA recorded them all.`
+    ? `<b>The Sun in this mission is real</b>Every solar flare you face was recorded by NASA DONKI in autumn 2026.`
     : `<b>Practice weather</b>The real NASA records could not be loaded, so this mission uses made-up Sun weather.`}</div></div>
 <div class="row"><button class="btn ghost" data-go="sites">Back</button><button class="btn" id="go">Start the mission</button></div>`);
   bindGo();
@@ -69,7 +76,8 @@ async function showCredits() {
   bindGo();
 }
 
-function showEnd(g, site, facts) {
+async function showEnd(g, site, facts) {
+  const lessons = await getLessons();
   const won = g.status === "won";
   const empty = RES.find((k) => g[k] <= 0) || "power";
   const tasks = getTasks(g).filter((t) => t.status === "done").length;
@@ -77,15 +85,21 @@ function showEnd(g, site, facts) {
   const stats = `<div class="stats"><div class="stat"><b style="color:var(--gold)">${g.sol}</b><span>sols survived</span></div><div class="stat"><b style="color:var(--food)">${tasks} / 3</b><span>tasks done</span></div><div class="stat"><b style="color:var(--science)">${(g.stats && g.stats.scienceEarned) || 0}</b><span>science earned</span></div><div class="stat"><b style="color:var(--oxygen)">${facts}</b><span>real facts seen</span></div></div>`;
   if (won) {
     sfx("good");
+    const wonList = lessons?.won || [];
+    const lesson = wonList[Math.floor(Math.random() * wonList.length)] || "Great teamwork keeping your crew safe!";
     menu(`<div class="starrow" role="img" aria-label="${stars} out of 3 stars">${[1, 2, 3].map((n) => `<svg class="star${n <= stars ? " on" : ""}" style="animation-delay:${n * 0.25}s" viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR}"/></svg>`).join("")}</div>
 <div class="kicker" style="text-align:center">MISSION COMPLETE</div><h1 style="text-align:center">Junior Astronaut</h1>
 <p style="text-align:center">You kept Maya, Leo and Zuri safe at ${SITES[site].place} for 30 sols. The supply ship has landed!${stars < 3 ? " Finish all three Mission Control tasks to earn 3 stars." : ""}</p>${stats}
+<div class="note"><div><b>NASA Mission Lesson</b>${esc(lesson)}</div></div>
 <div class="row"><button class="btn ghost" data-go="sites">Try the other world</button><button class="btn" id="again">Play again</button></div>`);
   } else {
     sfx("warning");
+    const lossKey = "lost_" + empty;
+    const lossList = lessons?.[lossKey] || [];
+    const tip = lossList[Math.floor(Math.random() * lossList.length)] || "Keep your supplies balanced.";
     menu(`<div class="kicker" style="color:var(--muted)">MISSION OVER ON SOL ${g.sol}</div><h1>Time to head home</h1>
 <p class="reason">${esc(g.lossReason || "The mission ended early.")}</p>
-<div class="note"><div><b>Tip for next time</b>${TIPS[empty]}</div></div>${stats}
+<div class="note"><div><b>NASA Mission Lesson</b>${esc(tip)}</div></div>${stats}
 <div class="row"><button class="btn ghost" data-go="sites">Change world</button><button class="btn" id="again">Try again</button></div>`);
   }
   bindGo();
@@ -93,3 +107,6 @@ function showEnd(g, site, facts) {
 }
 
 showTitle();
+
+export { showTitle, showTitle as mount };
+
