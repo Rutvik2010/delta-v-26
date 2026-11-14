@@ -96,19 +96,24 @@ async function fromEmbedded() {
   return weatherForClass(pick.class);
 }
 
-// REAL DATA: the strongest flare NASA DONKI recorded on each day of May 2024.
+// REAL DATA: solar flare records from NASA DONKI.
+// Two datasets available: "may2024" (default) and "recent" (last 30 days).
 // Returns one entry per sol: [{ weather, class, date }], or null if the file
 // cannot be read. Pass it to withRealWeather() in index.js.
-const REAL_URL = new URL("../data/flares_2024_05.json", import.meta.url);
+const DATASET_URLS = {
+  may2024: new URL("../data/flares_2024_05.json", import.meta.url),
+  recent: new URL("../data/flares_recent_2026.json", import.meta.url),
+};
 
-export async function loadRealWeather() {
+export async function loadRealWeather(dataset = "may2024") {
   try {
+    const targetUrl = DATASET_URLS[dataset] || DATASET_URLS.may2024;
     let data;
-    if (REAL_URL.protocol === "file:") {
+    if (targetUrl.protocol === "file:") {
       const { readFile } = await import("node:fs/promises");
-      data = JSON.parse(await readFile(REAL_URL, "utf8"));
+      data = JSON.parse(await readFile(targetUrl, "utf8"));
     } else {
-      const res = await fetch(REAL_URL);
+      const res = await fetch(targetUrl);
       if (!res.ok) throw new Error("Real weather file answered " + res.status);
       data = await res.json();
     }

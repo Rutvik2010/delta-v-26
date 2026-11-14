@@ -45,8 +45,10 @@ delta-v-26/
 │   ├── lessons.json
 │   ├── terms.json
 │   └── tooltips.js
-├── data/            # Fallback solar weather dataset from NASA DONKI
-│   └── space_weather_fallback.json
+├── data/            # Real DONKI flare data replayed from saved snapshots, plus offline fallback
+│   ├── flares_2024_05.json       # Real May 2024 solar storm snapshot
+│   ├── flares_recent_2026.json   # Real 30-day snapshot (Oct–Nov 2026)
+│   └── space_weather_fallback.json # Made-up offline fallback used only if data files fail to load
 ├── docs/            # Documentation & design verification screenshots
 │   └── ui-shots/    # Screen captures at 390px and 1366px viewports
 ├── engine/          # Game logic & solar flare simulation engine
@@ -68,7 +70,7 @@ delta-v-26/
 
 ## Data Credits
 
-- **NASA CCMC DONKI (Space Weather Database Of Notifications, Knowledge, Information):** Solar flare (FLR) and coronal mass ejection (CME) records.
+- **NASA CCMC DONKI (Space Weather Database Of Notifications, Knowledge, Information):** Solar flare (FLR) records replayed from saved snapshots: historic May 2024 solar storms and a 30-day snapshot to 13 Nov 2026. A made-up offline fallback is used only if data files fail to load.
 - **NASA Space Apps 2026 Challenge:** Mission scenario concepts for lunar south pole exploration (Artemis program) and Mars Jezero crater exploration (Perseverance rover).
 
 ---

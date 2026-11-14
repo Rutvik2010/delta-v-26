@@ -30,7 +30,7 @@
     "live": false
   },
   {
-    "name": "NASA CCMC DONKI solar flare data (live feed)",
+    "name": "NASA CCMC DONKI solar flare records: May 2024 and a 30-day snapshot to 13 Nov 2026",
     "url": "https://ccmc.gsfc.nasa.gov/tools/DONKI/",
     "live": true
   },

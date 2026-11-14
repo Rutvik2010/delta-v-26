@@ -68,6 +68,29 @@ const sign = (n) => (n > 0 ? "+" : "−") + Math.abs(n);
 // { power: -8, actionsLeft: -1 } -> ["−8 Power", "−1 job today"]
 export const effectList = (fx = {}) => Object.keys(fx || {}).map((k) => (k === "actionsLeft" ? sign(fx[k]) + " job today" : sign(fx[k]) + " " + (NAMES[k] || k)));
 
+/* data modes */
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function parseIsoParts(iso) {
+  if (!iso) return null;
+  const [y, m, d] = iso.split("-").map(Number);
+  return { year: y, month: m, day: d, monthName: MONTHS_SHORT[m - 1] };
+}
+
+function formatWeatherBadge(plan) {
+  if (!plan || !Array.isArray(plan) || plan.length === 0) return "PRACTICE";
+  const a = parseIsoParts(plan[0]?.date);
+  const b = parseIsoParts(plan[plan.length - 1]?.date);
+  if (!a || !b) return "PRACTICE";
+  if (plan.dataset === "recent" || a.year === 2026 || b.year === 2026) {
+    const monthSpan = (a.year === b.year && a.month === b.month)
+      ? a.monthName.toUpperCase()
+      : `${a.monthName.toUpperCase()}–${b.monthName.toUpperCase()}`;
+    return `REAL NASA DATA: ${monthSpan} ${b.year} (LAST 30 DAYS)`;
+  }
+  return `REAL NASA DATA: ${a.monthName.toUpperCase()} ${a.year}`;
+}
+
 let minigamesOn = true;
 
 export function startGame(app, site, plan, onEnd) {
@@ -93,7 +116,7 @@ export function startGame(app, site, plan, onEnd) {
   <div class="fore" id="fore" role="region" aria-label="Sun forecast">
     <div class="hd" id="fore-hd">
       <span class="fore-title">Sun forecast</span>
-      <span class="tagreal${plan ? "" : " practice"}">${plan ? "REAL NASA 2026" : "PRACTICE"}</span>
+      <span class="tagreal${plan ? "" : " practice"}">${formatWeatherBadge(plan)}</span>
       <span class="fore-summary" id="fore-sum"></span>
       <button class="fore-toggle" id="fore-toggle" type="button" aria-expanded="false" aria-label="Toggle forecast details">▼</button>
     </div>
