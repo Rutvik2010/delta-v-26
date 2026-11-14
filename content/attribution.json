@@ -28,5 +28,40 @@
     "name": "ESA Human and Robotic Exploration Archive",
     "url": "https://www.esa.int/Science_Exploration/Human_and_Robotic_Exploration",
     "live": false
+  },
+  {
+    "name": "NASA CCMC DONKI solar flare data (live feed)",
+    "url": "https://ccmc.gsfc.nasa.gov/tools/DONKI/",
+    "live": true
+  },
+  {
+    "name": "Fredoka font (SIL Open Font License)",
+    "url": "https://github.com/google/fonts/blob/main/ofl/fredoka/OFL.txt",
+    "live": true
+  },
+  {
+    "name": "Nunito font (SIL Open Font License)",
+    "url": "https://github.com/google/fonts/blob/main/ofl/nunito/OFL.txt",
+    "live": true
+  },
+  {
+    "name": "Archivo font (planned; SIL Open Font License)",
+    "url": "https://github.com/google/fonts/blob/main/ofl/archivo/OFL.txt",
+    "live": false
+  },
+  {
+    "name": "IBM Plex Mono font (planned; SIL Open Font License)",
+    "url": "https://github.com/google/fonts/blob/main/ofl/ibmplexmono/OFL.txt",
+    "live": false
+  },
+  {
+    "name": "Mars background assets/bg-mars.png \u2014 source and license unverified",
+    "url": "",
+    "live": false
+  },
+  {
+    "name": "Sound effects \u2014 synthesized in ui/audio.js; no third-party sound files",
+    "url": "",
+    "live": false
   }
 ]

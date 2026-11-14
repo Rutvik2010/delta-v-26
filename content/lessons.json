@@ -2,26 +2,51 @@
   "won": [
     "Balancing life support systems early creates a critical safety cushion for unforeseen space hazards.",
     "Every operational decision in space exploration carries a real cost in power, oxygen, or shielding.",
-    "Careful resource stewardship allows human scientific research to thrive even on hostile worlds."
+    "Careful resource stewardship allows human scientific research to thrive even on hostile worlds.",
+    "Checking air, water, and power before trouble starts gives the crew more time to respond.",
+    "Saving power before the long lunar night helps equipment keep working when sunlight is gone.",
+    "Recycling water stretches the supplies a crew can carry from Earth.",
+    "A protected shelter gives astronauts a safer place to wait during a solar radiation storm.",
+    "Keeping spare supplies and repair plans ready helps a distant crew handle surprises together."
   ],
   "lost_oxygen": [
     "Colony air recycling loops must remain airtight; even small leaks or scrubber faults threaten crew survival.",
     "Humans consume oxygen every single second, making scrubber maintenance and backup tanks top priorities.",
-    "When oxygen levels drop, astronaut focus and energy fall rapidly, making emergency repairs much harder."
+    "When oxygen levels drop, astronaut focus and energy fall rapidly, making emergency repairs much harder.",
+    "Astronauts breathe oxygen and breathe out carbon dioxide, so cabin air needs both oxygen supply and carbon dioxide removal.",
+    "A working oxygen generator can split water to make breathable oxygen.",
+    "Air filters and carbon dioxide removal equipment need maintenance to keep cabin air safe.",
+    "A leak can lower cabin pressure, so checking seals is part of protecting the air supply.",
+    "Backup air supplies give the crew time to repair life support equipment."
   ],
   "lost_power": [
     "Extraterrestrial power grids depend on solar arrays that must be protected from dust, shadows, and freezing cold.",
-    "Power drives life support, heating, and oxygen generation—without electricity, all other colony systems shut down.",
-    "Managing battery reserves is essential to endure long planetary nights and solar eclipses."
+    "Power drives life support, heating, and oxygen generation\u2014without electricity, all other colony systems shut down.",
+    "Managing battery reserves is essential to endure long planetary nights and solar eclipses.",
+    "On much of the Moon, night lasts about 14 Earth days, so solar panels need stored power for the dark.",
+    "Dust can reduce the sunlight reaching solar panels on Mars.",
+    "Life support equipment needs electricity to make oxygen and clean water.",
+    "Grow lights need power to help plants produce food indoors.",
+    "Keeping a power reserve helps the crew handle equipment problems before batteries run out."
   ],
   "lost_food": [
     "Hydroponic plants require carefully regulated light, moisture, and radiation shielding to produce calories.",
     "Deep space outposts are too distant for emergency supply drops, making continuous food conservation essential.",
-    "Maintaining stable nutrition is required to keep astronaut energy, immune health, and mission morale high."
+    "Maintaining stable nutrition is required to keep astronaut energy, immune health, and mission morale high.",
+    "Plants need light, water, air, and nutrients to grow food in a space garden.",
+    "NASA grows some fresh vegetables on the space station, but crews still need stored food.",
+    "Careful watering keeps plant roots from drying out or drowning.",
+    "Recycled water can support drinking and food preparation while reducing waste.",
+    "Keeping extra food makes it easier to handle a missed harvest or delayed resupply."
   ],
   "lost_shielding": [
     "Cosmic rays and solar storms deliver dangerous radiation doses unless stopped by thick regolith or water barriers.",
     "Shielding degradation exposes both astronaut cells and fragile computer microchips to permanent damage.",
-    "Subsurface habitats and storm bunkers are essential protections against relentless deep-space radiation."
+    "Subsurface habitats and storm bunkers are essential protections against relentless deep-space radiation.",
+    "Space radiation comes from the Sun and from beyond our solar system, so crews need places with stronger protection.",
+    "Water can be placed around a living area to help block some space radiation.",
+    "A shelter with extra shielding can protect astronauts during a solar particle storm.",
+    "The Moon has little atmospheric protection, so habitat walls must help shield the crew.",
+    "Radiation protection needs to be planned before astronauts travel far from Earth."
   ]
 }
