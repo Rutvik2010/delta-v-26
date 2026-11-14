@@ -62,8 +62,8 @@ The engine has already applied the effects to the state it returns.
 
 Each sol:
 
-- **Daily drain:** power 2, oxygen 5, food 5, shielding 3.
-- **Weather:** calm 60%, active 28%, storm 12%. Active drains 3 more shielding, storm 7 more.
+- **Daily drain:** power 3, oxygen 7, food 7, shielding 4.
+- **Weather:** with real weather, each sol takes that day's real flare class. With practice (random) weather: calm 74%, active 23%, storm 3%. Active drains 3 more shielding, storm 7 more.
 - **Sick crew:** if shielding is under 30 in active or storm weather, food and
   oxygen drop by 4 more (active) or 6 more (storm).
 - **Moon:** sols 1-14 are day, sols 15-28 are night. Rest gives less power at night.
@@ -130,29 +130,39 @@ const { weather, source } = await getSpaceWeather();
 - It never throws.
 - The engine does not call it. To start a game with today's weather:
   `state = { ...newGame(site), weather }`. After sol 1 the engine rolls its own.
-- The real dataset mapping comes after 13 Nov. See the TODO comments.
 
-## Real space weather (May 2024)
+## Real space weather
 
 ```js
 import { newGame, withRealWeather, getForecast, isNight } from "./engine/index.js";
 import { loadRealWeather } from "./engine/donki.js";
 
-const plan = await loadRealWeather();          // null if the file cannot be read
+const plan = await loadRealWeather("recent"); // or "may2024"; null if the file cannot be read
 let state = newGame("moon");
 if (plan) state = withRealWeather(state, plan);
 getForecast(state, 3); // [{ sol, weather, flare: { class, date } | null, real }]
 ```
 
-- `data/flares_2024_05.json` is **REAL data**: the strongest flare NASA DONKI
-  recorded on each day of May 2024. Sol 1 is 1 May, sol 30 is 30 May.
-- `withRealWeather(state, plan)` adds one more field to the state,
-  `weatherPlan`. `nextSol` then uses that day's real weather, not a random roll.
+Two real months are saved in `/data`. Each is the strongest flare NASA DONKI
+recorded on each day, one day per sol:
+
+| Name | File | Days | Calm / active / storm |
+| --- | --- | --- | --- |
+| `"recent"` (the briefing screen's default) | `flares_recent_2026.json` | 15 Oct to 13 Nov 2026 | 24 / 6 / 0 |
+| `"may2024"` | `flares_2024_05.json` | 1 to 30 May 2024 | 5 / 13 / 12 |
+
+- Autumn 2026 was quiet: no X-class flares, so no storm days. That is the real
+  Sun, so it is not made stormier. May 2024 was the strongest storm in 20 years.
+- `withRealWeather(state, plan)` adds `weatherPlan` and `weatherScale` to the
+  state. `nextSol` then uses that day's real weather, not a random roll.
+- **Storm scale:** the engine works out how stormy the month is. A quiet month
+  hits at full strength (`weatherScale` 1). A very stormy month (more than 20
+  "storm points", where an active day is 1 and a storm day is 2) is softened to
+  0.3 (`STORMY_MONTH_SCALE`), so a careful crew can still win. May 2024 has 37
+  points, autumn 2026 has 6.
 - A `solar_flare` event in a real-weather game carries `event.flare`
-  (`{ class, date }`) so the UI can show which real flare it was.
-- May 2024 was very stormy (12 storm days, 13 active). Storm damage is scaled
-  by `REAL_WEATHER_SCALE` (0.65) in real-weather games to keep it fair. With
-  it, the greedy strategy wins about 80% on the Moon and 77% on Mars.
+  (`{ class, date }`) so the UI can show which real flare it was. Flare events
+  only happen on active or storm days, so in a quiet month they are rare.
 - `getForecast` also works without a plan. Then `real` is `false`.
 - `isNight(state)` is true during the Moon's 14-sol night.
 
@@ -187,9 +197,10 @@ getStars(state);                          // 0-3, once the mission is won
 - **Bonus:** `opts.bonus` (the player won the job's minigame) adds 2.
 - **Choice events:** `solar_flare`, `dust_storm`, `micrometeorite` and
   `equipment_failure` come back with `choices: [{ id, label, text, effects }]`
-  and nothing is applied yet. `state.pendingEvent` holds the event and no
-  action can be taken until `resolveEvent`. If `nextSol` is called first, the
-  second ("do nothing") choice is taken. `comm_blackout` has no choice.
+  and nothing is applied yet. `state.pendingEvent` holds the event. Call
+  `resolveEvent` to answer it. If `applyAction` or `nextSol` is called first,
+  the second ("do nothing") choice is taken, so a caller that does not know about
+  choices can never get stuck. `comm_blackout` has no choice.
 - **Upgrades** (science cost): `solar_array` 30 (rest +4 power),
   `greenhouse2` 30 (grow food +4), `recycler` 40 (2 less oxygen drain per
   sol), `thick_shield` 50 (Sun storms do half the shield damage).
@@ -202,14 +213,19 @@ getStars(state);                          // 0-3, once the mission is won
 
 ### Balance now (1000 games each, `node tests/sim.js`)
 
-Daily drain is now power 3, oxygen 6, food 6, shielding 4.
-`REAL_WEATHER_SCALE` is 0.55. Moon night rest gives 12.
+Daily drain is power 3, oxygen 7, food 7, shielding 4. Practice weather is
+74% calm, 23% active, 3% storm, to match a quiet real month. Moon night rest
+gives 12. The storm scale is set per month (see above).
 
-| Weather | Site | Random | Greedy | Greedy + every minigame won |
-| --- | --- | --- | --- | --- |
-| Random | Moon | 0% | 90.0% | 100% |
-| Random | Mars | 0% | 86.0% | 100% |
-| Real May 2024 | Moon | 0% | 80.5% | 100% |
-| Real May 2024 | Mars | 0% | 74.6% | 99.8% |
+| Weather | Site | Random | Greedy |
+| --- | --- | --- | --- |
+| Real recent (autumn 2026) | Moon | 0% | 82.8% |
+| Real recent (autumn 2026) | Mars | 0% | 77.8% |
+| Real May 2024 | Moon | 0% | 87.5% |
+| Real May 2024 | Mars | 0% | 84.3% |
+| Practice (random) | Moon | 0% | 77.4% |
+| Practice (random) | Mars | 0% | 74.7% |
 
-The tables near the top of this file show the numbers before these changes.
+"Greedy" sends the best-matched crew member and picks the better event choice.
+A player who also wins every minigame wins almost every game. The tables near
+the top of this file show older numbers from before these changes.

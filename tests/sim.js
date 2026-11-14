@@ -1,6 +1,7 @@
 // Delta-V 26 balance simulator.
 // Plays 1000 games per strategy on each site, with random weather and with
-// the real May 2024 weather, and prints win rates.
+// the two real months the game offers (recent autumn 2026, and the May 2024
+// storms), and prints win rates. All three weather types are judged.
 // Run from the project root:  node tests/sim.js
 // Needs Node 22.12 or newer. No packages.
 
@@ -114,6 +115,19 @@ function checkEngine() {
   for (let i = 0; i < 40 && old.status === "playing"; i++) { old = applyAction(old, "rest"); old = nextSol(old).state; }
   if (old.status === "playing") problems.push("Old-style calls got stuck.");
 
+  // A caller that loops "while actions are left" and never answers events must not hang.
+  // (tests/extra.js plays this way.) Each sol gets at most 50 tries.
+  let naive = newGame("mars", 4), stuck = false;
+  for (let sol = 0; sol < 40 && naive.status === "playing" && !stuck; sol++) {
+    let tries = 0;
+    while (naive.actionsLeft > 0 && naive.status === "playing") {
+      naive = applyAction(naive, "rest");
+      if (++tries > 50) { stuck = true; break; }
+    }
+    if (!stuck) naive = nextSol(naive).state;
+  }
+  if (stuck) problems.push("A simple 'while actions are left' loop got stuck on a waiting event.");
+
   // Skill and tiredness.
   const skilled = getActions(start, "zuri").find((x) => x.id === "science").gain.science;
   const plain = getActions(start, "leo").find((x) => x.id === "science").gain.science;
@@ -130,14 +144,16 @@ function pad(text, width) {
 // ---- Run ----
 
 const problems = checkEngine();
-const plan = await loadRealWeather();
-if (!plan) problems.push("Could not load data/flares_2024_05.json.");
+const plans = { autumn: await loadRealWeather("recent"), may: await loadRealWeather("may2024") };
+if (!plans.autumn) problems.push("Could not load data/flares_recent_2026.json.");
+if (!plans.may) problems.push("Could not load data/flares_2024_05.json.");
 const results = {};
+const JUDGED = ["random", "autumn", "may"];
 
 console.log("Delta-V 26 balance sim: " + GAMES + " games per strategy\n");
 console.log(pad("weather", 9) + pad("site", 6) + pad("strategy", 14) + pad("win rate", 10) + pad("avg sols", 10) + pad("stars", 7) + pad("tasks", 7) + "top loss reason");
 
-for (const mode of plan ? ["random", "real"] : ["random"]) {
+for (const mode of ["random", "autumn", "may"].filter((m) => m === "random" || plans[m])) {
   results[mode] = {};
   for (const site of SITES) {
     results[mode][site] = {};
@@ -145,7 +161,7 @@ for (const mode of plan ? ["random", "real"] : ["random"]) {
       let wins = 0, sols = 0, stars = 0, tasks = 0;
       const reasons = {};
       for (let seed = 1; seed <= GAMES; seed++) {
-        const end = playGame(site, seed, STRATEGIES[name], mode === "real" ? plan : null);
+        const end = playGame(site, seed, STRATEGIES[name], mode === "random" ? null : plans[mode]);
         if (end.status === "won") wins++;
         sols += end.sol;
         stars += getStars(end);
@@ -168,6 +184,10 @@ for (const mode of plan ? ["random", "real"] : ["random"]) {
 // Button mashing should last a while but rarely win. Sites should feel close.
 
 for (const mode in results) {
+  if (!JUDGED.includes(mode)) {
+    for (const site of SITES) if (results[mode][site]["do-nothing"].winRate > 0) problems.push(mode + " " + site + ": do-nothing can win.");
+    continue;
+  }
   for (const site of SITES) {
     const r = results[mode][site];
     const at = mode + " " + site + ": ";

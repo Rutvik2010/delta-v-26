@@ -10,7 +10,7 @@ const ACTIONS_PER_SOL = 2;
 // ---- Balance numbers. Tuned with tests/sim.js. Rerun it after any change. ----
 
 // Every resource drops a little each sol.
-const DAILY_DRAIN = { power: 3, oxygen: 6, shielding: 4, food: 6 };
+const DAILY_DRAIN = { power: 3, oxygen: 7, shielding: 4, food: 7 };
 
 // Space weather wears the shield down faster.
 const WEATHER_SHIELD_DRAIN = { calm: 0, active: 3, storm: 7 };
@@ -19,13 +19,21 @@ const WEATHER_SHIELD_DRAIN = { calm: 0, active: 3, storm: 7 };
 const WEAK_SHIELD = 30;
 const SICK_DRAIN = { calm: 0, active: 4, storm: 6 };
 
-// Real weather plans can be much stormier than random weather. May 2024 was
-// the stormiest month in 20 years. So in a real-weather game, each bit of
-// storm damage is scaled down by this much to keep the mission fair.
-const REAL_WEATHER_SCALE = 0.55;
+// How hard real flares hit in a real-weather game. A quiet month (autumn 2026:
+// 6 active days and no storm days) hits at full strength, 1. A very stormy
+// month (May 2024: 13 active and 12 storm days) is softened so a careful crew
+// can still win. The scale is worked out from the month's own weather when
+// withRealWeather() is called, and kept in state.weatherScale.
+const STORMY_MONTH_SCALE = 0.3;
+const STORMY_MONTH_LOAD = 20; // active days count 1, storm days count 2
+
+function scaleForPlan(plan) {
+  const load = plan.reduce((sum, d) => sum + (d.weather === "storm" ? 2 : d.weather === "active" ? 1 : 0), 0);
+  return load > STORMY_MONTH_LOAD ? STORMY_MONTH_SCALE : 1;
+}
 
 // Chance of each kind of weather on a new sol. Must add up to 1.
-const WEATHER_ODDS = { calm: 0.6, active: 0.28, storm: 0.12 };
+const WEATHER_ODDS = { calm: 0.74, active: 0.23, storm: 0.03 };
 
 // Chance that an event fires on a new sol.
 const EVENT_CHANCE = 0.4;
@@ -218,7 +226,7 @@ function has(state, upgradeId) {
 
 // How much of a Sun storm's shield damage gets through.
 function stormScale(state, planned) {
-  return (planned ? REAL_WEATHER_SCALE : 1) * (has(state, "thick_shield") ? 0.5 : 1);
+  return (planned ? state.weatherScale ?? 1 : 1) * (has(state, "thick_shield") ? 0.5 : 1);
 }
 
 // Maybe pick an event for this sol. Returns the event to hand to the UI, or null.
@@ -289,9 +297,11 @@ function checkEnd(state, info) {
     state.pendingEvent = null;
     state.lossReason = lossReasonFor(empty, info);
     state.log.push(tag + state.lossReason);
+    state.actionsLeft = 0; // a finished game has no jobs left, so simple "while jobs are left" loops end
   } else if (state.sol >= WIN_SOL && !state.pendingEvent) {
     state.status = "won";
     state.log.push(tag + "You did it! The crew is safe. Mission complete!");
+    state.actionsLeft = 0;
   }
 }
 
@@ -400,10 +410,15 @@ export function getActions(state, crewId) {
 // actions left, an event is waiting for a choice, the id is not known, or
 // that crew member is already busy.
 export function applyAction(state, actionId, opts = {}) {
-  const next = copy(state);
+  let next = copy(state);
   if (next.status !== "playing") return next;
+  // An event nobody answered takes its "do nothing" choice. Without this, a caller
+  // that has never heard of choices would loop forever, waiting for jobs to work.
+  if (next.pendingEvent) {
+    next = resolveEvent(next, null);
+    if (next.status !== "playing") return next;
+  }
   if (next.actionsLeft <= 0) return next;
-  if (next.pendingEvent) return next;
 
   const crewId = opts.crew || null;
   if (crewId && (!next.crew || !next.crew[crewId] || next.crew[crewId].job)) return next;
@@ -462,7 +477,7 @@ export function nextSol(state) {
     const saved = key === "oxygen" && has(next, "recycler") ? 2 : 0;
     next[key] = clamp(next[key] - (DAILY_DRAIN[key] - saved));
   }
-  const sickScale = planned ? REAL_WEATHER_SCALE : 1;
+  const sickScale = planned ? next.weatherScale ?? 1 : 1;
   const scale = stormScale(next, planned);
   next.shielding = clamp(next.shielding - Math.round(WEATHER_SHIELD_DRAIN[next.weather] * scale));
 
@@ -570,6 +585,7 @@ export function withRealWeather(state, plan) {
   const next = copy(state);
   if (!Array.isArray(plan) || plan.length === 0) return next;
   next.weatherPlan = plan.map((d) => ({ weather: d.weather, class: d.class || null, date: d.date || null }));
+  next.weatherScale = scaleForPlan(next.weatherPlan);
   next.weather = next.weatherPlan[0].weather;
   return next;
 }

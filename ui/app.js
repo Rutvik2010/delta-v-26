@@ -106,8 +106,9 @@ async function showBriefing(site) {
   if (planRecent) planRecent.dataset = "recent";
   if (seq !== navSeq) return;
 
-  let currentMode = "may2024";
-  let activePlan = planMay;
+  // Autumn 2026 (the last 30 days) is the default. If its file cannot load, use May 2024.
+  let currentMode = planRecent ? "recent" : "may2024";
+  let activePlan = planRecent || planMay;
 
   function updateDesc() {
     const descEl = app.querySelector("#sundata-desc");
@@ -124,8 +125,8 @@ ${crewCards(true)}
 <div class="sundata-box">
   <div class="sundata-label">SUN DATA:</div>
   <div class="sundata-toggle" role="group" aria-label="Sun data source">
-    <button type="button" class="sundata-btn on" data-mode="may2024" aria-pressed="true">MAY 2024 STORMS</button>
-    <button type="button" class="sundata-btn" data-mode="recent" aria-pressed="false">LAST 30 DAYS</button>
+    <button type="button" class="sundata-btn${currentMode === "may2024" ? " on" : ""}" data-mode="may2024" aria-pressed="${currentMode === "may2024"}">MAY 2024 STORMS</button>
+    <button type="button" class="sundata-btn${currentMode === "recent" ? " on" : ""}" data-mode="recent" aria-pressed="${currentMode === "recent"}">LAST 30 DAYS</button>
   </div>
   <div class="sundata-desc" id="sundata-desc"></div>
 </div>
