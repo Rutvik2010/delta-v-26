@@ -70,11 +70,50 @@ function showSites() {
   bindGo();
 }
 
+/* data modes */
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function parseIsoParts(iso) {
+  if (!iso) return null;
+  const [y, m, d] = iso.split("-").map(Number);
+  return { year: y, month: m, day: d, monthName: MONTHS_SHORT[m - 1] };
+}
+
+function formatDatasetSummary(plan, mode) {
+  if (!plan || !plan.length) return "The real NASA records could not be loaded, so this mission uses made-up Sun weather.";
+  const a = parseIsoParts(plan[0].date);
+  const b = parseIsoParts(plan[plan.length - 1].date);
+  let span = "";
+  if (a.year === b.year && a.month === b.month) {
+    span = `${a.day}–${b.day} ${a.monthName} ${a.year}`;
+  } else if (a.year === b.year) {
+    span = `${a.day} ${a.monthName} to ${b.day} ${b.monthName} ${b.year}`;
+  } else {
+    span = `${a.day} ${a.monthName} ${a.year} to ${b.day} ${b.monthName} ${b.year}`;
+  }
+  const prefix = mode === "may2024" ? "Replays real" : "Real";
+  return `${prefix} NASA DONKI flares from ${span}, one day per sol.`;
+}
+
 async function showBriefing(site) {
   const seq = ++navSeq;
   const s = SITES[site];
-  const plan = await loadRealWeather();
+  const [planMay, planRecent] = await Promise.all([
+    loadRealWeather("may2024"),
+    loadRealWeather("recent")
+  ]);
+  if (planMay) planMay.dataset = "may2024";
+  if (planRecent) planRecent.dataset = "recent";
   if (seq !== navSeq) return;
+
+  let currentMode = "may2024";
+  let activePlan = planMay;
+
+  function updateDesc() {
+    const descEl = app.querySelector("#sundata-desc");
+    if (descEl) descEl.textContent = formatDatasetSummary(activePlan, currentMode);
+  }
+
   menu(`<div class="kicker">MISSION SPECIFICATION // FLIGHT DIRECTIVE</div>
 <h1>1.0 ${s.mission}</h1>
 <p>${s.story}</p>
@@ -82,12 +121,36 @@ async function showBriefing(site) {
 ${crewCards(true)}
 <h2>3.0 OPERATIONAL PROCEDURES</h2>
 <div class="note"><div><b>Standard Operating Procedure</b>Tap a building, then pick who to send. Each astronaut is best at their own job, and gets tired if they work two sols in a row. Win the little task for a bonus!</div></div>
-<div class="note"><div>${plan
-    ? `<b>Telemetry Verification</b>Every solar flare you face was recorded by NASA DONKI in autumn 2026.`
-    : `<b>Simulated Atmospheric Data</b>The real NASA records could not be loaded, so this mission uses made-up Sun weather.`}</div></div>
+<div class="sundata-box">
+  <div class="sundata-label">SUN DATA:</div>
+  <div class="sundata-toggle" role="group" aria-label="Sun data source">
+    <button type="button" class="sundata-btn on" data-mode="may2024" aria-pressed="true">MAY 2024 STORMS</button>
+    <button type="button" class="sundata-btn" data-mode="recent" aria-pressed="false">LAST 30 DAYS</button>
+  </div>
+  <div class="sundata-desc" id="sundata-desc"></div>
+</div>
 <div class="row"><button class="btn ghost" data-go="sites">Back</button><button class="btn" id="go">Start the mission</button></div>`);
   bindGo();
-  app.querySelector("#go").addEventListener("click", () => { sfx("good"); startGame(app, site, plan, showEnd); });
+  updateDesc();
+
+  app.querySelectorAll(".sundata-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      sfx("click");
+      currentMode = btn.dataset.mode;
+      activePlan = currentMode === "recent" ? planRecent : planMay;
+      app.querySelectorAll(".sundata-btn").forEach((b) => {
+        const on = b.dataset.mode === currentMode;
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
+      updateDesc();
+    });
+  });
+
+  app.querySelector("#go").addEventListener("click", () => {
+    sfx("good");
+    startGame(app, site, activePlan, showEnd);
+  });
 }
 
 async function showCredits() {

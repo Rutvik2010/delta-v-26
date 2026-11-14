@@ -1,0 +1,158 @@
+{
+  "_label": "REAL DATA. Strongest solar flare recorded on each day from 15 Oct to 13 Nov 2026, from NASA DONKI (FLR). A null class means DONKI lists no flare that day.",
+  "_source": "https://ccmc.gsfc.nasa.gov/DONKI/WS/get/FLR?startDate=2026-10-15&endDate=2026-11-13",
+  "_fetched": "2026-11-14",
+  "_records_in_source": 13,
+  "days": [
+    {
+      "date": "2026-10-15",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-16",
+      "class": "M1.3",
+      "peakTime": "2026-10-16T15:42Z"
+    },
+    {
+      "date": "2026-10-17",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-18",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-19",
+      "class": "M1.6",
+      "peakTime": "2026-10-19T09:03Z"
+    },
+    {
+      "date": "2026-10-20",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-21",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-22",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-23",
+      "class": "C1.3",
+      "peakTime": "2026-10-23T03:55Z"
+    },
+    {
+      "date": "2026-10-24",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-25",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-26",
+      "class": "C2.8",
+      "peakTime": "2026-10-26T18:40Z"
+    },
+    {
+      "date": "2026-10-27",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-28",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-29",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-30",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-10-31",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-11-01",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-11-02",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-11-03",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-11-04",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-11-05",
+      "class": "M3.5",
+      "peakTime": "2026-11-05T18:33Z"
+    },
+    {
+      "date": "2026-11-06",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-11-07",
+      "class": "M1.9",
+      "peakTime": "2026-11-07T18:42Z"
+    },
+    {
+      "date": "2026-11-08",
+      "class": "M1.7",
+      "peakTime": "2026-11-08T07:46Z"
+    },
+    {
+      "date": "2026-11-09",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-11-10",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-11-11",
+      "class": "M1.7",
+      "peakTime": "2026-11-11T21:21Z"
+    },
+    {
+      "date": "2026-11-12",
+      "class": null,
+      "peakTime": null
+    },
+    {
+      "date": "2026-11-13",
+      "class": null,
+      "peakTime": null
+    }
+  ]
+}
