@@ -1,0 +1,21 @@
+/* Delta-V 26 toy-console UI: page, stage and shared bits. Motion lives in motion.css. */
+html, body { margin: 0; height: 100%; background: #0E1424; overflow: hidden; }
+#app { height: 100%; }
+#viewport { position: fixed; inset: 0; overflow: hidden; }
+#stage {
+  position: absolute; left: 50%; top: 50%; width: 1280px; height: 800px; transform-origin: center center;
+  overflow: hidden; background: #C9CED6; color: #1E2430; font-family: Lexend, system-ui, sans-serif;
+}
+#screen { position: absolute; inset: 0; }
+.dv-overlay { position: absolute; inset: 0; z-index: 50; }
+button { font-family: inherit; }
+button:disabled { cursor: default; }
+a { text-decoration: none; }
+#portrait {
+  display: none; position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; text-align: center;
+  padding: 24px; background: #0E1424; color: #F3F4F6; font-family: Lexend, system-ui, sans-serif; font-size: 22px;
+}
+@media (orientation: portrait) and (max-width: 900px) { #portrait { display: flex; } }
+/* Focus ring everywhere: 3px yellow, with a dark ring inside so it shows on light and dark. */
+:focus-visible { outline: 3px solid #F5C518; outline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible { box-shadow: 0 0 0 3px #1E2430; }

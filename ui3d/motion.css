@@ -1,0 +1,165 @@
+/* Delta-V 26 motion system */
+:root{
+--dv-ease-out:cubic-bezier(0.22,1,0.36,1);
+--dv-ease-io:cubic-bezier(0.65,0,0.35,1);
+--dv-spring:linear(0,0.021 2.5%,0.075 5%,0.15 7.5%,0.498 17.5%,0.647 22.5%,0.71 25%,0.813 30%,0.886 35%,0.936 40%,0.98 47.5%,1);
+--dv-bouncy:linear(0,0.029 2.5%,0.104 5%,0.205 7.5%,0.55 15%,0.654 17.5%,0.746 20%,0.824 22.5%,0.888 25%,0.939 27.5%,0.978 30%,1.006 32.5%,1.038 37.5%,1.045 45%,1);
+}
+svg *{transform-box:fill-box}
+
+/* ---------- entrances (once per screen) ---------- */
+@keyframes dv-rise{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}
+@keyframes dv-drop{from{opacity:0;translate:0 -14px}to{opacity:1;translate:0 0}}
+@keyframes dv-in{from{opacity:0}to{opacity:1}}
+@keyframes dv-zoom{from{opacity:0;scale:.94}to{opacity:1;scale:1}}
+@keyframes dv-swing{0%{opacity:0;rotate:-9deg}40%{opacity:1}100%{opacity:1;rotate:0deg}}
+@keyframes dv-pop{from{opacity:0;scale:.5}to{opacity:1;scale:1}}
+.dv-rise{animation:dv-rise 560ms var(--dv-ease-out) backwards}
+.dv-drop{animation:dv-drop 520ms var(--dv-ease-out) backwards}
+.dv-in{animation:dv-in 700ms var(--dv-ease-out) backwards}
+.dv-zoom{animation:dv-zoom 700ms var(--dv-spring) backwards}
+.dv-swing{transform-origin:50% 0;animation:dv-swing 900ms var(--dv-bouncy) backwards}
+.dv-pop{transform-origin:center;animation:dv-pop 620ms var(--dv-bouncy) backwards}
+.dv-d1{animation-delay:60ms}.dv-d2{animation-delay:120ms}.dv-d3{animation-delay:180ms}.dv-d4{animation-delay:240ms}
+.dv-d5{animation-delay:300ms}.dv-d6{animation-delay:380ms}.dv-d7{animation-delay:460ms}.dv-d8{animation-delay:560ms}
+.dv-d9{animation-delay:700ms}.dv-d10{animation-delay:900ms}
+
+/* popovers & dialogs */
+@keyframes dv-popover{from{opacity:0;scale:.94;translate:-8px 0}to{opacity:1;scale:1;translate:0 0}}
+.dv-popover{transform-origin:0 30px;animation:dv-popover 240ms var(--dv-ease-out) backwards}
+@keyframes dv-dialog{0%{opacity:0;scale:.9}35%{opacity:1}100%{opacity:1;scale:1}}
+.dv-dialog{animation:dv-dialog 560ms var(--dv-spring) backwards}
+@keyframes dv-dim{from{opacity:0}to{opacity:1}}
+.dv-dim{animation:dv-dim 300ms var(--dv-ease-out) both}
+
+/* ---------- press & hover feedback ---------- */
+.dv-key{transition:translate 140ms var(--dv-ease-out),filter 160ms ease,scale 140ms var(--dv-ease-out);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.dv-key:active{translate:0 4px;scale:.985}
+.dv-key:focus-visible,.dv-pill:focus-visible{outline:3px solid #F5C518;outline-offset:3px}
+.dv-pill{transition:translate 180ms var(--dv-ease-out),scale 140ms var(--dv-ease-out),background-color 160ms ease,color 160ms ease,border-color 160ms ease}
+.dv-pill:active{scale:.96}
+@media (hover:hover) and (pointer:fine){
+.dv-key:hover{filter:brightness(1.06)}
+.dv-pill:hover{translate:0 -3px}
+}
+
+/* ---------- ambient life (slow, small) ---------- */
+@keyframes dv-bob{0%,100%{translate:0 0}50%{translate:0 -6px}}
+@keyframes dv-breathe{0%,100%{translate:0 0}50%{translate:0 -2px}}
+@keyframes dv-twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes dv-spin{to{rotate:360deg}}
+@keyframes dv-glow{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes dv-blink{0%,55%,100%{opacity:1}60%,95%{opacity:.15}}
+@keyframes dv-flicker{0%,100%{opacity:1}20%{opacity:.82}40%{opacity:.96}60%{opacity:.78}80%{opacity:.93}}
+@keyframes dv-zz{0%{opacity:0;translate:0 6px}20%{opacity:1}80%{opacity:1}100%{opacity:0;translate:4px -12px}}
+@keyframes dv-scoop{0%,100%{rotate:0deg}45%{rotate:-16deg}60%{rotate:6deg}}
+@keyframes dv-toss{0%{opacity:0;translate:-10px 10px}20%{opacity:1}100%{opacity:0;translate:14px -16px}}
+@keyframes dv-sweep{0%,100%{rotate:-5deg;opacity:.7}50%{rotate:5deg;opacity:1}}
+@keyframes dv-drift{0%{translate:-30px 0;opacity:0}20%{opacity:.6}80%{opacity:.6}100%{translate:30px 0;opacity:0}}
+@keyframes dv-glint{0%,70%,100%{opacity:0}80%{opacity:1}}
+@keyframes dv-ring{0%,100%{outline-color:rgba(242,106,27,0);outline-offset:0}50%{outline-color:rgba(242,106,27,.85);outline-offset:4px}}
+@keyframes dv-sway{0%,100%{rotate:-2.5deg}50%{rotate:2.5deg}}
+@keyframes dv-rise-bubble{0%{opacity:0;translate:0 0}15%{opacity:.9}100%{opacity:0;translate:0 -110px}}
+@keyframes dv-fall{0%{opacity:0;translate:0 -6px}20%{opacity:1}100%{opacity:0;translate:-6px 26px}}
+@keyframes dv-walk{0%,100%{translate:0 0}25%{translate:4px -3px}50%{translate:8px 0}75%{translate:12px -3px}}
+@keyframes dv-stripes{to{background-position:62px 0}}
+@keyframes dv-orbit{0%{translate:30px -54px;opacity:0}12%{opacity:1}88%{opacity:1}100%{translate:-30px 56px;opacity:0}}
+@keyframes dv-beam{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes dv-tick{0%,100%{scale:1}50%{scale:1.35}}
+
+.dv-bob{animation:dv-bob 6s var(--dv-ease-io) infinite}
+.dv-breathe{animation:dv-breathe 3.2s var(--dv-ease-io) infinite}
+.dv-twinkle{animation:dv-twinkle 3.4s var(--dv-ease-io) infinite}
+.dv-twinkle-b{animation:dv-twinkle 4.6s var(--dv-ease-io) 1.2s infinite}
+.dv-spin{transform-origin:center;animation:dv-spin 40s linear infinite}
+.dv-spin-fast{transform-origin:center;animation:dv-spin 14s linear infinite}
+.dv-glow{animation:dv-glow 2.6s var(--dv-ease-io) infinite}
+.dv-blink{animation:dv-blink 1.8s linear infinite}
+.dv-blink-b{animation:dv-blink 2.4s linear .7s infinite}
+.dv-flicker{animation:dv-flicker 1.3s linear infinite}
+.dv-zz{animation:dv-zz 2.6s var(--dv-ease-out) infinite}
+.dv-scoop{transform-origin:0% 100%;animation:dv-scoop 1.6s var(--dv-ease-io) infinite}
+.dv-toss{animation:dv-toss 1.6s var(--dv-ease-out) .5s infinite}
+.dv-sweep{transform-origin:0% 0%;animation:dv-sweep 3s var(--dv-ease-io) infinite}
+.dv-drift{animation:dv-drift 7s linear infinite}
+.dv-glint{animation:dv-glint 5s linear infinite}
+.dv-ring{outline:3px solid rgba(242,106,27,0);animation:dv-ring 1.8s var(--dv-ease-io) infinite}
+.dv-sway{transform-origin:50% 100%;animation:dv-sway 2.4s var(--dv-ease-io) infinite}
+.dv-bubble{animation:dv-rise-bubble 2.6s var(--dv-ease-out) infinite}
+.dv-bubble-b{animation:dv-rise-bubble 2.6s var(--dv-ease-out) .9s infinite}
+.dv-bubble-c{animation:dv-rise-bubble 2.6s var(--dv-ease-out) 1.7s infinite}
+.dv-fall{animation:dv-fall 1.1s var(--dv-ease-out) infinite}
+.dv-fall-b{animation:dv-fall 1.1s var(--dv-ease-out) .35s infinite}
+.dv-fall-c{animation:dv-fall 1.1s var(--dv-ease-out) .7s infinite}
+.dv-walk{animation:dv-walk 2.2s linear infinite}
+.dv-stripes{animation:dv-stripes 900ms linear infinite}
+.dv-orbit{animation:dv-orbit 6s var(--dv-ease-io) infinite}
+.dv-beam{animation:dv-beam 2.2s var(--dv-ease-io) infinite}
+.dv-tick{transform-origin:center;animation:dv-tick 1.4s var(--dv-ease-io) infinite}
+
+/* ---------- one-shot reactions (re-triggered by swapping a/b class) ---------- */
+@keyframes dv-turn{from{rotate:-90deg}to{rotate:0deg}}
+@keyframes dv-shake{0%,100%{translate:0 0}20%{translate:-7px 0}40%{translate:6px 0}60%{translate:-4px 0}80%{translate:2px 0}}
+@keyframes dv-shake2{0%,100%{translate:0 0}20%{translate:-7px 0}40%{translate:6px 0}60%{translate:-4px 0}80%{translate:2px 0}}
+@keyframes dv-perk{0%{scale:.86;translate:0 4px}60%{scale:1.06}100%{scale:1;translate:0 0}}
+@keyframes dv-burst{0%{opacity:1;translate:0 0;scale:1}100%{opacity:0;translate:0 -40px;scale:.6}}
+@keyframes dv-burst2{0%{opacity:1;translate:0 0;scale:1}100%{opacity:0;translate:0 -40px;scale:.6}}
+@keyframes dv-bump{0%{scale:1}40%{scale:1.12}100%{scale:1}}
+@keyframes dv-bump2{0%{scale:1}40%{scale:1.12}100%{scale:1}}
+.dv-turn{transform-origin:center;animation:dv-turn 620ms var(--dv-bouncy) both}
+.dv-shake-a{animation:dv-shake 380ms var(--dv-ease-out)}
+.dv-shake-b{animation:dv-shake2 380ms var(--dv-ease-out)}
+.dv-perk{transform-origin:50% 100%;animation:dv-perk 620ms var(--dv-bouncy) backwards}
+.dv-burst-a{animation:dv-burst 600ms var(--dv-ease-out) both}
+.dv-burst-b{animation:dv-burst2 600ms var(--dv-ease-out) both}
+.dv-bump-a{transform-origin:center;animation:dv-bump 320ms var(--dv-ease-out)}
+.dv-bump-b{transform-origin:center;animation:dv-bump2 320ms var(--dv-ease-out)}
+.dv-geo{transition:y 280ms var(--dv-ease-out),height 280ms var(--dv-ease-out),width 280ms var(--dv-ease-out)}
+.dv-fillbar{transition:width 300ms var(--dv-ease-out),background-color 200ms ease}
+
+@keyframes dv-march{to{stroke-dashoffset:-36}}
+@keyframes dv-draw{to{stroke-dashoffset:0}}
+.dv-march{animation:dv-march 900ms linear infinite}
+.dv-draw{stroke-dasharray:640;stroke-dashoffset:640;animation:dv-draw 1.8s var(--dv-ease-out) .5s forwards}
+.dv-rot{transition:transform 260ms var(--dv-spring)}
+
+/* ---------- win: the landing ---------- */
+@keyframes dv-land{0%{translate:0 -300px}70%{translate:0 6px}85%{translate:0 -2px}100%{translate:0 0}}
+@keyframes dv-flame{0%,100%{scale:1 1}50%{scale:.8 1.25}}
+@keyframes dv-flame-out{0%,70%{opacity:1}100%{opacity:0}}
+@keyframes dv-dust{0%,62%{opacity:0;scale:.4}75%{opacity:.95;scale:1.1}100%{opacity:.8;scale:1}}
+@keyframes dv-cheer{0%,100%{translate:0 0}50%{translate:0 -8px}}
+.dv-land{animation:dv-land 2.2s var(--dv-ease-out) .3s both}
+.dv-flame{transform-origin:50% 0;animation:dv-flame 160ms linear infinite,dv-flame-out 2.6s linear .3s both}
+.dv-dust{transform-origin:center;animation:dv-dust 2.6s var(--dv-ease-out) .3s both}
+.dv-cheer{animation:dv-cheer 900ms var(--dv-ease-io) 2.4s infinite}
+.dv-cheer-b{animation:dv-cheer 900ms var(--dv-ease-io) 2.6s infinite}
+.dv-cheer-c{animation:dv-cheer 900ms var(--dv-ease-io) 2.8s infinite}
+
+/* ---------- reduced motion: keep fades, drop travel/spin ---------- */
+@media (prefers-reduced-motion:reduce){
+.dv-rise,.dv-drop,.dv-zoom,.dv-swing,.dv-pop,.dv-popover,.dv-dialog,.dv-perk,.dv-land{animation:dv-in 300ms ease both}
+.dv-bob,.dv-breathe,.dv-spin,.dv-spin-fast,.dv-zz,.dv-scoop,.dv-toss,.dv-sweep,.dv-drift,.dv-sway,.dv-bubble,.dv-bubble-b,.dv-bubble-c,.dv-fall,.dv-fall-b,.dv-fall-c,.dv-walk,.dv-stripes,.dv-orbit,.dv-cheer,.dv-cheer-b,.dv-cheer-c,.dv-flame,.dv-march,.dv-rot,.dv-turn,.dv-shake-a,.dv-shake-b,.dv-burst-a,.dv-burst-b,.dv-bump-a,.dv-bump-b,.dv-tick{animation:none}
+.dv-draw{stroke-dashoffset:0;animation:none}
+.dv-key,.dv-pill{transition:filter 160ms ease,background-color 160ms ease}
+.dv-key:active,.dv-pill:active{translate:none;scale:none}
+@media (hover:hover){.dv-pill:hover{translate:none}}
+}
+
+/* ---------- sun / night cycle (30s loop, all in sync) ---------- */
+@keyframes dv-orbit360{to{rotate:360deg}}
+@keyframes dv-dayk{0%{opacity:0}6%{opacity:1}44%{opacity:1}50%{opacity:0}100%{opacity:0}}
+@keyframes dv-nightk{0%{opacity:1}5%{opacity:0}47%{opacity:0}54%{opacity:1}100%{opacity:1}}
+@keyframes dv-starsk{0%{opacity:1}6%{opacity:.35}44%{opacity:.35}52%{opacity:1}100%{opacity:1}}
+@keyframes dv-shadowk{0%{opacity:0;scale:3.4 1}6%{opacity:.42}12%{scale:1.9 1}25%{scale:.3 1}38%{scale:-1.9 1}44%{opacity:.42}50%{opacity:0;scale:-3.4 1}100%{opacity:0;scale:-3.4 1}}
+@keyframes dv-trackk{0%{rotate:-55deg}25%{rotate:0deg}50%{rotate:55deg}62%{rotate:0deg}92%{rotate:0deg}100%{rotate:-55deg}}
+@keyframes dv-flood{0%{opacity:.85}5%{opacity:0}47%{opacity:0}54%{opacity:.85}60%{opacity:1}70%{opacity:.8}80%{opacity:1}100%{opacity:.85}}
+.dv-cyc{animation-duration:30s;animation-iteration-count:infinite;animation-delay:var(--dv-cd,-7.5s);animation-play-state:var(--dv-cs,running);animation-fill-mode:both}
+.dv-sunorbit{transform-box:view-box;transform-origin:640px 1060px;animation-name:dv-orbit360;animation-timing-function:linear}
+.dv-dayk{animation-name:dv-dayk;animation-timing-function:linear}
+.dv-nightk{animation-name:dv-nightk;animation-timing-function:linear}
+.dv-flood{animation-name:dv-flood;animation-timing-function:linear}
+.dv-starsk{animation-name:dv-starsk;animation-timing-function:linear}
+.dv-shadowk{transform-origin:0% 50%;animation-name:dv-shadowk;animation-timing-function:linear}
+.dv-trackk{transform-origin:50% 50%;animation-name:dv-trackk;animation-timing-function:cubic-bezier(0.65,0,0.35,1)}
+@media (prefers-reduced-motion:reduce){.dv-cyc{animation-play-state:paused}}
