@@ -76,3 +76,4 @@ delta-v-26/
 ## Known Issues
 
 - `content/events.json` is currently unused by the active mission engine (events are defined directly in `engine/index.js`).
+- Mobile UI verified fully responsive across viewports (360px to 844px portrait & landscape) with 44px touch targets and single-line expandable Sun forecast strip.
