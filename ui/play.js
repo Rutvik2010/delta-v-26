@@ -104,6 +104,7 @@ export function startGame(app, site, plan, onEnd) {
     ${CREW.map((c) => `<div class="walker" id="w-${c.id}" style="color:${c.color}"><span class="w-timer" hidden><i class="w-fill"></i><b class="w-sec"></b></span><span class="nm">${c.name}</span><div class="fig">${astro(c.color)}</div></div>`).join("")}
     <div class="sheet" id="sheet" hidden></div>
   </div>
+  <div class="scene-sector-bar" id="scene-sector-bar"><span class="sector-tag">SECTOR</span><span class="sector-name" id="sector-name">TAP A FACILITY</span></div>
 </div>
 <footer class="bar">
   <div class="chips">${CREW.map((c) => `<div class="chip2" id="c-${c.id}" style="--c:${c.color}"><span class="swatch" style="background:${c.color}" aria-hidden="true"></span><span class="rolecode mono">${ROLE_CODES[c.id]}</span><span><b>${c.name}</b><em></em></span></div>`).join("")}</div>
@@ -218,7 +219,8 @@ export function startGame(app, site, plan, onEnd) {
     dome.style.opacity = (0.15 + g.shielding / 100 * 0.85).toFixed(2);
     dome.classList.toggle("weak", g.shielding < 30);
     const fcast = getForecast(g, 3);
-    $("fore-sum").innerHTML = "NEXT 3 SOLS: " + (fcast.map((f) => `<span class="tag-weather tag-${f.weather}">${WEATHER[f.weather].label}</span>`).join(" / ") || "FINAL SOL");
+    const tagsHtml = fcast.map((f) => `<span class="tag-weather tag-${f.weather}">${WEATHER[f.weather].label.toUpperCase()}</span>`).join("") || `<span class="tag-weather tag-active">FINAL SOL</span>`;
+    $("fore-sum").innerHTML = `<span class="fore-lbl">NEXT 3 SOLS</span><span class="fore-tags">${tagsHtml}</span>`;
     $("days").innerHTML = fcast.map((f) => `<div class="day weather-${f.weather}"><small>Sol ${f.sol}</small><b>${WEATHER[f.weather].label}</b><i>${f.flare ? esc(f.flare.class) + " flare" : f.real ? "no flare" : "&nbsp;"}</i></div>`).join("") || `<div class="day wide"><b class="tag-weather tag-active">Supply ship arrives!</b></div>`;
     $("left").innerHTML = [0, 1].map((i) => `<i class="${i < g.actionsLeft ? "on" : ""}"></i>`).join("") + (g.actionsLeft === 1 ? "1 job left" : g.actionsLeft + " jobs left");
     $("next").classList.toggle("go", g.actionsLeft === 0 && canPlay());
@@ -231,6 +233,9 @@ export function startGame(app, site, plan, onEnd) {
   function openSheet(id) {
     openJob = id;
     const job = JOBS[id], sheet = $("sheet");
+    const sName = $("sector-name");
+    if (sName) sName.textContent = job.short.toUpperCase();
+    app.querySelectorAll(".spot").forEach((s) => s.classList.toggle("selected", s.dataset.job === id));
     sheet.style.setProperty("--c", `var(--${job.res})`);
     sheet.innerHTML = `<div class="sh-head"><span class="ring">${icon(job.res)}</span><div><h2>${job.label(mars)}</h2><p>${job.real(mars)}</p></div><button class="x" aria-label="Close">&times;</button></div>
 <div class="sh-ask">Who should go?</div>
@@ -255,6 +260,9 @@ export function startGame(app, site, plan, onEnd) {
     openJob = null;
     $("sheet").hidden = true;
     preview(null);
+    const sName = $("sector-name");
+    if (sName) sName.textContent = "TAP A FACILITY";
+    app.querySelectorAll(".spot").forEach((s) => s.classList.remove("selected"));
   }
 
   function floatText(text, [x, y], color) {
