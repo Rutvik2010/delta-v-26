@@ -377,7 +377,7 @@ export function startGame(app, site, plan, onEnd) {
     veil.innerHTML = `<section class="event" role="dialog" aria-modal="true" aria-labelledby="evt">
 <div class="alert-bar"><span class="alert-tag">ALERT</span><span>MISSION CONTROL // NOTIFICATION</span></div>
 <div class="head"><svg viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="26" fill="var(--amber)"/><path d="M48 10V2M48 94v-8M10 48H2M94 48h-8M21 21l-6-6M81 81l-6-6M21 75l-6 6M81 15l-6 6" stroke="var(--red)" stroke-width="6" stroke-linecap="round"/><path d="M48 34v18M48 60v3" stroke="var(--ink)" stroke-width="7" stroke-linecap="round"/></svg>
-<div><div class="kicker" style="color:var(--red)">SOL ${g.sol} EVENT</div><h2 id="evt">${esc(ev.title || "Mission Event")}</h2></div></div>
+<div><div class="kicker" style="color:var(--red-text)">SOL ${g.sol} EVENT</div><h2 id="evt">${esc(ev.title || "Mission Event")}</h2></div></div>
 <p>${esc(ev.text || "")}</p>
 ${ev.flare ? `<div class="realline"><span class="tagreal">REAL NASA DONKI DATA</span><span>Solar flare class ${esc(ev.flare.class)}, recorded by NASA DONKI on ${esc(date)}</span></div>` : ""}
 ${hasChoices

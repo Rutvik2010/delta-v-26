@@ -194,7 +194,7 @@ ${stats}
     const lossKey = "lost_" + empty;
     const lossList = lessons?.[lossKey] || [];
     const tip = lossList[Math.floor(Math.random() * lossList.length)] || "Keep your supplies balanced.";
-    menu(`<div class="kicker" style="color:var(--red)">CRITICAL FAILURE // SOL ${g.sol}</div>
+    menu(`<div class="kicker" style="color:var(--red-text)">CRITICAL FAILURE // SOL ${g.sol}</div>
 <h1>1.0 Mission Terminated</h1>
 <p class="reason">${esc(g.lossReason || "The mission ended early.")}</p>
 <h2>2.0 TELEMETRY RECORD</h2>
