@@ -750,6 +750,99 @@ h1, h2, h3, p { margin: 0; }
   line-height: 1;
 }
 
+/* crew shift-done: enter/exit hab */
+.walker.tired-walk {
+  transition: left 1.25s ease-in-out, top 1.25s ease-in-out;
+}
+.walker.walking.tired-walk .fig {
+  animation: walk-tired .52s ease-in-out infinite;
+}
+@keyframes walk-tired {
+  0%, 100% { transform: translateY(2%) rotate(2deg); }
+  50% { transform: translateY(-2%) rotate(6deg); }
+}
+
+.walker.entering {
+  transition: transform 0.4s ease-in, opacity 0.4s ease-in;
+  transform: translate(-50%, -100%) scale(0.75);
+  opacity: 0;
+  pointer-events: none;
+}
+.walker.inside {
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+.walker.inside .nm,
+.walker.inside .w-timer {
+  display: none !important;
+}
+
+.walker.exiting {
+  transition: transform 0.18s ease-out, opacity 0.18s ease-out;
+  transform: translate(-50%, -100%) scale(1);
+  opacity: 1;
+}
+
+.walker.exiting-walk {
+  transition: left 0.75s ease-out, top 0.75s ease-out;
+}
+
+.hab-zzz {
+  position: absolute;
+  left: 45.41%;
+  top: 60.09%;
+  transform: translate(-50%, -100%);
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 2px 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+  box-shadow: 1px 1px 0 var(--ink);
+  line-height: 1.2;
+}
+.hab-zzz[hidden] {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .hab-zzz {
+    left: 48.05%;
+    top: 69.27%;
+    transform: translate(0, -50%);
+  }
+}
+
+.scene.hab-occupied:not(.night) .win {
+  fill: var(--amber);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walker.walking.tired-walk .fig {
+    animation: none;
+  }
+  .walker.tired-walk {
+    transition: none;
+  }
+  .walker.entering {
+    transition: opacity 0.18s linear;
+    transform: translate(-50%, -100%);
+  }
+  .walker.exiting {
+    transition: opacity 0.18s linear;
+    transform: translate(-50%, -100%);
+  }
+  .walker.exiting-walk {
+    transition: none;
+  }
+}
+
 .float {
   position: absolute;
   transform: translate(-50%, -100%);
