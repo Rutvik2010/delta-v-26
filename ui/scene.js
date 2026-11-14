@@ -19,7 +19,20 @@ export function sceneSvg(site, label) {
   const c = m
     ? { sky: "#b8764a", far: "#a8643e", mid: "#8f4e2c", near: "#74391f", rim: "#a8643e", pit: "#5a2a16", berm: "#8f4e2c", berm2: "#a8643e" }
     : { sky: "#05070f", far: "#a3a9b8", mid: "#868c9b", near: "#666c7b", rim: "#a3a9b8", pit: "#0a0c12", berm: "#868c9b", berm2: "#a3a9b8" };
-  const bgImg = m ? "./assets/bg-mars.png" : "./assets/bg-moon.png";
+  const bgBackdrop = m
+    ? `<image href="./assets/bg-mars.png" x="0" y="-45" width="1024" height="430" preserveAspectRatio="xMidYMid slice" opacity="0.85"/>`
+    : `<g id="lunar-horizon" opacity="0.9">
+        <path d="M 0 215 L 75 182 L 155 202 L 245 158 L 330 194 L 420 166 L 515 198 L 615 152 L 710 188 L 805 164 L 910 192 L 975 174 L 1024 190 L 1024 385 L 0 385 Z" fill="url(#moonRidgeFar)"/>
+        <path d="M 0 232 L 95 208 L 185 225 L 290 192 L 385 222 L 495 204 L 585 226 L 690 195 L 795 220 L 900 202 L 1024 224 L 1024 385 L 0 385 Z" fill="url(#moonRidgeMid)"/>
+        <path d="M 0 248 Q 180 234 360 246 T 730 242 T 1024 250 L 1024 385 L 0 385 Z" fill="url(#moonSurfaceGrad)"/>
+        <ellipse cx="155" cy="272" rx="46" ry="9" fill="#2b3342" stroke="#7a879e" stroke-width="1" stroke-opacity="0.45"/>
+        <ellipse cx="157" cy="273" rx="38" ry="6.5" fill="#1e2430" opacity="0.75"/>
+        <ellipse cx="435" cy="262" rx="30" ry="6" fill="#2b3342" stroke="#7a879e" stroke-width="0.9" stroke-opacity="0.4"/>
+        <ellipse cx="436" cy="263" rx="24" ry="4" fill="#1e2430" opacity="0.7"/>
+        <ellipse cx="785" cy="268" rx="54" ry="10.5" fill="#2b3342" stroke="#7a879e" stroke-width="1.1" stroke-opacity="0.45"/>
+        <ellipse cx="787" cy="270" rx="44" ry="7.5" fill="#1e2430" opacity="0.75"/>
+        <ellipse cx="920" cy="292" rx="26" ry="5.5" fill="#28303e" stroke="#6f7c92" stroke-width="0.8" stroke-opacity="0.35"/>
+      </g>`;
   return `<svg viewBox="0 0 1024 436" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(label)}">
 <defs>
   <linearGradient id="hudShade" x1="0" y1="0" x2="0" y2="1">
@@ -43,9 +56,22 @@ export function sceneSvg(site, label) {
     <stop offset="65%" stop-color="#a8643e" stop-opacity="0.3"/>
     <stop offset="100%" stop-color="#a8643e" stop-opacity="0.6"/>
   </linearGradient>
+  <linearGradient id="moonRidgeFar" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#2c3545"/>
+    <stop offset="100%" stop-color="#1a212d"/>
+  </linearGradient>
+  <linearGradient id="moonRidgeMid" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#465164"/>
+    <stop offset="100%" stop-color="#262e3b"/>
+  </linearGradient>
+  <linearGradient id="moonSurfaceGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#636e82"/>
+    <stop offset="45%" stop-color="#495365"/>
+    <stop offset="100%" stop-color="#2b3240"/>
+  </linearGradient>
 </defs>
 <rect width="1024" height="436" fill="${c.sky}"/>
-<image href="${bgImg}" x="0" y="${m ? -45 : -35}" width="1024" height="${m ? 430 : 420}" preserveAspectRatio="xMidYMid slice" opacity="${m ? 0.85 : 0.65}"/>
+${bgBackdrop}
 <rect width="1024" height="436" fill="${m ? "url(#marsSkyGrad)" : "url(#moonSkyGrad)"}"/>
 <rect width="1024" height="130" fill="url(#hudShade)"/>
 ${m ? `<rect x="0" y="140" width="1024" height="100" fill="url(#marsHorizonHaze)"/>` : ""}
