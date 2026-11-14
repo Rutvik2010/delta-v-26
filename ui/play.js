@@ -105,6 +105,7 @@ export function startGame(app, site, plan, onEnd) {
   const CREW_DOOR_OFFSETS = { maya: -8, leo: 0, zuri: 8 };
   const animTokens = { maya: 0, leo: 0, zuri: 0 };
   const insideCrew = new Set();
+  window.__grantAction = () => { g.actionsLeft++; draw(); };
 
   app.innerHTML = `<main class="game">
 <header class="hud">
@@ -272,8 +273,11 @@ export function startGame(app, site, plan, onEnd) {
 <div class="sh-ask">Who should go?</div>
 <div class="sh-crew">${CREW.map((c) => {
       const a = getActions(g, c.id).find((x) => x.id === id), m = g.crew[c.id];
-      const badge = m.job ? "Busy" : a.skilled && !a.tired ? "Best at this!" : a.tired ? "Tired" : "";
-      return `<button class="pick${a.skilled ? " best" : ""}" data-crew="${c.id}" style="--cc:${c.color}"${m.job ? " disabled" : ""}><span class="fig">${astro(c.color)}</span><b>${c.name}</b><small>${c.job}</small><span class="badge${a.tired ? " bad" : ""}">${badge || "&nbsp;"}</span><span class="g">${line(a.gain, "+")}</span><span class="c">${line(a.cost, "−")}</span></button>`;
+      const isResting = insideCrew.has(c.id) || !!m.job;
+      const isTired = a.tired && !isResting;
+      const isBest = a.skilled && !a.tired && !isResting;
+      const badge = isResting ? "Resting" : isBest ? "Best at this!" : isTired ? "Tired" : "Ready";
+      return `<button class="pick${isBest ? " best" : ""}" data-crew="${c.id}" style="--cc:${c.color}"${isResting ? " disabled" : ""}><span class="fig">${astro(c.color)}</span><b>${c.name}</b><small>${c.job}</small><span class="badge${isTired ? " bad" : ""}">${badge}</span><span class="g">${line(a.gain, "+")}</span><span class="c">${line(a.cost, "−")}</span></button>`;
     }).join("")}</div>`;
     sheet.hidden = false;
     sheet.querySelector(".x").addEventListener("click", closeSheet);
