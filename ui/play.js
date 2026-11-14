@@ -126,6 +126,7 @@ export function startGame(app, site, plan, onEnd) {
     ${Object.keys(JOBS).map((id) => `<button class="spot" data-job="${id}" style="left:${pct(JOBS[id].spot[0], 1024)};top:${pct(JOBS[id].spot[1], 436)};--c:var(--${JOBS[id].res})"><span class="ring">${icon(JOBS[id].res)}</span><span class="lbl">${JOBS[id].short}</span></button>`).join("")}
     ${CREW.map((c) => `<div class="walker" id="w-${c.id}" style="color:${c.color}"><span class="w-timer" hidden><i class="w-fill"></i><b class="w-sec"></b></span><span class="nm">${c.name}</span><div class="fig">${astro(c.color)}</div></div>`).join("")}
     <div class="sheet" id="sheet" hidden></div>
+    <div class="hab-zzz" id="hab-zzz" hidden aria-live="polite" style="left:${pct(465, 1024)};top:${pct(268, 436)}">Zzz x1</div>
   </div>
   <div class="scene-sector-bar" id="scene-sector-bar"><span class="sector-tag">SECTOR</span><span class="sector-name" id="sector-name">TAP A FACILITY</span></div>
 </div>
@@ -141,6 +142,81 @@ export function startGame(app, site, plan, onEnd) {
   const place = (el, [x, y]) => { el.style.left = pct(x, 1024); el.style.top = pct(y, 436); };
   const person = (id) => CREW.find((c) => c.id === id);
   const canPlay = () => !busy && g.status === "playing" && !g.pendingEvent;
+
+  /* crew shift-done: enter/exit hab */
+  const HAB_DOOR = [465, 306];
+  const crewState = {};
+  CREW.forEach((c) => {
+    crewState[c.id] = { inHab: false, walkingToHab: false, cancelToken: 0, doneJob: null };
+  });
+
+  const prefersReducedMotion = () => {
+    try {
+      return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  function updateHabStatus() {
+    const inHabCount = CREW.filter((c) => crewState[c.id].inHab).length;
+    scene.classList.toggle("hab-occupied", inHabCount > 0);
+    const zzz = $("hab-zzz");
+    if (zzz) {
+      zzz.hidden = inHabCount === 0;
+      if (inHabCount > 0) zzz.textContent = `Zzz x${inHabCount}`;
+    }
+  }
+
+  async function returnToHab(crewId, home, jobShort) {
+    const cs = crewState[crewId];
+    const w = $("w-" + crewId);
+    if (!w || !cs) return;
+
+    const token = ++cs.cancelToken;
+    cs.walkingToHab = true;
+    cs.doneJob = jobShort;
+    draw();
+
+    if (prefersReducedMotion()) {
+      cs.walkingToHab = false;
+      cs.inHab = true;
+      w.classList.remove("walking", "is-tired", "working");
+      w.classList.add("is-in-hab");
+      place(w, HAB_DOOR);
+      updateHabStatus();
+      draw();
+      return;
+    }
+
+    // 1. Slumped/tired walk to home (~1.2s)
+    w.classList.remove("working");
+    w.classList.add("walking", "is-tired");
+    w.style.setProperty("--walk-duration", "1.2s");
+    place(w, home);
+    await wait(1200);
+    if (cs.cancelToken !== token) return;
+
+    // 2. Walk from home to hab door [465, 306] (~0.8s)
+    w.style.setProperty("--walk-duration", "0.8s");
+    place(w, HAB_DOOR);
+    await wait(800);
+    if (cs.cancelToken !== token) return;
+
+    // 3. Shrink & fade inside hab door (~0.4s)
+    w.classList.remove("walking", "is-tired");
+    w.classList.add("is-entering-hab");
+    await wait(400);
+    if (cs.cancelToken !== token) return;
+
+    // 4. Inside hab
+    w.classList.remove("is-entering-hab");
+    w.classList.add("is-in-hab");
+    cs.walkingToHab = false;
+    cs.inHab = true;
+    updateHabStatus();
+    draw();
+  }
 
   CREW.forEach((c) => place($("w-" + c.id), c.home));
   app.querySelectorAll(".spot").forEach((b) => b.addEventListener("click", () => { if (canPlay()) { sfx("click"); openSheet(b.dataset.job); } }));
@@ -231,13 +307,31 @@ export function startGame(app, site, plan, onEnd) {
     app.querySelectorAll(".spot").forEach((b) => { b.disabled = !ready; b.classList.toggle("ready", ready); });
     const worried = RES.some((k) => g[k] < 30);
     CREW.forEach((c) => {
-      const m = g.crew[c.id], w = $("w-" + c.id);
-      $("c-" + c.id).querySelector("em").textContent = m.job ? ("Done: " + JOBS[m.job].short) : m.tired ? "Tired" : "Ready";
-      $("c-" + c.id).classList.toggle("off", !!m.job);
-      $("c-" + c.id).classList.toggle("tired", m.tired && !m.job);
+      const m = g.crew[c.id], w = $("w-" + c.id), cs = crewState[c.id];
+      const chip = $("c-" + c.id);
+      const em = chip.querySelector("em");
+      if (cs.inHab) {
+        em.textContent = "Resting";
+        chip.title = "Done: " + (cs.doneJob || (m.job ? JOBS[m.job].short : "Shift"));
+      } else if (cs.walkingToHab) {
+        em.textContent = "Returning...";
+        chip.title = "Done: " + (cs.doneJob || (m.job ? JOBS[m.job].short : "Shift"));
+      } else {
+        em.textContent = m.job ? ("Done: " + JOBS[m.job].short) : m.tired ? "Tired" : "Ready";
+        if (m.job) chip.title = "Done: " + JOBS[m.job].short;
+        else chip.removeAttribute("title");
+      }
+      chip.classList.toggle("off", !!m.job);
+      chip.classList.toggle("tired", m.tired && !m.job);
       w.classList.toggle("sad", worried || m.tired);
     });
-    scene.className = "scene site-" + site + " weather-" + g.weather + (isNight(g) ? " night" : "") + g.upgrades.map((u) => " has-" + u).join("");
+    const inHabCount = CREW.filter((c) => crewState[c.id].inHab).length;
+    scene.className = "scene site-" + site + " weather-" + g.weather + (isNight(g) ? " night" : "") + (inHabCount > 0 ? " hab-occupied" : "") + g.upgrades.map((u) => " has-" + u).join("");
+    const zzz = $("hab-zzz");
+    if (zzz) {
+      zzz.hidden = inHabCount === 0;
+      if (inHabCount > 0) zzz.textContent = `Zzz x${inHabCount}`;
+    }
     const dome = scene.querySelector(".dome");
     dome.style.opacity = (0.15 + g.shielding / 100 * 0.85).toFixed(2);
     dome.classList.toggle("weak", g.shielding < 30);
@@ -306,7 +400,9 @@ export function startGame(app, site, plan, onEnd) {
     sfx("click");
     say = { who: who.name, line: "On my way!", real: "" };
     draw();
+    w.classList.remove("is-tired", "is-in-hab", "is-entering-hab", "is-exiting-hab");
     w.classList.add("walking");
+    w.style.setProperty("--walk-duration", "1.15s");
     place(w, job.feet);
     await wait(1150);
     w.classList.remove("walking"); w.classList.add("working");
@@ -333,10 +429,11 @@ export function startGame(app, site, plan, onEnd) {
     sfx("good");
     floatText((bonus ? "Perfect! " : "") + sign(g[job.res] - before) + " " + NAMES[job.res], job.feet, `var(--${job.res})`);
     say = { who: who.name, line: job.line(mars), real: job.real(mars) };
-    busy = false;
-    draw();
-    await wait(600);
+    w.classList.remove("working");
     timer.hidden = true;
+    busy = false; /* non-blocking: allows next dispatch while returning */
+    draw();
+    returnToHab(crewId, who.home, job.short);
   }
 
   async function endSol() {
@@ -345,16 +442,76 @@ export function startGame(app, site, plan, onEnd) {
     closeSheet();
     sfx("click");
     say = null;
-    CREW.forEach((c) => { const w = $("w-" + c.id); w.classList.remove("working"); w.classList.add("walking"); w.querySelector(".w-timer").hidden = true; place(w, c.home); });
+
+    // Clean interruption: Cancel any in-flight return walks and snap to hab
+    CREW.forEach((c) => {
+      const cs = crewState[c.id];
+      if (cs.walkingToHab) {
+        cs.cancelToken++;
+        cs.walkingToHab = false;
+        cs.inHab = true;
+        const w = $("w-" + c.id);
+        w.classList.remove("walking", "is-tired", "is-entering-hab", "working");
+        w.classList.add("is-in-hab");
+        place(w, HAB_DOOR);
+      }
+    });
+    updateHabStatus();
+
+    // Identify who was inside hab (worked this sol)
+    const workedCrew = CREW.filter((c) => crewState[c.id].inHab);
+
     let event = null;
     change((s) => { const out = nextSol(s); event = out.event; return out.state; });
     const banner = document.createElement("div");
     banner.className = "solbanner"; banner.textContent = "Sol " + g.sol;
     scene.appendChild(banner);
-    await wait(900);
-    CREW.forEach((c) => $("w-" + c.id).classList.remove("walking"));
+
+    // Emerge sequence for astronauts who were in the hab (<1.5s total)
+    if (workedCrew.length > 0) {
+      if (prefersReducedMotion()) {
+        workedCrew.forEach((c) => {
+          const w = $("w-" + c.id);
+          w.classList.remove("is-in-hab", "is-exiting-hab", "walking", "is-tired");
+          place(w, c.home);
+          crewState[c.id].inHab = false;
+          crewState[c.id].doneJob = null;
+        });
+        updateHabStatus();
+      } else {
+        // Emerge: fade/scale in at hab door (250ms)
+        workedCrew.forEach((c) => {
+          const w = $("w-" + c.id);
+          w.classList.remove("is-in-hab");
+          w.classList.add("is-exiting-hab");
+          place(w, HAB_DOOR);
+        });
+        await wait(250);
+
+        // Walk out to home spot (750ms)
+        workedCrew.forEach((c) => {
+          const w = $("w-" + c.id);
+          w.classList.remove("is-exiting-hab");
+          w.classList.add("walking");
+          w.style.setProperty("--walk-duration", "0.75s");
+          place(w, c.home);
+        });
+        await wait(750);
+
+        workedCrew.forEach((c) => {
+          const w = $("w-" + c.id);
+          w.classList.remove("walking");
+          crewState[c.id].inHab = false;
+          crewState[c.id].doneJob = null;
+        });
+        updateHabStatus();
+      }
+    } else {
+      await wait(600);
+    }
+
     draw();
-    await wait(600);
+    await wait(300);
     banner.remove();
     if (event) await showEvent(event);
     busy = false;
