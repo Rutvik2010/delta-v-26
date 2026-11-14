@@ -7,7 +7,9 @@ import { astro, sceneSvg, esc } from "./scene.js";
 import { addTooltips } from "../content/tooltips.js";
 
 export const RES = ["power", "oxygen", "shielding", "food"];
+export const ALL_RES = ["power", "oxygen", "shielding", "food", "science"];
 export const NAMES = { power: "Power", oxygen: "Oxygen", shielding: "Shield", food: "Food", science: "Science" };
+const ROLE_CODES = { maya: "ENG", leo: "BOT", zuri: "SCI" };
 const ICONS = {
   power: "M13 2 4 14h7l-1 8 9-12h-7z",
   oxygen: "M9 18a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM17.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
@@ -15,7 +17,11 @@ const ICONS = {
   food: "M5 19c0-9 5-14 15-14 0 10-5 15-14 14zM5 19l8-8",
   science: "M9 3h6M10 3v6l-5 10a1.5 1.5 0 0 0 1.4 2h11.2A1.5 1.5 0 0 0 19 19l-5-10V3",
 };
-const WEATHER = { calm: { label: "Calm", color: "#6edc8c" }, active: { label: "Active", color: "#ffc93c" }, storm: { label: "Storm", color: "#ff9a5c" } };
+const WEATHER = {
+  calm: { label: "Calm", color: "#2E8B57" },
+  active: { label: "Active", color: "#F2A900" },
+  storm: { label: "Storm", color: "#E4402A" }
+};
 export const SITES = {
   moon: { name: "The Moon", place: "Shackleton crater", mission: "Mission Ice Hunt",
     story: "Your crew has landed at Shackleton crater, near the Moon's south pole, to look for water ice. The supply ship lands on Sol 30. Keep everyone safe until then.",
@@ -25,9 +31,9 @@ export const SITES = {
     blurb: "An old lake bed where NASA's Perseverance rover explores. The Sun is weaker here, and dust storms can cover your solar panels!" },
 };
 export const CREW = [
-  { id: "maya", name: "Maya", job: "Engineer", color: "#5cc8ff", about: "Best at making oxygen and fixing the shield.", home: [418, 378] },
-  { id: "leo", name: "Leo", job: "Botanist", color: "#6edc8c", about: "Best at growing food. Gets hungry first.", home: [464, 386] },
-  { id: "zuri", name: "Zuri", job: "Scientist", color: "#ff9edb", about: "Best at exploring the crater.", home: [510, 378] },
+  { id: "maya", name: "Maya", job: "Engineer", color: "#1B4F9C", about: "Best at making oxygen and fixing the shield.", home: [418, 378] },
+  { id: "leo", name: "Leo", job: "Botanist", color: "#2E8B57", about: "Best at growing food. Gets hungry first.", home: [464, 386] },
+  { id: "zuri", name: "Zuri", job: "Scientist", color: "#E4402A", about: "Best at exploring the crater.", home: [510, 378] },
 ];
 // Each job: its building (spot), where the astronaut stands (feet), and what the crew says.
 const JOBS = {
@@ -81,16 +87,26 @@ export function startGame(app, site, plan, onEnd) {
     <button class="hbtn" id="b-tasks">Tasks <b id="taskn">0/3</b></button>
     <button class="hbtn" id="b-up" style="--c:var(--science)">Upgrades <b id="sci">0</b></button>
     <button class="hbtn" id="b-mg" aria-pressed="true">Minigames: on</button></div>
-  <div class="meters">${RES.map((k) => `<div class="meter" id="m-${k}" style="--c:var(--${k})"><div class="top">${icon(k)}<span class="nm">${NAMES[k]}</span><span class="lowtxt"></span><span class="val">0</span><span class="delta"></span></div><div class="track"><div class="ghost"></div><div class="fill"></div></div></div>`).join("")}</div>
+  <div class="meters">${ALL_RES.map((k) => `<div class="meter" id="m-${k}" style="--c:var(--${k})"><div class="top">${icon(k)}<span class="nm">${NAMES[k]}</span><span class="lowtxt"></span><span class="val">0</span><span class="delta"></span></div><div class="track"><div class="ghost"></div><div class="fill"></div></div></div>`).join("")}</div>
 </header>
-<div class="stage"><div class="scene" id="scene">${sceneSvg(site, "The base at " + SITES[site].place + ": solar tower, oxygen plant, home covered in soil, greenhouse, rover and crater")}
-  <div class="fore"><div class="hd">Sun forecast <span class="tagreal${plan ? "" : " practice"}">${plan ? "REAL NASA 2026" : "PRACTICE"}</span></div><div class="days" id="days"></div></div>
-  ${Object.keys(JOBS).map((id) => `<button class="spot" data-job="${id}" style="left:${pct(JOBS[id].spot[0], 1024)};top:${pct(JOBS[id].spot[1], 436)};--c:var(--${JOBS[id].res})"><span class="ring">${icon(JOBS[id].res)}</span><span class="lbl">${JOBS[id].short}</span></button>`).join("")}
-  ${CREW.map((c) => `<div class="walker" id="w-${c.id}" style="color:${c.color}"><span class="w-timer" hidden><i class="w-fill"></i><b class="w-sec"></b></span><span class="nm">${c.name}</span><div class="fig">${astro(c.color)}</div></div>`).join("")}
-  <div class="sheet" id="sheet" hidden></div>
-</div></div>
+<div class="stage">
+  <div class="fore" id="fore" role="region" aria-label="Sun forecast">
+    <div class="hd" id="fore-hd">
+      <span class="fore-title">Sun forecast</span>
+      <span class="tagreal${plan ? "" : " practice"}">${plan ? "REAL NASA 2026" : "PRACTICE"}</span>
+      <span class="fore-summary" id="fore-sum"></span>
+      <button class="fore-toggle" id="fore-toggle" type="button" aria-expanded="false" aria-label="Toggle forecast details">▼</button>
+    </div>
+    <div class="days" id="days"></div>
+  </div>
+  <div class="scene" id="scene">${sceneSvg(site, "The base at " + SITES[site].place + ": solar tower, oxygen plant, home covered in soil, greenhouse, rover and crater")}
+    ${Object.keys(JOBS).map((id) => `<button class="spot" data-job="${id}" style="left:${pct(JOBS[id].spot[0], 1024)};top:${pct(JOBS[id].spot[1], 436)};--c:var(--${JOBS[id].res})"><span class="ring">${icon(JOBS[id].res)}</span><span class="lbl">${JOBS[id].short}</span></button>`).join("")}
+    ${CREW.map((c) => `<div class="walker" id="w-${c.id}" style="color:${c.color}"><span class="w-timer" hidden><i class="w-fill"></i><b class="w-sec"></b></span><span class="nm">${c.name}</span><div class="fig">${astro(c.color)}</div></div>`).join("")}
+    <div class="sheet" id="sheet" hidden></div>
+  </div>
+</div>
 <footer class="bar">
-  <div class="chips">${CREW.map((c) => `<div class="chip2" id="c-${c.id}" style="--c:${c.color}"><span class="helm"><i></i></span><span><b>${c.name}</b><em></em></span></div>`).join("")}</div>
+  <div class="chips">${CREW.map((c) => `<div class="chip2" id="c-${c.id}" style="--c:${c.color}"><span class="swatch" style="background:${c.color}" aria-hidden="true"></span><span class="rolecode mono">${ROLE_CODES[c.id]}</span><span><b>${c.name}</b><em></em></span></div>`).join("")}</div>
   <div class="bubble" id="bubble" aria-live="polite"><div class="who"></div><div class="say"></div><div class="real"></div></div>
   <div class="next"><div class="left" id="left"></div><button class="btn" id="next">Next sol</button></div>
 </footer>
@@ -114,16 +130,26 @@ export function startGame(app, site, plan, onEnd) {
   });
   $("b-mg").textContent = "Minigames: " + (minigamesOn ? "on" : "off");
 
+  const foreEl = $("fore");
+  const foreToggle = $("fore-toggle");
+  $("fore-hd").addEventListener("click", () => {
+    const open = foreEl.classList.toggle("open");
+    foreToggle.setAttribute("aria-expanded", String(open));
+  });
+
   const line = (obj, s) => Object.keys(obj).map((k) => s + obj[k] + " " + NAMES[k]).join(", ");
 
   // Show what a job would change, before the player commits.
   function preview(a) {
-    RES.forEach((k) => {
-      const m = $("m-" + k), d = m.querySelector(".delta"), ghost = m.querySelector(".ghost");
+    ALL_RES.forEach((k) => {
+      const m = $("m-" + k);
+      if (!m) return;
+      const d = m.querySelector(".delta"), ghost = m.querySelector(".ghost");
       const change = a ? (a.gain[k] || 0) - (a.cost[k] || 0) : 0;
       d.textContent = change ? sign(change) : "";
       d.className = "delta " + (change > 0 ? "up" : "down");
-      ghost.style.width = change > 0 ? Math.min(100, g[k] + change) + "%" : "0%";
+      const currentVal = k === "science" ? g.science : g[k];
+      ghost.style.width = change > 0 ? Math.min(100, Math.max(0, currentVal + change)) + "%" : "0%";
     });
   }
 
@@ -168,12 +194,15 @@ export function startGame(app, site, plan, onEnd) {
     $("b-up").classList.toggle("glow", getUpgrades(g).some((u) => u.canBuy));
     $("night").hidden = !isNight(g);
     $("path").querySelectorAll("i").forEach((d, i) => { d.className = i + 1 < g.sol ? "done" : i + 1 === g.sol ? "now" : ""; });
-    RES.forEach((k) => {
-      const m = $("m-" + k), low = g[k] < 30;
+    ALL_RES.forEach((k) => {
+      const m = $("m-" + k);
+      if (!m) return;
+      const val = k === "science" ? g.science : g[k];
+      const low = k !== "science" && val < 30;
       m.classList.toggle("low", low);
-      m.querySelector(".lowtxt").textContent = low ? "LOW!" : "";
-      m.querySelector(".val").textContent = g[k];
-      m.querySelector(".fill").style.width = g[k] + "%";
+      m.querySelector(".lowtxt").textContent = low ? "LOW" : "";
+      m.querySelector(".val").textContent = val;
+      m.querySelector(".fill").style.width = Math.min(100, Math.max(0, val)) + "%";
     });
     app.querySelectorAll(".spot").forEach((b) => { b.disabled = !ready; b.classList.toggle("ready", ready); });
     const worried = RES.some((k) => g[k] < 30);
@@ -188,7 +217,9 @@ export function startGame(app, site, plan, onEnd) {
     const dome = scene.querySelector(".dome");
     dome.style.opacity = (0.15 + g.shielding / 100 * 0.85).toFixed(2);
     dome.classList.toggle("weak", g.shielding < 30);
-    $("days").innerHTML = getForecast(g, 3).map((f) => `<div class="day" style="--c:${WEATHER[f.weather].color}"><small>Sol ${f.sol}</small><b>${WEATHER[f.weather].label}</b><i>${f.flare ? esc(f.flare.class) + " flare" : f.real ? "no flare" : "&nbsp;"}</i></div>`).join("") || `<div class="day wide"><b style="color:var(--gold)">Supply ship arrives!</b></div>`;
+    const fcast = getForecast(g, 3);
+    $("fore-sum").innerHTML = "NEXT 3 SOLS: " + (fcast.map((f) => `<span class="tag-weather tag-${f.weather}">${WEATHER[f.weather].label}</span>`).join(" / ") || "FINAL SOL");
+    $("days").innerHTML = fcast.map((f) => `<div class="day weather-${f.weather}"><small>Sol ${f.sol}</small><b>${WEATHER[f.weather].label}</b><i>${f.flare ? esc(f.flare.class) + " flare" : f.real ? "no flare" : "&nbsp;"}</i></div>`).join("") || `<div class="day wide"><b class="tag-weather tag-active">Supply ship arrives!</b></div>`;
     $("left").innerHTML = [0, 1].map((i) => `<i class="${i < g.actionsLeft ? "on" : ""}"></i>`).join("") + (g.actionsLeft === 1 ? "1 job left" : g.actionsLeft + " jobs left");
     $("next").classList.toggle("go", g.actionsLeft === 0 && canPlay());
     if (!$("drawer").hidden) fillDrawer();
@@ -313,10 +344,11 @@ export function startGame(app, site, plan, onEnd) {
     const veil = document.createElement("div");
     veil.className = "veil";
     veil.innerHTML = `<section class="event" role="dialog" aria-modal="true" aria-labelledby="evt">
-<div class="head"><svg viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="26" fill="#ffc93c"/><path d="M48 10V2M48 94v-8M10 48H2M94 48h-8M21 21l-6-6M81 81l-6-6M21 75l-6 6M81 15l-6 6" stroke="#ff9a5c" stroke-width="6" stroke-linecap="round"/><path d="M48 34v18M48 60v3" stroke="#0b1026" stroke-width="7" stroke-linecap="round"/></svg>
-<div><div class="kicker" style="color:var(--warn)">SOL ${g.sol} EVENT</div><h2 id="evt">${esc(ev.title || "Mission Event")}</h2></div></div>
+<div class="alert-bar"><span class="alert-tag">ALERT</span><span>MISSION CONTROL // NOTIFICATION</span></div>
+<div class="head"><svg viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="26" fill="var(--amber)"/><path d="M48 10V2M48 94v-8M10 48H2M94 48h-8M21 21l-6-6M81 81l-6-6M21 75l-6 6M81 15l-6 6" stroke="var(--red)" stroke-width="6" stroke-linecap="round"/><path d="M48 34v18M48 60v3" stroke="var(--ink)" stroke-width="7" stroke-linecap="round"/></svg>
+<div><div class="kicker" style="color:var(--red)">SOL ${g.sol} EVENT</div><h2 id="evt">${esc(ev.title || "Mission Event")}</h2></div></div>
 <p>${esc(ev.text || "")}</p>
-${ev.flare ? `<div class="realline"><span class="tagreal">REAL NASA DATA</span><span>Class ${esc(ev.flare.class)} flare, recorded on ${esc(date)}</span></div>` : ""}
+${ev.flare ? `<div class="realline"><span class="tagreal">REAL NASA DONKI DATA</span><span>Solar flare class ${esc(ev.flare.class)}, recorded by NASA DONKI on ${esc(date)}</span></div>` : ""}
 ${hasChoices
     ? `<div class="choices">${choices.map((c) => `<button class="choice" data-choice="${esc(c.id || "continue")}"><b>${esc(c.label || "Continue")}</b><span>${esc(c.text || "")}</span><span class="chips">${chips(c.effects || {})}</span></button>`).join("")}</div>`
     : `<div class="chips">${chips(ev.effects || {})}</div>`}

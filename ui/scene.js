@@ -4,7 +4,7 @@
 export const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 export function astro(color) {
-  return `<svg class="astro" viewBox="0 0 44 70" aria-hidden="true"><rect x="9" y="17" width="26" height="28" rx="5" fill="#c9cedb"/><rect x="4" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa"/><rect x="31" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa"/><circle cx="8.5" cy="46" r="4.2" fill="#aeb4c4"/><circle cx="35.5" cy="46" r="4.2" fill="#aeb4c4"/><rect x="13" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa"/><rect x="22.5" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa"/><rect x="11" y="62" width="11" height="6" rx="2" fill="#8a90a0"/><rect x="22" y="62" width="11" height="6" rx="2" fill="#8a90a0"/><rect x="12" y="21" width="20" height="26" rx="7" fill="#f2f4fa"/><rect x="17" y="26" width="10" height="6" rx="1.5" fill="#c9cedb"/><rect x="12" y="35" width="20" height="4" fill="${color}"/><rect x="13" y="52" width="8.5" height="3" fill="${color}"/><rect x="22.5" y="52" width="8.5" height="3" fill="${color}"/><circle cx="22" cy="12" r="11" fill="#f2f4fa"/><rect x="14" y="6" width="16" height="11" rx="5.5" fill="#d9a441"/><path d="M17 10h5" stroke="#ffe7a8" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+  return `<svg class="astro" viewBox="0 0 44 70" aria-hidden="true"><rect x="9" y="17" width="26" height="28" rx="5" fill="#c9cedb"/><rect x="4" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa"/><rect x="31" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa"/><circle cx="8.5" cy="46" r="4.2" fill="#aeb4c4"/><circle cx="35.5" cy="46" r="4.2" fill="#aeb4c4"/><rect x="13" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa"/><rect x="22.5" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa"/><rect x="11" y="62" width="11" height="6" rx="2" fill="#8a90a0"/><rect x="22" y="62" width="11" height="6" rx="2" fill="#8a90a0"/><rect x="12" y="21" width="20" height="26" rx="7" fill="#f2f4fa"/><rect x="17" y="26" width="10" height="6" rx="1.5" fill="#c9cedb"/><rect x="12" y="35" width="20" height="4" fill="${color}"/><rect x="13" y="52" width="8.5" height="3" fill="${color}"/><rect x="22.5" y="52" width="8.5" height="3" fill="${color}"/><circle cx="22" cy="12" r="11" fill="#f2f4fa"/><rect x="14" y="6" width="16" height="11" rx="4" fill="#F2A900"/><path d="M17 10h5" stroke="#EDEAE2" stroke-width="1.6" stroke-linecap="round"/></svg>`;
 }
 
 export function stars() {
@@ -19,7 +19,20 @@ export function sceneSvg(site, label) {
   const c = m
     ? { sky: "#b8764a", far: "#a8643e", mid: "#8f4e2c", near: "#74391f", rim: "#a8643e", pit: "#5a2a16", berm: "#8f4e2c", berm2: "#a8643e" }
     : { sky: "#05070f", far: "#a3a9b8", mid: "#868c9b", near: "#666c7b", rim: "#a3a9b8", pit: "#0a0c12", berm: "#868c9b", berm2: "#a3a9b8" };
-  const bgImg = m ? "./assets/bg-mars.png" : "./assets/bg-moon.png";
+  const bgBackdrop = m
+    ? `<image href="./assets/bg-mars.png" x="0" y="-45" width="1024" height="430" preserveAspectRatio="xMidYMid slice" opacity="0.85"/>`
+    : `<g id="lunar-horizon" opacity="0.9">
+        <path d="M 0 215 L 75 182 L 155 202 L 245 158 L 330 194 L 420 166 L 515 198 L 615 152 L 710 188 L 805 164 L 910 192 L 975 174 L 1024 190 L 1024 385 L 0 385 Z" fill="url(#moonRidgeFar)"/>
+        <path d="M 0 232 L 95 208 L 185 225 L 290 192 L 385 222 L 495 204 L 585 226 L 690 195 L 795 220 L 900 202 L 1024 224 L 1024 385 L 0 385 Z" fill="url(#moonRidgeMid)"/>
+        <path d="M 0 248 Q 180 234 360 246 T 730 242 T 1024 250 L 1024 385 L 0 385 Z" fill="url(#moonSurfaceGrad)"/>
+        <ellipse cx="155" cy="272" rx="46" ry="9" fill="#2b3342" stroke="#7a879e" stroke-width="1" stroke-opacity="0.45"/>
+        <ellipse cx="157" cy="273" rx="38" ry="6.5" fill="#1e2430" opacity="0.75"/>
+        <ellipse cx="435" cy="262" rx="30" ry="6" fill="#2b3342" stroke="#7a879e" stroke-width="0.9" stroke-opacity="0.4"/>
+        <ellipse cx="436" cy="263" rx="24" ry="4" fill="#1e2430" opacity="0.7"/>
+        <ellipse cx="785" cy="268" rx="54" ry="10.5" fill="#2b3342" stroke="#7a879e" stroke-width="1.1" stroke-opacity="0.45"/>
+        <ellipse cx="787" cy="270" rx="44" ry="7.5" fill="#1e2430" opacity="0.75"/>
+        <ellipse cx="920" cy="292" rx="26" ry="5.5" fill="#28303e" stroke="#6f7c92" stroke-width="0.8" stroke-opacity="0.35"/>
+      </g>`;
   return `<svg viewBox="0 0 1024 436" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(label)}">
 <defs>
   <linearGradient id="hudShade" x1="0" y1="0" x2="0" y2="1">
@@ -43,9 +56,22 @@ export function sceneSvg(site, label) {
     <stop offset="65%" stop-color="#a8643e" stop-opacity="0.3"/>
     <stop offset="100%" stop-color="#a8643e" stop-opacity="0.6"/>
   </linearGradient>
+  <linearGradient id="moonRidgeFar" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#2c3545"/>
+    <stop offset="100%" stop-color="#1a212d"/>
+  </linearGradient>
+  <linearGradient id="moonRidgeMid" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#465164"/>
+    <stop offset="100%" stop-color="#262e3b"/>
+  </linearGradient>
+  <linearGradient id="moonSurfaceGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#636e82"/>
+    <stop offset="45%" stop-color="#495365"/>
+    <stop offset="100%" stop-color="#2b3240"/>
+  </linearGradient>
 </defs>
 <rect width="1024" height="436" fill="${c.sky}"/>
-<image href="${bgImg}" x="0" y="${m ? -45 : -35}" width="1024" height="${m ? 430 : 420}" preserveAspectRatio="xMidYMid slice" opacity="${m ? 0.85 : 0.65}"/>
+${bgBackdrop}
 <rect width="1024" height="436" fill="${m ? "url(#marsSkyGrad)" : "url(#moonSkyGrad)"}"/>
 <rect width="1024" height="130" fill="url(#hudShade)"/>
 ${m ? `<rect x="0" y="140" width="1024" height="100" fill="url(#marsHorizonHaze)"/>` : ""}
@@ -70,17 +96,17 @@ ${m ? `<g fill="#e3b58a" opacity=".35"><rect class="dust" x="0" y="150" width="2
 <circle cx="302" cy="290" r="17" fill="#f2f4fa"/><path d="M286 296h-6M302 273v-8h14" stroke="#aeb4c4" stroke-width="4" stroke-linecap="round" fill="none"/>
 <g fill="#fff"><circle class="puff" cx="316" cy="262" r="5"/><circle class="puff p2" cx="320" cy="262" r="4"/><circle class="puff p3" cx="313" cy="262" r="4.5"/></g>
 <ellipse cx="465" cy="308" rx="104" ry="9" fill="#000" opacity=".3"/>
-<g class="upg u-recycler"><rect x="350" y="280" width="26" height="26" rx="5" fill="#5cc8ff"/><path d="M363 280v-12h14" stroke="#aeb4c4" stroke-width="4" stroke-linecap="round" fill="none"/></g>
-<rect x="380" y="250" width="170" height="56" rx="28" fill="#eef1f8"/>
+<g class="upg u-recycler"><rect x="350" y="280" width="26" height="26" rx="4" fill="#1B4F9C"/><path d="M363 280v-12h14" stroke="#8A8D91" stroke-width="4" stroke-linecap="round" fill="none"/></g>
+<rect x="380" y="250" width="170" height="56" rx="28" fill="#EDEAE2"/>
 <path class="upg u-thick_shield" d="M358 286Q394 206 465 202 536 206 572 286 465 258 358 286z" fill="${c.berm2}"/>
 <path d="M370 278Q400 226 465 222 530 226 560 278 465 256 370 278z" fill="${c.berm}"/>
-<rect x="452" y="272" width="26" height="34" rx="4" fill="#4a5063"/>
-<circle class="win" cx="412" cy="290" r="7" fill="#9fd8ff"/><circle class="win" cx="518" cy="290" r="7" fill="#9fd8ff"/>
-<ellipse class="dome" cx="465" cy="306" rx="150" ry="118" fill="#c3aeff" fill-opacity=".12" stroke="#c3aeff" stroke-width="3" stroke-dasharray="10 8"/>
+<rect x="452" y="272" width="26" height="34" rx="4" fill="#101820"/>
+<circle class="win" cx="412" cy="290" r="7" fill="#1B4F9C"/><circle class="win" cx="518" cy="290" r="7" fill="#1B4F9C"/>
+<ellipse class="dome" cx="465" cy="306" rx="150" ry="118" fill="#1B4F9C" fill-opacity=".12" stroke="#1B4F9C" stroke-width="3" stroke-dasharray="10 8"/>
 <ellipse cx="635" cy="308" rx="52" ry="7" fill="#000" opacity=".3"/>
-<g class="upg u-greenhouse2"><path d="M690 306V290a28 28 0 0 1 56 0V306z" fill="#f2f4fa"/><rect class="grow" x="700" y="284" width="14" height="18" rx="3" fill="#ff7ad9"/><rect class="grow" x="722" y="284" width="14" height="18" rx="3" fill="#ff7ad9"/></g>
+<g class="upg u-greenhouse2"><path d="M690 306V290a28 28 0 0 1 56 0V306z" fill="#f2f4fa"/><rect class="grow" x="700" y="284" width="14" height="18" rx="2" fill="#F2A900"/><rect class="grow" x="722" y="284" width="14" height="18" rx="2" fill="#F2A900"/></g>
 <path d="M590 306V280a45 45 0 0 1 90 0V306z" fill="#f2f4fa"/>
-<rect class="grow" x="602" y="270" width="18" height="24" rx="4" fill="#ff7ad9"/><rect class="grow" x="626" y="270" width="18" height="24" rx="4" fill="#ff7ad9"/><rect class="grow" x="650" y="270" width="18" height="24" rx="4" fill="#ff7ad9"/>
+<rect class="grow" x="602" y="270" width="18" height="24" rx="2" fill="#F2A900"/><rect class="grow" x="626" y="270" width="18" height="24" rx="2" fill="#F2A900"/><rect class="grow" x="650" y="270" width="18" height="24" rx="2" fill="#F2A900"/>
 <g class="rover"><rect x="745" y="350" width="50" height="16" rx="4" fill="#eef1f8"/><path d="M782 350v-16h10" stroke="#c9cedb" stroke-width="3" stroke-linecap="round" fill="none"/><circle cx="756" cy="370" r="7" fill="#2a2e3a"/><circle cx="784" cy="370" r="7" fill="#2a2e3a"/></g>
 <rect class="nightshade" width="1024" height="436" fill="#02030a"/>
 </svg>`;
