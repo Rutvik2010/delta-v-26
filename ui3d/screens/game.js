@@ -1,112 +1,154 @@
-// Main game screen: a 3D diorama of the base you can turn, inside a toy spacecraft console.
-// Stations and crew are upright billboards on a tilted disc (pure CSS 3D, see ui3d/game3d.css).
+// Main game screen: a big isometric base floating in space that you can turn.
+// Buildings and crew are upright billboards on a tilted square slab (pure CSS 3D, see ui3d/game3d.css).
 import { RES, RES_INFO, CREW, JOBS, JOB_ORDER, WARN, WEATHER_LABEL, esc, helmet, iconSvg, dateText } from "../parts.js";
 
 const MINUS = "−";
 const sign = (n) => (n >= 0 ? "+" : MINUS) + Math.abs(n);
 const CREW_BY = Object.fromEntries(CREW.map((c) => [c.id, c]));
+const H = 290; // half the slab size in px
 
-// Where things stand on the disc (px from the centre; the disc is 640 across).
-const POS = { rest: [-205, -40], oxygen_gen: [-120, 150], reinforce_shield: [10, -40], grow_food: [170, 115], science: [175, -150] };
-const HOME = { maya: [-40, 95], leo: [0, 115], zuri: [40, 95] };
-const FEET = { rest: [-160, -10], oxygen_gen: [-80, 170], reinforce_shield: [70, 0], grow_food: [120, 150], science: [150, -110] };
+// Where things stand on the slab (px from the centre). With the default 45° turn,
+// screen-front is (x + y) > 0 and screen-right is (x − y) > 0.
+const POS = { rest: [-185, 140], oxygen_gen: [10, 200], reinforce_shield: [-18, -18], grow_food: [180, -180], science: [200, 30] };
+const FEET = { rest: [-115, 125], oxygen_gen: [15, 135], reinforce_shield: [45, -15], grow_food: [150, -100], science: [140, 30] };
+const HOME = { maya: [12, 82], leo: [48, 48], zuri: [82, 12] };
+const DOOR = { maya: [13, 27], leo: [20, 20], zuri: [27, 13] };
+const PAD = [-25, -200];
+const DOOR_C = [20, 20];
 
 // ---- sprites (toy style: 3px ink outlines, flat fills) ----
 const SPR = {
-  rest: () => `<svg width="150" height="190" viewBox="0 0 150 190" aria-hidden="true">
+  rest: () => `<svg width="165" height="209" viewBox="0 0 150 190" aria-hidden="true">
 <rect x="70" y="60" width="10" height="120" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"/>
 <path d="M52 180 75 160 98 180" fill="none" stroke="#1E2430" stroke-width="4" stroke-linecap="round"/>
-<g transform="rotate(-16 75 46)"><rect x="12" y="22" width="126" height="48" rx="4" fill="#D9A43A" stroke="#1E2430" stroke-width="4"/>
+<g class="panel-tilt"><g transform="rotate(-16 75 46)"><rect x="12" y="22" width="126" height="48" rx="4" fill="#D9A43A" stroke="#1E2430" stroke-width="4"/>
 <path d="M43 22v48M75 22v48M107 22v48M12 46h126" stroke="#1E2430" stroke-width="2.5"/><rect x="14" y="24" width="28" height="20" fill="#FFF3C4" opacity=".45"/></g>
-<rect x="96" y="150" width="40" height="30" rx="5" fill="#EEF0F2" stroke="#1E2430" stroke-width="3"/><path d="M118 155 110 166h7l-3 9 9-12h-7z" fill="#F5C518" stroke="#1E2430" stroke-width="1.5"/></svg>`,
-  oxygen_gen: () => `<svg width="170" height="140" viewBox="0 0 170 140" aria-hidden="true">
-<g fill="#fff"><circle class="puff" cx="128" cy="30" r="8"/><circle class="puff p2" cx="132" cy="30" r="6"/><circle class="puff p3" cx="124" cy="30" r="7"/></g>
-<rect x="18" y="56" width="70" height="76" rx="18" fill="#DCEEFF" stroke="#1E2430" stroke-width="4"/>
-<path d="M30 76h46M30 92h46" stroke="#9CC4EA" stroke-width="5" stroke-linecap="round"/>
-<path d="M88 100h26v-58h14" fill="none" stroke="#1E2430" stroke-width="6" stroke-linejoin="round"/>
-<rect x="108" y="96" width="52" height="36" rx="6" fill="#EEF0F2" stroke="#1E2430" stroke-width="4"/>
-<circle cx="134" cy="114" r="11" fill="#4BA3F0" stroke="#1E2430" stroke-width="3"/><path d="M134 103v22M123 114h22" stroke="#1E2430" stroke-width="2.5"/></svg>`,
-  reinforce_shield: () => `<svg width="250" height="170" viewBox="0 0 250 170" aria-hidden="true">
-<ellipse class="dome" cx="125" cy="120" rx="118" ry="106" fill="#9B7BF7" fill-opacity=".14" stroke="#9B7BF7" stroke-width="4" stroke-dasharray="10 8" style="opacity: var(--shield-op, .8)"/>
-<path d="M30 160 a95 70 0 0 1 190 0z" fill="var(--soil)" stroke="#1E2430" stroke-width="4"/>
-<path d="M58 160 a67 58 0 0 1 134 0z" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"/>
-<path d="M70 132h110M80 116h90" stroke="#C9CED6" stroke-width="4"/>
-<rect x="111" y="124" width="28" height="36" rx="6" fill="#4A5363" stroke="#1E2430" stroke-width="3"/>
-<circle class="win" cx="86" cy="140" r="8" stroke="#1E2430" stroke-width="2.5"/><circle class="win" cx="164" cy="140" r="8" stroke="#1E2430" stroke-width="2.5"/>
-<path d="M125 102V62l20 8" fill="none" stroke="#1E2430" stroke-width="4" stroke-linecap="round"/><circle class="blink" cx="125" cy="60" r="5" fill="#F26A1B"/></svg>`,
-  grow_food: () => `<svg width="180" height="130" viewBox="0 0 180 130" aria-hidden="true">
-<path d="M14 122 a76 76 0 0 1 152 0z" fill="#DDF3D8" stroke="#1E2430" stroke-width="4"/>
-<path d="M30 122 a60 60 0 0 1 120 0" fill="none" stroke="#fff" stroke-width="4" opacity=".7"/>
-<rect class="grow" x="48" y="64" width="22" height="10" rx="3" fill="#FF7AD9" stroke="#1E2430" stroke-width="2"/><rect class="grow g2" x="80" y="58" width="22" height="10" rx="3" fill="#FF7AD9" stroke="#1E2430" stroke-width="2"/><rect class="grow" x="112" y="64" width="22" height="10" rx="3" fill="#FF7AD9" stroke="#1E2430" stroke-width="2"/>
-<path d="M50 122v-22M50 108c-9 0-12-9-12-9M70 122v-28M70 102c10 0 13-10 13-10M92 122v-24M110 122v-30M110 100c10 0 12-9 12-9M130 122v-20" stroke="#2F7A2C" stroke-width="5" stroke-linecap="round" fill="none"/></svg>`,
-  science: (m) => `<svg width="120" height="140" viewBox="0 0 120 140" aria-hidden="true">
-<path d="M30 132V30" stroke="#1E2430" stroke-width="5" stroke-linecap="round"/><path d="M32 30h44l-10 14 10 14H32z" fill="#F26A1B" stroke="#1E2430" stroke-width="3" stroke-linejoin="round"/>
-<g class="grow"><path d="M78 118l10-22 10 22-10 10z" fill="${m ? "#E9C9A8" : "#BFE9FF"}" stroke="#1E2430" stroke-width="3" stroke-linejoin="round"/></g>
-<path d="M60 128l7-15 7 15-7 7z" fill="${m ? "#E9C9A8" : "#BFE9FF"}" stroke="#1E2430" stroke-width="3" stroke-linejoin="round"/>
-<path class="blink" d="M98 92l4-6M104 100l7-2" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>`,
+<circle cx="75" cy="58" r="7" fill="#F26A1B" stroke="#1E2430" stroke-width="3"/></g>
+<rect x="96" y="150" width="40" height="30" rx="5" fill="#EEF0F2" stroke="#1E2430" stroke-width="3"/><path class="blink" d="M118 155 110 166h7l-3 9 9-12h-7z" fill="#F5C518" stroke="#1E2430" stroke-width="1.5"/></svg>`,
+  oxygen_gen: () => `<svg width="210" height="175" viewBox="0 0 170 140" aria-hidden="true">
+<g fill="#fff"><circle class="puff" cx="58" cy="22" r="8"/><circle class="puff p2" cx="62" cy="22" r="6"/><circle class="puff p3" cx="54" cy="22" r="7"/></g>
+<path d="M14 70 60 50l52 20v62l-52 6-46-6z" fill="#F7F8F9" stroke="#1E2430" stroke-width="4" stroke-linejoin="round"/>
+<path d="M60 50v88M14 70l46 12 52-12" fill="none" stroke="#1E2430" stroke-width="3"/>
+<rect x="52" y="30" width="14" height="30" fill="#EEF0F2" stroke="#1E2430" stroke-width="3"/>
+<rect x="22" y="92" width="26" height="12" fill="#F26A1B" stroke="#1E2430" stroke-width="2.5"/>
+<path d="M72 98h8M86 96h8M100 94h8" stroke="#F5C518" stroke-width="6"/>
+<rect x="122" y="56" width="32" height="76" rx="16" fill="#4BA3F0" stroke="#1E2430" stroke-width="4"/><path d="M130 72v44" stroke="#BFE3FF" stroke-width="5" stroke-linecap="round"/>
+<path d="M112 116h10" stroke="#1E2430" stroke-width="5"/></svg>`,
+  reinforce_shield: () => `<svg width="270" height="189" viewBox="0 0 250 175" aria-hidden="true">
+<ellipse class="dome" cx="125" cy="125" rx="120" ry="108" fill="#9B7BF7" fill-opacity=".14" stroke="#9B7BF7" stroke-width="4" stroke-dasharray="10 8" style="opacity: var(--shield-op, .8)"/>
+<path d="M22 165h206l-10 10H32z" fill="#C9CED6" stroke="#1E2430" stroke-width="3" stroke-linejoin="round"/>
+<path d="M40 165 a85 80 0 0 1 170 0z" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"/>
+<path d="M54 138 h142" stroke="#9AA3AF" stroke-width="6" stroke-dasharray="14 10"/>
+<path d="M60 165 a65 65 0 0 1 40 -60" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".9"/>
+<rect class="door" x="110" y="132" width="30" height="33" rx="8" fill="#4A5363" stroke="#1E2430" stroke-width="3"/>
+<circle class="win" cx="160" cy="112" r="10" stroke="#1E2430" stroke-width="3"/>
+<g class="dish"><path d="M125 86V66" stroke="#1E2430" stroke-width="4"/><path d="M106 60a19 9 0 0 0 38 0z" fill="#EEF0F2" stroke="#1E2430" stroke-width="3"/><circle class="blink" cx="125" cy="52" r="4" fill="#F26A1B"/></g></svg>`,
+  grow_food: () => `<svg width="190" height="190" viewBox="0 0 150 150" aria-hidden="true">
+<path d="M12 60 75 34l63 26v70l-63 16-63-16z" fill="#FCE6F4" fill-opacity=".85" stroke="#1E2430" stroke-width="4" stroke-linejoin="round"/>
+<path d="M12 60l63 18 63-18M75 78v68" fill="none" stroke="#1E2430" stroke-width="3"/>
+<path d="M12 60 75 34l63 26" fill="none" stroke="#FF7AD9" stroke-width="7" stroke-linejoin="round"/>
+<path d="M40 60 75 47l35 13" fill="none" stroke="#FF7AD9" stroke-width="4"/>
+<g class="sway"><circle cx="34" cy="108" r="9" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/></g>
+<g class="sway" style="animation-delay: -1s"><circle cx="56" cy="116" r="9" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/></g>
+<g class="sway" style="animation-delay: -.5s"><circle cx="96" cy="116" r="9" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/></g>
+<g class="sway" style="animation-delay: -1.5s"><circle cx="118" cy="106" r="9" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/></g>
+<rect class="grow" x="26" y="84" width="20" height="5" rx="2" fill="#FF7AD9"/><rect class="grow g2" x="104" y="84" width="20" height="5" rx="2" fill="#FF7AD9"/></svg>`,
+  science: (m) => `<svg width="140" height="160" viewBox="0 0 120 140" aria-hidden="true">
+<path d="M30 132V30" stroke="#1E2430" stroke-width="5" stroke-linecap="round"/><path class="flag" d="M32 30h44l-10 14 10 14H32z" fill="#F26A1B" stroke="#1E2430" stroke-width="3" stroke-linejoin="round"/>
+<path d="M76 124l10-22 10 22-10 10z" fill="${m ? "#E9C9A8" : "#BFE9FF"}" stroke="#1E2430" stroke-width="3" stroke-linejoin="round"/>
+<path d="M52 130l7-15 7 15-7 7z" fill="${m ? "#E9C9A8" : "#BFE9FF"}" stroke="#1E2430" stroke-width="3" stroke-linejoin="round"/>
+<path class="sparkle" d="M100 94l2-7 2 7 7 2-7 2-2 7-2-7-7-2z" fill="#fff"/><path class="sparkle s2" d="M66 108l1.5-5 1.5 5 5 1.5-5 1.5-1.5 5-1.5-5-5-1.5z" fill="#fff"/></svg>`,
 };
-const astro = (color) => `<svg class="fig" width="44" height="64" viewBox="0 0 44 70" aria-hidden="true"><rect x="9" y="17" width="26" height="28" rx="5" fill="#c9cedb" stroke="#1E2430" stroke-width="2"/><rect x="4" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="31" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="13" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="22.5" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="12" y="21" width="20" height="26" rx="7" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="12" y="34" width="20" height="5" fill="${color}"/><circle cx="22" cy="12" r="11" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="14" y="6" width="16" height="11" rx="5.5" fill="#1E2430"/><path d="M17 10h5" stroke="#8FD9F0" stroke-width="2" stroke-linecap="round"/></svg>`;
-const WARN_ICON = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B3261E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 21h20zM12 10v5M12 18v.5"/></svg>`;
+const rover = () => `<svg width="90" height="70" viewBox="0 0 90 70" aria-hidden="true">
+<path class="beam" d="M70 28 140 6v46z" fill="#FFF3C4" opacity=".5"/>
+<rect x="12" y="24" width="56" height="24" rx="5" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"/>
+<rect x="20" y="30" width="16" height="10" rx="2" fill="#4BA3F0" stroke="#1E2430" stroke-width="2"/>
+<path d="M54 24V8" stroke="#1E2430" stroke-width="3"/><circle class="blink" cx="54" cy="7" r="4" fill="#F26A1B" stroke="#1E2430" stroke-width="2"/>
+<rect x="64" y="24" width="10" height="9" rx="2" fill="#4BA3F0" stroke="#1E2430" stroke-width="2"/>
+<circle cx="22" cy="54" r="9" fill="#4A5363" stroke="#1E2430" stroke-width="3"/><circle cx="58" cy="54" r="9" fill="#4A5363" stroke="#1E2430" stroke-width="3"/></svg>`;
+const shipFlag = () => `<svg width="56" height="90" viewBox="0 0 56 90" aria-hidden="true"><path d="M10 88V10" stroke="#1E2430" stroke-width="4" stroke-linecap="round"/><rect x="12" y="6" width="40" height="28" rx="4" fill="#F5C518" stroke="#1E2430" stroke-width="3"/><text id="shipn" x="32" y="27" text-anchor="middle" font-family="Lexend, sans-serif" font-weight="800" font-size="17" fill="#1E2430"></text></svg>`;
+const astro = (color) => `<svg class="fig" width="50" height="74" viewBox="0 0 44 70" aria-hidden="true"><rect x="9" y="17" width="26" height="28" rx="5" fill="#c9cedb" stroke="#1E2430" stroke-width="2"/><rect x="4" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="31" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="13" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="22.5" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="12" y="21" width="20" height="26" rx="7" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="12" y="34" width="20" height="5" fill="${color}"/><circle cx="22" cy="12" r="11" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="14" y="6" width="16" height="11" rx="5.5" fill="#E9B44C" stroke="#1E2430" stroke-width="1.5"/><path d="M17 9h5" stroke="#FFF3C4" stroke-width="2" stroke-linecap="round"/></svg>`;
 
 function skySvg(mars) {
-  const stars = [[60, 40], [150, 90], [240, 30], [330, 70], [420, 24], [520, 60], [610, 30], [700, 80], [790, 40], [880, 70], [100, 160], [860, 170], [470, 120], [40, 230], [900, 240]];
-  return `<svg class="sky" viewBox="0 0 932 520" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-${mars ? "" : stars.map(([x, y], i) => `<circle class="twinkle${i % 2 ? " b" : ""}" cx="${x}" cy="${y}" r="${1 + (i % 3) * 0.5}" fill="#F3F4F6"/>`).join("")}
-${mars ? `<circle cx="160" cy="90" r="22" fill="#FFF3DC" opacity=".9"/><g fill="#E8A878" opacity=".25"><rect class="dust" x="-200" y="150" width="1300" height="28" rx="14"/><rect class="dust d2" x="-200" y="200" width="1300" height="18" rx="9"/></g>`
-    : `<g transform="translate(800 90)"><circle r="34" fill="#3D7BD9" stroke="#1E2430" stroke-width="3"/><path d="M-24 -10 C-14 -22 0 -18 2 -8 C4 2 -6 4 -8 12 C-10 20 -20 16 -24 8Z" fill="#5CBF5A"/><path d="M8 -26 C18 -24 22 -16 18 -8 C14 -2 6 -6 4 -12Z" fill="#5CBF5A"/><path d="M4 -34 A34 34 0 0 1 4 34 A26 34 0 0 0 4 -34Z" fill="#0B1020" opacity=".4"/></g>
-<g class="sunsym" transform="translate(110 80)"><circle r="20" fill="#FFF6D6"/><circle r="34" fill="#FFF6D6" opacity=".18"/></g>`}
-<g class="streaks s-active" stroke="#F5C518" stroke-width="3" stroke-linecap="round"><line x1="110" y1="80" x2="560" y2="40"/><line x1="110" y1="88" x2="600" y2="140"/><line x1="110" y1="74" x2="460" y2="10"/></g>
-<g class="streaks s-storm" stroke="#FF6A3D" stroke-width="5" stroke-linecap="round"><line x1="110" y1="80" x2="680" y2="60"/><line x1="110" y1="92" x2="700" y2="200"/><line x1="110" y1="70" x2="560" y2="0"/></g></svg>`;
+  const stars = [];
+  for (let i = 0; i < 70; i++) stars.push([(i * 397) % 1280, (i * 211 + 40) % 800, 0.8 + (i % 3) * 0.6]);
+  return `<svg class="sky" viewBox="0 0 1280 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+${stars.map(([x, y, r], i) => `<circle class="twinkle ${"abc"[i % 3]}" cx="${x}" cy="${y}" r="${r}" fill="${mars ? "#F6D9C4" : "#F3F4F6"}"/>`).join("")}
+<line class="shoot" x1="980" y1="180" x2="620" y2="320" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+<line class="shoot s2" x1="420" y1="160" x2="120" y2="300" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+${mars ? `<g fill="#E8A878" opacity=".22"><rect class="dust" x="-200" y="420" width="1700" height="34" rx="17"/><rect class="dust d2" x="-200" y="500" width="1700" height="22" rx="11"/></g>`
+    : `<g class="earth"><g transform="translate(520 180)"><circle r="20" fill="#3D7BD9" stroke="#1E2430" stroke-width="3"/><path d="M-14 -6 C-8 -13 0 -11 1 -5 C2 1 -4 2 -5 7 C-6 12 -12 9 -14 5Z" fill="#5CBF5A"/><path d="M2 -20 A20 20 0 0 1 2 20 A15 20 0 0 0 2 -20Z" fill="#0B1020" opacity=".4"/></g></g>`}
+<g class="sun"><g transform="translate(108 250)"><circle r="${mars ? 40 : 56}" fill="#FFE07A" opacity=".18"/>
+<g class="rays" stroke="#F5C518" stroke-width="6" stroke-linecap="round">${Array.from({ length: 8 }, (_, i) => { const a = i * Math.PI / 4, r1 = mars ? 32 : 46, r2 = mars ? 42 : 60; return `<line x1="${(Math.cos(a) * r1).toFixed(1)}" y1="${(Math.sin(a) * r1).toFixed(1)}" x2="${(Math.cos(a) * r2).toFixed(1)}" y2="${(Math.sin(a) * r2).toFixed(1)}"/>`; }).join("")}</g>
+<circle r="${mars ? 24 : 36}" fill="#F5C518" stroke="#1E2430" stroke-width="3"/></g></g>
+<g class="streaks s-active" stroke="#F5C518" stroke-width="3" stroke-linecap="round"><line x1="108" y1="250" x2="560" y2="420"/><line x1="108" y1="250" x2="640" y2="330"/><line x1="108" y1="250" x2="480" y2="520"/></g>
+<g class="streaks s-storm" stroke="#FF6A3D" stroke-width="5" stroke-linecap="round"><line x1="108" y1="250" x2="640" y2="440"/><line x1="108" y1="250" x2="700" y2="320"/><line x1="108" y1="250" x2="540" y2="560"/></g></svg>`;
 }
 
 export function mount(root, ctx) {
   const store = ctx.store, eng = ctx.engine;
   const mars = store.site === "mars";
   const S = () => store.state;
-  let busy = false, openJob = null, say = null, yaw = -12, alive = true;
-  const walking = {};
+  let busy = false, openJob = null, say = null, yaw = 45, alive = true;
+  const walking = {};           // crewId -> job id while walking/working
+  const inside = new Set();     // crew resting inside the habitat after their shift
+  const tokens = { maya: 0, leo: 0, zuri: 0 };
+  const shown = {};             // meter numbers currently on screen (for count-up)
   const timers = new Set();
   const later = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
+  const wait = (ms) => new Promise((r) => later(r, ms));
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  const slabs = Array.from({ length: 7 }, (_, i) => `<div class="slab" style="transform: translateZ(${-(i + 1) * 5}px); filter: brightness(${(1 - i * 0.07).toFixed(2)})"></div>`).join("");
-  root.innerHTML = `<div id="g3" class="${mars ? "mars" : "moon"}">
-<header class="top">
-  <div class="logo">Delta-V <b>26</b></div><div class="place">${mars ? "Jezero Base, Mars" : "Shackleton Base, the Moon"}</div>
-  <div class="solbox" role="group" aria-label="Mission day"><span>Sol</span><strong id="sol"></strong><span>of 30</span><div class="path" id="path" aria-hidden="true"></div></div>
-  <button type="button" class="key tbtn" id="b-tasks"></button>
-  <button type="button" class="key tbtn" id="b-up"></button>
-  <button type="button" class="key tbtn" id="b-bonus" aria-pressed="true"></button>
-</header>
-<div class="meters" id="meters">${RES.map((k) => `<div class="meter" id="m-${k}" role="img" style="--c: ${RES_INFO[k].color}">
-  <div class="row">${iconSvg(k, 24, "#1E2430")}<span class="nm">${RES_INFO[k].name}</span><span class="low">${WARN_ICON}LOW</span><span class="delta"></span><span class="val"></span></div>
-  <div class="bar"><div class="ghost" style="background: var(--c)"></div><div class="fill" style="background: var(--c)"></div></div></div>`).join("")}</div>
+  const slabs = Array.from({ length: 12 }, (_, i) => `<div class="slab${i % 4 === 2 ? " band" : ""}${i === 11 ? " base" : ""}" style="transform: translateZ(${-(i + 1) * 4}px)"></div>`).join("");
+  const pt = (p) => `${H + p[0]} ${H + p[1]}`;
+  const paths = [...JOB_ORDER.map((id) => FEET[id]), [PAD[0] + 40, PAD[1] + 40]].map((f, i) => `<path id="pa-${JOB_ORDER[i] || "pad"}" d="M${pt(DOOR_C)} L${pt(f)}"/>`).join("");
+  const bbAt = (p) => `--x: ${p[0]}; --y: ${p[1]}; --yaw: ${yaw}deg`;
+
+  root.innerHTML = `<div id="g3" class="${mars ? "mars" : "moon"}${reduced ? "" : " intro"}">
 <div class="world" id="world">
   ${skySvg(mars)}
-  <div class="wxtag" id="wxtag"></div><div class="nighttag">Moon night: dark for 14 sols</div>
   <div class="stage3d"><div class="board" id="board" style="--yaw: ${yaw}deg">
-    ${slabs}<div class="disc"></div>
-    <div class="flat crater" style="left: ${320 + 175 - 75}px; top: ${320 - 150 - 35}px"></div>
-    <div class="flat rock" style="left: 150px; top: 470px"></div><div class="flat rock" style="left: 470px; top: 520px"></div><div class="flat rock" style="left: 520px; top: 300px"></div>
-    <div class="path3d"></div>
-    <div class="flat flood" style="left: ${320 + 10}px; top: ${320 - 40}px"></div><div class="flat flood" style="left: ${320 + 170}px; top: ${320 + 115}px"></div>
-    ${JOB_ORDER.map((id) => `<div class="flat shadow" style="left: ${320 + POS[id][0]}px; top: ${320 + POS[id][1]}px"></div>`).join("")}
+    ${slabs}<div class="top"></div>
+    <div class="flat crater" style="left: ${H + POS.science[0]}px; top: ${H + POS.science[1]}px"></div>
+    <div class="flat pit" style="left: 70px; top: 140px"></div><div class="flat pit" style="left: 470px; top: 480px"></div><div class="flat pit" style="left: 120px; top: 470px"></div>
+    <div class="flat rock" style="left: 40px; top: 300px"></div><div class="flat rock" style="left: 520px; top: 120px"></div><div class="flat rock" style="left: 300px; top: 545px"></div>
+    <div class="flat pad" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px"></div>
+    <svg class="paths" viewBox="0 0 ${H * 2} ${H * 2}" aria-hidden="true">${paths}</svg>
+    <div class="flat flood" style="left: ${H + POS.reinforce_shield[0]}px; top: ${H + POS.reinforce_shield[1]}px"></div><div class="flat flood" style="left: ${H + POS.grow_food[0]}px; top: ${H + POS.grow_food[1]}px"></div>
+    ${JOB_ORDER.map((id) => `<div class="flat shadow" style="left: ${H + POS[id][0] + 14}px; top: ${H + POS[id][1] - 14}px"></div>`).join("")}
+    ${JOB_ORDER.map((id) => `<div class="flat ring" id="ring-${id}" style="left: ${H + POS[id][0]}px; top: ${H + POS[id][1]}px"></div>`).join("")}
     <div class="shade"></div>
-    ${JOB_ORDER.map((id) => `<button type="button" class="bb station" id="st-${id}" data-job="${id}" style="--x: ${POS[id][0]}; --y: ${POS[id][1]}; --yaw: ${yaw}deg; --c: ${RES_INFO[JOBS[id].res].color}" aria-label="${esc(JOBS[id].label(mars))}">
-      <span class="lbl"><i></i>${esc(JOBS[id].short)}</span>${SPR[id](mars)}</button>`).join("")}
-    ${CREW.map((c) => `<div class="bb walker" id="w-${c.id}" style="--x: ${HOME[c.id][0]}; --y: ${HOME[c.id][1]}; --yaw: ${yaw}deg"><span class="tag" style="border-color: ${c.color}">${c.name}</span>${astro(c.color)}<span class="zz" hidden>zz</span></div>`).join("")}
+    <div class="bb" style="${bbAt([PAD[0] + 55, PAD[1] - 10])}" aria-hidden="true">${shipFlag()}</div>
+    <div class="bb rover" style="--yaw: ${yaw}deg" aria-hidden="true">${rover()}</div>
+    ${JOB_ORDER.map((id, i) => `<button type="button" class="bb station${id === "reinforce_shield" ? " hab" : ""}" id="st-${id}" data-job="${id}" style="${bbAt(POS[id])}; --i: ${i}; --c: ${RES_INFO[JOBS[id].res].color}" aria-label="${esc(JOBS[id].label(mars))}">
+      <span class="lbl"><i>${iconSvg(JOBS[id].res, 18, "#1E2430")}</i>${esc(JOBS[id].short)}</span><span class="art">${SPR[id](mars)}</span>${id === "reinforce_shield" ? `<span class="zzz" id="zzz" hidden></span>` : ""}</button>`).join("")}
+    ${CREW.map((c, i) => `<div class="bb walker" id="w-${c.id}" style="${bbAt(HOME[c.id])}; --i: ${i}"><span class="tag" style="border-color: ${c.color}">${c.name}</span>${astro(c.color)}<span class="kick" aria-hidden="true"><i></i><i></i><i></i></span><span class="zz" hidden>zz</span></div>`).join("")}
   </div></div>
-  <button type="button" class="key turn l" id="t-l" aria-label="Turn the base left"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E2430" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 7 4 12l5 5M4 12h11a5 5 0 0 0 5-5"/></svg></button>
-  <button type="button" class="key turn r" id="t-r" aria-label="Turn the base right"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E2430" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 7 5 5-5 5M20 12H9a5 5 0 0 1-5-5"/></svg></button>
-  <div class="hint">Drag to spin the base · Q / E to turn</div>
 </div>
-<aside class="side">
-  <section class="screen" id="fc" aria-label="Sun forecast"></section>
-  <section class="card" id="card"></section>
-</aside>
+<div class="nighttag">Moon night: dark for 14 sols</div>
+<button type="button" class="key turn l" id="t-l" aria-label="Turn the base left"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E2430" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 7 4 12l5 5M4 12h11a5 5 0 0 0 5-5"/></svg></button>
+<button type="button" class="key turn r" id="t-r" aria-label="Turn the base right"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E2430" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 7 5 5-5 5M20 12H9a5 5 0 0 1-5-5"/></svg></button>
+<div class="hint">Drag to turn the base, or press Q and E</div>
+<header class="hud">
+  <div class="logo">Delta-V 26</div><div class="place">${mars ? "Mars · Jezero crater" : "Moon · Shackleton crater"}</div>
+  <div class="solbox" role="group" aria-label="Mission day"><span class="sl">Sol<strong id="sol"></strong>of 30</span><div class="path" id="path" aria-hidden="true"></div><span class="wx" id="wx"></span></div>
+  <button type="button" class="key tbtn sci" id="b-sci" aria-label="Science points">${iconSvg("science", 20, "#1E2430")}<span id="sci"></span></button>
+  <button type="button" class="key tbtn" id="b-tasks"></button>
+  <button type="button" class="key tbtn" id="b-up">Upgrades</button>
+  <button type="button" class="key tbtn bonus" id="b-bonus" aria-pressed="true"></button>
+</header>
+<div class="meters" id="meters">${RES.map((k) => `<div class="meter" id="m-${k}" role="img" style="--c: ${RES_INFO[k].color}">
+  <span class="ic">${iconSvg(k, 22, "#1E2430")}</span>
+  <div class="row"><span class="nm">${RES_INFO[k].name}</span><span class="note"></span></div>
+  <span class="val"></span>
+  <div class="bar"><div class="ghost" style="background: var(--c)"></div><div class="fill" style="background: var(--c)"></div></div></div>`).join("")}</div>
+<section class="fc" id="fc" aria-label="Sun forecast"></section>
+<section class="jobpanel" id="card" aria-hidden="true" aria-label="Send someone to this job"></section>
 <footer class="dock">
   <div class="crew" id="crew"></div>
-  <div class="say" id="say" aria-live="polite"><div class="who"></div><div class="line"></div><div class="fact"></div></div>
-  <button type="button" class="key endsol" id="b-end">End sol<small id="left"></small></button>
+  <div class="say" id="say" aria-live="polite"><div class="line"></div><div class="fact"></div></div>
+  <div class="jobs"><div class="dots" id="dots"></div><span id="left"></span></div>
+  <button type="button" class="key endsol" id="b-end"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="#1E2430"/></svg>End sol</button>
 </footer>
 </div>`;
 
@@ -132,25 +174,53 @@ export function mount(root, ctx) {
   world.addEventListener("pointercancel", endDrag);
   $("t-l").addEventListener("click", () => setYaw(yaw - 45));
   $("t-r").addEventListener("click", () => setYaw(yaw + 45));
+  const closeJob = () => { const id = openJob; openJob = null; preview(null, null); draw(); if (id) $("st-" + id).focus(); };
   const onKey = (e) => {
     if (document.querySelector(".dv-overlay") || e.target.tagName === "INPUT") return;
     const k = e.key.toLowerCase();
     if (k === "q") setYaw(yaw - 30);
     else if (k === "e") setYaw(yaw + 30);
-    else if (e.key === "Escape" && openJob) { const id = openJob; openJob = null; preview(null, null); draw(); $("st-" + id).focus(); }
+    else if (e.key === "Escape" && openJob) closeJob();
   };
   document.addEventListener("keydown", onKey);
+
+  // entrance: spin the base into place while it rises
+  if (!reduced) {
+    setYaw(yaw + 120);
+    later(() => setYaw(45), 60);
+    later(() => g3.classList.remove("intro"), 2600);
+  }
 
   // ---------- drawing ----------
   function preview(gain, cost) {
     RES.forEach((k) => {
       const m = $("m-" + k), ch = ((gain && gain[k]) || 0) - ((cost && cost[k]) || 0);
-      const d = m.querySelector(".delta");
-      d.textContent = ch ? sign(ch) : "";
-      d.className = "delta " + (ch > 0 ? "up" : "down");
       m.querySelector(".ghost").style.transform = `scaleX(${ch > 0 ? Math.min(100, S()[k] + ch) / 100 : 0})`;
+      m.dataset.preview = ch ? sign(ch) : "";
+    });
+    drawNotes();
+  }
+  function drawNotes() {
+    const s = S();
+    RES.forEach((k) => {
+      const m = $("m-" + k), note = m.querySelector(".note"), p = m.dataset.preview;
+      if (p) { note.innerHTML = `<span class="delta ${p[0] === "+" ? "up" : "down"}">${p} if sent</span>`; return; }
+      note.textContent = s[k] < 30 ? (k === "shielding" ? "Low for storms!" : "Running low!") : "";
     });
   }
+
+  function countTo(el, from, to) {
+    if (reduced || from === to || from === undefined || document.hidden) { el.textContent = to; return; }
+    const t0 = performance.now(), dur = 650;
+    const step = (t) => {
+      if (!alive) return;
+      const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(from + (to - from) * e);
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  const pulse = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
 
   function speech() {
     const s = S();
@@ -161,105 +231,130 @@ export function mount(root, ctx) {
       else if (s.actionsLeft === 0) v = { who: "zuri", line: "All jobs are done for today. Press End sol when you're ready." };
       else if (s.weather === "storm") v = { who: "maya", line: "Big Sun storm today! The shield is taking hits." };
       else if (s.weather === "active") v = { who: "zuri", line: "The Sun is busy today. Keep an eye on the shield." };
-      else v = { who: "leo", line: s.actionsLeft === 2 ? "Morning, Commander! Tap a building to give someone a job." : "One more job today. Who's next?" };
+      else v = { who: "leo", line: s.actionsLeft === 2 ? "Morning, Commander! Tap a place on the base to send someone." : "One more job today. Who's next?" };
     }
     const el = $("say"), name = CREW_BY[v.who] ? CREW_BY[v.who].name : "Mission Control";
-    const changed = el.querySelector(".line").textContent !== v.line;
-    el.querySelector(".who").textContent = name;
-    el.querySelector(".line").textContent = v.line;
+    const html = `<b>${esc(name)}:</b> ${esc(v.line)}`;
+    const line = el.querySelector(".line");
+    const changed = line.innerHTML !== html;
+    line.innerHTML = html;
     el.querySelector(".fact").textContent = v.fact ? "True NASA fact: " + v.fact : "";
-    if (changed) { el.classList.remove("new"); void el.offsetWidth; el.classList.add("new"); }
+    if (changed) pulse(el, "new");
   }
 
   function drawForecast() {
     const s = S(), label = ctx.dataLabel();
-    const todayPlan = s.weatherPlan && s.weatherPlan[s.sol - 1];
-    const days = [{ sol: s.sol, weather: s.weather, flare: todayPlan && todayPlan.class ? { class: todayPlan.class, date: todayPlan.date } : null, today: true }, ...eng.getForecast(s, 3)];
-    $("fc").innerHTML = `<h2>Sun forecast <span class="chip${label.real ? "" : " practice"}">${label.real ? "REAL NASA DATA" : "PRACTICE"}</span></h2>
-<div class="days">${days.map((d) => `<div class="day${d.today ? " today" : ""}"><small>${d.today ? "Today" : "Sol " + d.sol}</small><b class="wx-${d.weather}">${WEATHER_LABEL[d.weather]}</b><span>${d.flare ? esc(d.flare.class) + " flare" : "no flare"}</span></div>`).join("")}</div>
-${label.real ? `<p style="margin: 8px 0 0; font-size: 12px; color: #7FA894">${esc(label.text)}${todayPlan && todayPlan.date ? " · today is " + esc(dateText(todayPlan.date)) : ""}</p>` : `<div class="practice-banner">Practice weather: made up, not real NASA data</div>`}`;
+    const plan = (n) => s.weatherPlan && s.weatherPlan[n - 1];
+    const todayPlan = plan(s.sol);
+    const days = [{ sol: s.sol, weather: s.weather, flare: todayPlan && todayPlan.class ? { class: todayPlan.class } : null, today: true }, ...eng.getForecast(s, 3)];
+    $("fc").innerHTML = `<h2>Sun forecast <span class="chip${label.real ? "" : " practice"}">${label.real ? "Real data" : "Practice"}</span></h2>
+${days.map((d) => { const p = plan(d.sol); return `<div class="fday${d.today ? " today" : ""}"><b>${d.today ? "Today" : "Sol " + d.sol}</b><small>${p && p.date ? esc(dateText(p.date)) : d.flare ? esc(d.flare.class) + " flare" : "No flares"}</small><span class="pill wx-${d.weather}">${WEATHER_LABEL[d.weather]}${d.flare ? " · " + esc(d.flare.class) : ""}</span></div>`; }).join("")}
+${label.real ? `<p>${esc(label.text)}</p>` : `<div class="practice-banner">Practice weather: made up, not real NASA data</div>`}`;
   }
 
   const fx = (obj, neg) => Object.keys(obj).map((k) => (neg ? MINUS + obj[k] : sign(obj[k])) + " " + RES_INFO[k].name).join(", ");
 
+  let cardFor = null;
   function drawCard() {
     const s = S(), card = $("card");
-    if (openJob) {
-      const job = JOBS[openJob];
-      const base = eng.getActions(s).find((a) => a.id === openJob);
-      card.innerHTML = `<div class="pop-in" style="display: flex; flex-direction: column; gap: 10px">
-<div style="display: flex; align-items: center; gap: 10px">${iconSvg(job.res, 28, "#1E2430")}<h3>${esc(job.label(mars))}</h3></div>
+    card.setAttribute("aria-hidden", openJob ? "false" : "true");
+    $("fc").classList.toggle("away", !!openJob);
+    if (!openJob) { cardFor = null; return; }
+    if (cardFor === openJob + s.actionsLeft) return;
+    cardFor = openJob + s.actionsLeft;
+    const job = JOBS[openJob];
+    const base = eng.getActions(s).find((a) => a.id === openJob);
+    card.style.setProperty("--c", RES_INFO[job.res].color);
+    card.innerHTML = `<div class="head"><i>${iconSvg(job.res, 26, "#1E2430")}</i><h3>${esc(job.label(mars))}</h3></div>
 <p class="muted">Gets <b style="color: #1F7A35">${esc(fx(base.gain))}</b>, costs <b style="color: #B3261E">${esc(fx(base.cost, true))}</b></p>
-<p style="font-weight: 800; font-size: 15px">Who goes?</p>
+<p style="font-weight: 800; font-size: 16px">Who goes?</p>
 ${CREW.map((c) => {
-        const a = eng.getActions(s, c.id).find((x) => x.id === openJob), m = s.crew[c.id];
-        const word = m.job ? "Busy" : a.skilled && !a.tired ? "Best at this!" : a.tired ? "Tired" : "Ready";
-        const cls = m.job ? "busy" : a.skilled && !a.tired ? "best" : a.tired ? "tired" : "";
-        return `<button type="button" class="key pick" data-crew="${c.id}" ${m.job ? "disabled" : ""} aria-label="Send ${esc(c.name)}. ${esc(word)}. ${esc(fx(a.gain))}. ${esc(fx(a.cost, true))}.">${helmet(c.color, 48)}<span class="who">${esc(c.name)} <span class="badge ${cls}">${esc(word)}</span></span><span class="nums"><span class="g">${esc(fx(a.gain))}</span> · <span class="c">${esc(fx(a.cost, true))}</span></span></button>`;
-      }).join("")}
-<button type="button" class="key" id="b-cancel" style="height: 46px; font-weight: 700; font-size: 16px">Not now</button></div>`;
-      card.querySelectorAll(".pick").forEach((b) => {
-        const a = () => eng.getActions(S(), b.dataset.crew).find((x) => x.id === openJob);
-        b.addEventListener("click", () => send(openJob, b.dataset.crew));
-        const on = () => { const x = a(); if (x) preview(x.gain, x.cost); };
-        b.addEventListener("pointerenter", on); b.addEventListener("focus", on);
-        b.addEventListener("pointerleave", () => preview(null, null)); b.addEventListener("blur", () => preview(null, null));
-      });
-      $("b-cancel").addEventListener("click", () => { const id = openJob; openJob = null; preview(null, null); draw(); $("st-" + id).focus(); });
-      const first = card.querySelector(".pick:not(:disabled)");
-      if (first) first.focus();
-      return;
-    }
-    const tasks = eng.getTasks(s);
-    const mark = { done: "Done", failed: "Missed", active: "" };
-    card.innerHTML = `<h3>Today's plan</h3>
-<p class="muted">${s.actionsLeft > 0 ? `Tap a building on the base, then pick who goes. You have <b>${s.actionsLeft} job${s.actionsLeft === 1 ? "" : "s"}</b> left today.` : "All jobs are done. Press <b>End sol</b> to start the next day."}</p>
-<p style="font-weight: 800; font-size: 15px; margin-top: 4px">Mission Control goals</p>
-${tasks.map((t) => `<div class="goal"><span style="flex: 0 0 150px; font-size: 13px; line-height: 1.25">${esc(t.label)}</span><span class="gbar" role="img" aria-label="${t.progress} of ${t.goal}"><i style="width: ${Math.round(t.progress / t.goal * 100)}%"></i></span><b style="font-size: 13px; font-variant-numeric: tabular-nums; min-width: 44px; text-align: right">${mark[t.status] || t.progress + "/" + t.goal}</b></div>`).join("")}`;
+      const a = eng.getActions(s, c.id).find((x) => x.id === openJob), m = s.crew[c.id];
+      const off = m.job || walking[c.id] || inside.has(c.id);
+      const word = off ? "Busy" : a.skilled && !a.tired ? "Best at this!" : a.tired ? "Tired" : "Ready";
+      const cls = off ? "busy" : a.skilled && !a.tired ? "best" : a.tired ? "tired" : "";
+      return `<button type="button" class="key pick" data-crew="${c.id}" ${off ? "disabled" : ""} aria-label="Send ${esc(c.name)}. ${esc(word)}. ${esc(fx(a.gain))}. ${esc(fx(a.cost, true))}.">${helmet(c.color, 48)}<span class="who">${esc(c.name)} <span class="badge ${cls}">${esc(word)}</span></span><span class="nums"><span class="g">${esc(fx(a.gain))}</span> · <span class="c">${esc(fx(a.cost, true))}</span></span></button>`;
+    }).join("")}
+<button type="button" class="key" id="b-cancel" style="height: 46px; font-weight: 700; font-size: 16px">Not now</button>`;
+    card.querySelectorAll(".pick").forEach((b) => {
+      const a = () => eng.getActions(S(), b.dataset.crew).find((x) => x.id === openJob);
+      b.addEventListener("click", () => send(openJob, b.dataset.crew));
+      const on = () => { const x = a(); if (x) preview(x.gain, x.cost); };
+      b.addEventListener("pointerenter", on); b.addEventListener("focus", on);
+      b.addEventListener("pointerleave", () => preview(null, null)); b.addEventListener("blur", () => preview(null, null));
+    });
+    $("b-cancel").addEventListener("click", closeJob);
+    const first = card.querySelector(".pick:not(:disabled)");
+    if (first) first.focus({ preventScroll: true });
+  }
+
+  function crewStatus(c) {
+    const s = S(), m = s.crew[c.id], w = walking[c.id];
+    if (w && w.at) return ["Working: " + JOBS[w.id].short, "busy active"];
+    if (w) return ["Going to: " + JOBS[w.id].short, "busy active"];
+    if (inside.has(c.id)) return ["Resting inside", "home"];
+    if (m.job) return ["Done: " + JOBS[m.job].short, "home"];
+    if (m.tired) return ["Tired, worked yesterday", "tired"];
+    return ["Ready", ""];
   }
 
   function draw() {
     const s = S(), night = eng.isNight(s) && !mars;
     $("sol").textContent = s.sol;
     $("path").innerHTML = Array.from({ length: 30 }, (_, i) => {
-      const n = i + 1, cls = n < s.sol ? "done" : n === s.sol ? "now" : (!mars && eng.isNight({ ...s, sol: n }) ? "night" : "");
+      const n = i + 1, cls = n < s.sol ? "done" : n === s.sol ? "now" : n === 30 ? "ship" : (!mars && eng.isNight({ ...s, sol: n }) ? "night" : "");
       return `<i class="${cls}"></i>`;
     }).join("");
+    const wx = $("wx");
+    wx.textContent = WEATHER_LABEL[s.weather] + " Sun today";
+    wx.className = "wx wx-" + s.weather;
     const done = eng.getTasks(s).filter((t) => t.status === "done").length;
     const canBuy = eng.getUpgrades(s).some((u) => u.canBuy);
-    $("b-tasks").innerHTML = `Goals <span class="n">${done}/3</span>`;
+    if (shown.sci !== undefined && shown.sci !== s.science) pulse($("b-sci"), "bump");
+    countTo($("sci"), shown.sci, s.science); shown.sci = s.science;
+    $("b-sci").setAttribute("aria-label", `${s.science} science points`);
+    $("b-tasks").innerHTML = `Mission Control <span class="n">${done}/3</span>`;
     $("b-tasks").setAttribute("aria-label", `Mission Control goals, ${done} of 3 done`);
-    $("b-up").innerHTML = `${iconSvg("science", 20, "#1E2430")}Upgrades <span class="n">${s.science}</span>`;
-    $("b-up").setAttribute("aria-label", `Upgrades. ${s.science} science points${canBuy ? ". You can build one now" : ""}`);
+    $("b-up").setAttribute("aria-label", `Upgrades${canBuy ? ". You can build one now" : ""}`);
     $("b-up").classList.toggle("glow", canBuy);
-    $("b-bonus").textContent = "Bonus games: " + (store.minigames ? "on" : "off");
+    $("b-bonus").textContent = "Bonus games " + (store.minigames ? "on" : "off");
     $("b-bonus").setAttribute("aria-pressed", String(store.minigames));
     RES.forEach((k) => {
-      const m = $("m-" + k), v = s[k];
+      const m = $("m-" + k), v = s[k], was = shown[k];
       m.classList.toggle("is-low", v < 30);
-      m.querySelector(".val").textContent = v;
+      countTo(m.querySelector(".val"), was, v);
+      if (was !== undefined && v < was - 1) pulse(m, "hurt");
+      shown[k] = v;
       m.querySelector(".fill").style.transform = `scaleX(${v / 100})`;
       m.setAttribute("aria-label", `${RES_INFO[k].name} ${v} out of 100${v < 30 ? ", low" : ""}`);
     });
+    drawNotes();
     g3.classList.toggle("night", night);
     g3.classList.remove("wx-calm", "wx-active", "wx-storm");
     g3.classList.add("wx-" + s.weather);
     g3.style.setProperty("--shield-op", (0.15 + s.shielding / 100 * 0.85).toFixed(2));
     board.querySelectorAll(".dome").forEach((d) => d.classList.toggle("weak", s.shielding < 30));
-    $("wxtag").textContent = "Today: " + WEATHER_LABEL[s.weather] + " Sun";
+    const shipn = root.querySelector("#shipn"); if (shipn) shipn.textContent = Math.max(0, 31 - s.sol);
     const ready = !busy && s.status === "playing" && s.actionsLeft > 0 && !s.pendingEvent;
     JOB_ORDER.forEach((id) => {
       const b = $("st-" + id);
-      b.disabled = !ready;
+      b.disabled = !ready && openJob !== id;
       b.classList.toggle("ready", ready && !openJob);
       b.classList.toggle("open", openJob === id);
+      $("ring-" + id).classList.toggle("on", openJob === id);
+      const p = $("pa-" + id); if (p) p.classList.toggle("lit", openJob === id || Object.values(walking).some((w) => w.id === id));
     });
+    const hab = $("st-reinforce_shield"), zzz = $("zzz");
+    hab.classList.toggle("occupied", inside.size > 0);
+    zzz.hidden = inside.size === 0;
+    zzz.textContent = "Zzz ×" + inside.size;
     $("crew").innerHTML = CREW.map((c) => {
-      const m = s.crew[c.id], w = walking[c.id];
-      const st = w ? "Working…" : m.job ? "Done: " + JOBS[m.job].short : m.tired ? "Tired" : "Ready";
-      return `<div class="cchip${m.tired && !m.job ? " tired" : ""}${m.job || w ? " busy" : ""}">${helmet(c.color, 46)}<span><b>${c.name}</b><em>${esc(st)}</em></span></div>`;
+      const [st, cls] = crewStatus(c);
+      return `<div class="cchip ${cls}">${helmet(c.color, 46)}<span><b>${c.name}</b><em>${esc(st)}</em></span></div>`;
     }).join("");
-    CREW.forEach((c) => { $("w-" + c.id).querySelector(".zz").hidden = !s.crew[c.id].tired; });
+    CREW.forEach((c) => { $("w-" + c.id).querySelector(".zz").hidden = !s.crew[c.id].tired || inside.has(c.id); });
+    const used = Math.max(0, 2 - s.actionsLeft);
+    $("dots").innerHTML = [0, 1].map((i) => `<i class="${i < used ? "used" : ""}"></i>`).join("");
     $("left").textContent = s.actionsLeft === 1 ? "1 job left" : s.actionsLeft + " jobs left";
     $("b-end").disabled = busy || s.status !== "playing";
     $("b-end").classList.toggle("go", s.actionsLeft === 0 && !busy);
@@ -268,80 +363,138 @@ ${tasks.map((t) => `<div class="goal"><span style="flex: 0 0 150px; font-size: 1
     speech();
   }
 
-  function placeWalker(id, pos, cls) {
+  function placeWalker(id, pos, ...cls) {
     const w = $("w-" + id);
     w.style.setProperty("--x", pos[0]); w.style.setProperty("--y", pos[1]);
-    w.classList.remove("walking", "working");
-    if (cls) w.classList.add(cls);
+    w.classList.remove("walking", "working", "tired-walk", "entering", "exiting");
+    cls.filter(Boolean).forEach((c) => w.classList.add(c));
   }
 
-  function floatText(text, el, color) {
-    const sr = g3.getBoundingClientRect(), r = el.getBoundingClientRect();
-    const scale = sr.width / 1280;
+  // a chip carrying the gain flies from the building into its meter
+  async function flyToMeter(res, text, fromEl, perfect) {
+    const m = $("m-" + res);
+    const sr = g3.getBoundingClientRect(), scale = sr.width / 1280;
+    const a = fromEl.getBoundingClientRect(), b = m.querySelector(".val").getBoundingClientRect();
+    const x0 = (a.left + a.width / 2 - sr.left) / scale, y0 = (a.top - sr.top) / scale;
+    const x1 = (b.left + b.width / 2 - sr.left) / scale, y1 = (b.top + b.height / 2 - sr.top) / scale;
     const f = document.createElement("div");
-    f.className = "float"; f.textContent = text; f.style.color = color;
-    f.style.left = ((r.left + r.width / 2 - sr.left) / scale) + "px";
-    f.style.top = ((r.top - sr.top) / scale - 10) + "px";
+    f.className = "fly" + (perfect ? " perfect" : "");
+    f.style.setProperty("--c", RES_INFO[res].color);
+    f.innerHTML = `<i>${iconSvg(res, 16, "#1E2430")}</i>${esc(text)}`;
     g3.appendChild(f);
-    later(() => f.remove(), 1600);
+    const w = f.offsetWidth, h = f.offsetHeight;
+    const at = (x, y, s, o) => ({ transform: `translate(${x - w / 2}px, ${y - h / 2}px) scale(${s})`, opacity: o });
+    if (reduced) { m.classList.add("bump"); later(() => f.remove(), 600); return; }
+    const anim = f.animate([
+      at(x0, y0, .6, 0), at(x0, y0 - 40, 1.1, 1), at(x0, y0 - 50, 1, 1),
+      at((x0 + x1) / 2, Math.min(y0, y1) - 60, .9, 1), at(x1, y1, .5, .2),
+    ], { duration: 1300, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards" });
+    await anim.finished.catch(() => {});
+    f.remove();
+    if (alive) pulse(m, "bump");
+  }
+
+  // after a shift the astronaut walks home, then into the habitat to rest (from main's crew-shift-home)
+  async function retireToHab(crewId) {
+    const token = ++tokens[crewId];
+    const ok = () => alive && token === tokens[crewId];
+    if (reduced) { placeWalker(crewId, DOOR[crewId]); inside.add(crewId); $("w-" + crewId).classList.add("inside"); draw(); return; }
+    placeWalker(crewId, HOME[crewId], "walking", "tired-walk");
+    await wait(1300); if (!ok()) return;
+    await wait(80 + CREW.findIndex((c) => c.id === crewId) * 60); if (!ok()) return;
+    placeWalker(crewId, DOOR[crewId], "walking");
+    await wait(1000); if (!ok()) return;
+    placeWalker(crewId, DOOR[crewId], "entering");
+    pulse($("st-reinforce_shield"), "flash");
+    await wait(420); if (!ok()) return;
+    $("w-" + crewId).classList.add("inside");
+    inside.add(crewId);
+    draw();
   }
 
   // ---------- actions ----------
   JOB_ORDER.forEach((id) => $("st-" + id).addEventListener("click", () => {
     if (busy) return;
     ctx.sfx("click");
+    pulse($("st-" + id), "bounce");
     openJob = openJob === id ? null : id;
     preview(null, null);
     draw();
   }));
   $("b-tasks").addEventListener("click", async () => { ctx.sfx("click"); await (await import("../overlays/missions.js")).showMissions(ctx); if (alive) draw(); });
   $("b-up").addEventListener("click", async () => { ctx.sfx("click"); await (await import("../overlays/upgrades.js")).showUpgrades(ctx); if (alive) draw(); });
+  $("b-sci").addEventListener("click", async () => { ctx.sfx("click"); await (await import("../overlays/upgrades.js")).showUpgrades(ctx); if (alive) draw(); });
   $("b-bonus").addEventListener("click", () => { store.minigames = !store.minigames; ctx.sfx("click"); draw(); });
 
   async function send(id, crewId) {
     const s0 = S();
-    if (busy || s0.status !== "playing" || s0.actionsLeft <= 0 || s0.crew[crewId].job) return;
-    busy = true; openJob = null; walking[crewId] = id;
+    if (busy || s0.status !== "playing" || s0.actionsLeft <= 0 || s0.crew[crewId].job || walking[crewId] || inside.has(crewId)) return;
+    busy = true; openJob = null; walking[crewId] = { id };
+    tokens[crewId]++;
     preview(null, null);
     ctx.sfx("click");
-    say = { who: crewId, line: "On my way!" };
+    say = { who: crewId, line: "On my way to the " + JOBS[id].short.toLowerCase() + "!" };
     placeWalker(crewId, FEET[id], "walking");
     draw();
-    await ctx.sleep(1100);
+    await wait(1150);
     if (!alive) return;
+    walking[crewId].at = true;
     placeWalker(crewId, FEET[id], "working");
+    draw();
     let won = false;
     if (store.minigames) {
       try { won = !!(await (await import("../overlays/tasks.js")).runTask(ctx, id, crewId)); } catch (e) { won = false; }
-    } else await ctx.sleep(500);
+    } else await wait(700);
     if (!alive) return;
     const res = JOBS[id].res, before = S()[res];
     store.state = eng.applyAction(S(), id, { crew: crewId, bonus: won });
-    delete walking[crewId];
     ctx.sfx("good");
-    floatText((won ? "Perfect! " : "") + sign(S()[res] - before) + " " + RES_INFO[res].name, $("st-" + id), "#1E2430");
+    flyToMeter(res, (won ? "Perfect! " : "") + sign(S()[res] - before) + " " + RES_INFO[res].name, $("st-" + id).querySelector(".lbl"), won);
     say = { who: crewId, line: JOBS[id].line(mars), fact: JOBS[id].real(mars) };
+    delete walking[crewId];
     busy = false;
-    draw();
+    later(() => { if (alive) draw(); }, 700); // let the chip land before the meter counts
+    retireToHab(crewId);
   }
 
   $("b-end").addEventListener("click", async () => {
     if (busy || S().status !== "playing") return;
     busy = true; openJob = null; say = null;
     ctx.sfx("click");
-    CREW.forEach((c) => placeWalker(c.id, HOME[c.id], "walking"));
+    // anyone still out goes straight inside for the night
+    CREW.forEach((c) => {
+      tokens[c.id]++;
+      if (S().crew[c.id].job || inside.has(c.id)) { placeWalker(c.id, DOOR[c.id]); $("w-" + c.id).classList.add("inside"); inside.add(c.id); }
+    });
+    const wasInside = new Set(inside);
     const out = eng.nextSol(S());
     store.state = out.state;
+    if (!reduced) { const sw = document.createElement("div"); sw.className = "sweep"; g3.appendChild(sw); later(() => sw.remove(), 1600); }
     const ban = document.createElement("div");
-    ban.className = "banner"; ban.textContent = "Sol " + S().sol;
+    ban.className = "banner";
+    ban.innerHTML = `Sol ${S().sol}<small>${esc(WEATHER_LABEL[S().weather])} Sun today</small>`;
     g3.appendChild(ban);
     draw();
-    await ctx.sleep(1200);
+    await wait(reduced ? 600 : 900);
     if (!alive) return;
+    // morning: the crew come out of the habitat and walk to their spots
+    inside.clear();
+    CREW.forEach((c) => {
+      const w = $("w-" + c.id);
+      w.classList.remove("inside");
+      if (wasInside.has(c.id) && !reduced) placeWalker(c.id, DOOR[c.id], "exiting");
+      else placeWalker(c.id, HOME[c.id]);
+    });
+    await wait(200);
+    CREW.forEach((c) => { if (wasInside.has(c.id) && !reduced) placeWalker(c.id, HOME[c.id], "walking"); });
+    draw();
+    await wait(reduced ? 300 : 800);
+    if (!alive) return;
+    CREW.forEach((c) => $("w-" + c.id).classList.remove("walking"));
     ban.remove();
-    CREW.forEach((c) => placeWalker(c.id, HOME[c.id], null));
     if (out.event) {
-      world.classList.remove("shake"); void world.offsetWidth; world.classList.add("shake");
+      pulse(world, "shake");
+      if (!reduced && (out.event.flare || /storm|flare|meteor/i.test(out.event.id || out.event.title || ""))) { const hit = document.createElement("div"); hit.className = "hit"; g3.appendChild(hit); later(() => hit.remove(), 950); }
       const { showEvent } = await import("../overlays/event.js");
       const choice = await showEvent(ctx, out.event);
       if (!alive) return;
@@ -350,7 +503,7 @@ ${tasks.map((t) => `<div class="goal"><span style="flex: 0 0 150px; font-size: 1
     busy = false;
     draw();
     const st = S().status;
-    if (st !== "playing") { await ctx.sleep(700); if (alive) ctx.go(st === "won" ? "win" : "lose"); }
+    if (st !== "playing") { await wait(700); if (alive) ctx.go(st === "won" ? "win" : "lose"); }
   });
 
   draw();
