@@ -25,7 +25,7 @@ const STAR = "M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.5 6.1 20.7l1.2-6.6L2.5
 
 let navSeq = 0;
 function menu(inner, wide) {
-  app.innerHTML = `<main class="menu"><section class="card${wide ? " wide" : ""}">${inner}</section></main>`;
+  app.innerHTML = `<main class="menu manual-page${wide ? " wide" : ""}">${inner}</main>`;
   try { addTooltips(app); } catch (e) {}
 }
 
