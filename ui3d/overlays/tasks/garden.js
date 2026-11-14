@@ -1,4 +1,7 @@
-// Task: water the droopy plants. Plants are buttons; number keys 1-6 work too.
+// Task: keep the garden alive. Plants dry out at different speeds; water each one when it turns
+// thirsty (below 40%), before it wilts. Watering a happy plant wastes time. Plants are buttons; keys 1-6 work too.
+const GOAL = 8; // drinks to win
+const DRY = 40;
 const SP = [
   { name: "Lettuce", lvl: 80, leaf: "M60 82c-26-2-36-20-30-34 12 2 22 12 30 24-2-20 4-36 0-50-6 14-2 30 0 50 8-12 18-22 30-24 6 14-4 32-30 34z", fruit: "", ff: "none" },
   { name: "Radish", lvl: 18, leaf: "M60 82c-4-20-18-32-28-42 16 0 26 12 28 32 2-22 10-36 26-42-6 16-18 28-26 52z", fruit: "M50 80a10 9 0 1 0 20 0a10 9 0 1 0-20 0z", ff: "#E0445E" },
@@ -9,15 +12,17 @@ const SP = [
 ];
 
 export function mount(api) {
-  // three random plants start out thirsty
-  const idxs = [0, 1, 2, 3, 4, 5].sort(() => Math.random() - 0.5).slice(0, 3);
-  const thirsty = new Set(idxs);
-  const startN = thirsty.size;
+  // two random plants start out thirsty; every plant drains at its own speed
+  const idxs = [0, 1, 2, 3, 4, 5].sort(() => Math.random() - 0.5);
+  const level = SP.map(() => 60 + Math.random() * 40);
+  idxs.slice(0, 2).forEach((i) => { level[i] = 30 + Math.random() * 8; });
+  const drain = SP.map(() => 7.5 + Math.random() * 6);
+  let drinks = 0;
 
   const plantHtml = (i, entrance) => {
     const s = SP[i];
-    const dry = thirsty.has(i);
-    const lvl = dry ? s.lvl : Math.max(s.lvl, 88);
+    const dry = level[i] < DRY;
+    const lvl = Math.round(level[i]);
     const cls = "dv-key" + (entrance ? " dv-rise dv-d" + (i + 1) : "");
     const border = dry ? "#F26A1B" : "#1E2430";
     return `<button type="button" data-p="${i}" class="${cls}" aria-label="${s.name}, plant ${i + 1}, ${dry ? "thirsty. Press to water, or press " + (i + 1) : "happy"}" style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 14px 12px; min-height: 44px; border-radius: 18px; cursor: pointer; background: rgba(247,248,249,0.9); border: 4px solid ${border}; box-shadow: 0 6px 0 ${dry ? "#8E3A0B" : "#7C8592"}; font-family: inherit; color: #1E2430">` +
@@ -50,37 +55,67 @@ export function mount(api) {
     `<g class="dv-breathe" transform="translate(1060 470)"><circle cx="0" cy="-150" r="22" fill="#8ED16C" stroke="#1E2430" stroke-width="4"></circle><rect x="-16" y="-158" width="32" height="16" rx="8" fill="#1E2430"></rect><path d="M-6 -152 h10" stroke="#8FD9F0" stroke-width="4" stroke-linecap="round"></path><rect x="-24" y="-126" width="48" height="68" rx="14" fill="#8ED16C" stroke="#1E2430" stroke-width="4"></rect><rect x="-22" y="-62" width="18" height="62" rx="6" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"></rect><rect x="4" y="-62" width="18" height="62" rx="6" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"></rect><path d="M-24 -110 l-30 22" stroke="#1E2430" stroke-width="6" stroke-linecap="round"></path><g transform="translate(-92 -96)"><path d="M0 0 h44 v34 a6 6 0 0 1 -6 6 h-32 a6 6 0 0 1 -6 -6z" fill="#F26A1B" stroke="#1E2430" stroke-width="4"></path><path d="M0 8 l-30 -18" stroke="#1E2430" stroke-width="5" stroke-linecap="round"></path><path d="M44 6 a14 14 0 0 1 0 22" fill="none" stroke="#1E2430" stroke-width="4"></path><g fill="#4BA3F0"><circle class="dv-fall" cx="-36" cy="-6" r="3"></circle><circle class="dv-fall-b" cx="-40" cy="4" r="3"></circle><circle class="dv-fall-c" cx="-32" cy="10" r="3"></circle></g></g></g>` +
     `</svg>` +
     `<div id="gd-grid" style="position: relative; width: 860px; box-sizing: border-box; padding: 32px 40px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 210px 210px; column-gap: 28px; row-gap: 38px">${SP.map((s, i) => plantHtml(i, true)).join("")}</div>` +
-    `<div style="position: absolute; right: 180px; top: 236px; width: 120px; padding: 10px; border-radius: 12px; background: #13211D; box-shadow: inset 0 0 0 3px #2B3833; color: #A8F5C2; font-size: 13px; line-height: 1.4"><b style="color: #E4FFEC; font-size: 14px">Garden</b><br>Lights: on<br>Thirsty: <span id="gd-n" style="font-variant-numeric: tabular-nums">${thirsty.size}</span></div>` +
+    `<div style="position: absolute; right: 180px; top: 236px; width: 120px; padding: 10px; border-radius: 12px; background: #13211D; box-shadow: inset 0 0 0 3px #2B3833; color: #A8F5C2; font-size: 13px; line-height: 1.4"><b style="color: #E4FFEC; font-size: 14px">Garden</b><br>Lights: on<br>Thirsty: <span id="gd-n" style="font-variant-numeric: tabular-nums">2</span></div>` +
     `</div>`;
   api.foot.innerHTML =
     `<div role="status" aria-live="polite" style="width: 330px; display: flex; flex-direction: column; justify-content: center; padding: 10px 16px; border-radius: 12px; background: #F7F8F9; border: 3px solid #1E2430">` +
     `<p id="gd-hint" style="margin: 0; font-size: 17px; font-weight: 700"></p>` +
-    `<p style="margin: 2px 0 0; font-size: 15px; color: #4A5363">Win: <b style="color: #1F7A35">extra food</b>. Missing costs nothing.</p></div>`;
+    `<p style="margin: 2px 0 0; font-size: 15px; color: #4A5363">Do not let any plant wilt! Win: <b style="color: #1F7A35">extra food</b>.</p></div>`;
 
   const $ = (s) => api.body.querySelector(s);
   const hintEl = api.foot.querySelector("#gd-hint");
   const say = (t) => { hintEl.textContent = t; };
-  const hintFor = (n) => n === 0 ? "Every plant is happy. Great job!" : n + (n === 1 ? " plant is" : " plants are") + " drying out. Tap them fast!";
+  const wasDry = level.map((l) => l < DRY);
+  const thirstyN = () => level.filter((l) => l < DRY).length;
 
-  function water(i) {
-    if (api.done) return;
-    if (!thirsty.has(i)) { say(SP[i].name + " is already happy. Find a thirsty plant!"); return; }
-    api.sfx("click");
-    thirsty.delete(i);
+  function repaint(i) {
     const old = $('[data-p="' + i + '"]');
     const hadFocus = document.activeElement === old;
     old.outerHTML = plantHtml(i, false);
     if (hadFocus) $('[data-p="' + i + '"]').focus();
-    const n = thirsty.size;
-    $("#gd-n").textContent = String(n);
-    const frac = 0.35 + 0.1 * (startN - n);
-    const h = Math.round(140 * frac);
+  }
+  function counters() {
+    $("#gd-n").textContent = String(thirstyN());
+    const h = Math.round(140 * (0.25 + 0.75 * (drinks / GOAL)));
     const tank = $("#gd-tank");
     tank.setAttribute("height", String(h));
     tank.setAttribute("y", String(212 - h));
-    say(hintFor(n));
-    if (n === 0) api.win();
   }
+
+  function water(i) {
+    if (api.done) return;
+    api.sfx("click");
+    if (level[i] >= DRY) {
+      api.penalty(0.5);
+      api.swap($('[data-p="' + i + '"]'), "dv-shake-a", "dv-shake-b");
+      say(SP[i].name + " is not thirsty yet. Too much water drowns the roots!");
+      return;
+    }
+    level[i] = 100;
+    drinks += 1;
+    wasDry[i] = false;
+    repaint(i);
+    counters();
+    if (drinks >= GOAL) { say("The whole garden is happy. Great job!"); api.win(); return; }
+    say(drinks + " of " + GOAL + " drinks given. Watch for orange plants!");
+  }
+
+  let last = performance.now(), t = 0;
+  const loop = (now) => {
+    if (api.done) { clearInterval(loopId); return; }
+    const dt = Math.min(0.12, (now - last) / 1000);
+    last = now; t += dt;
+    for (let i = 0; i < SP.length; i++) {
+      level[i] = Math.max(0, level[i] - drain[i] * (1 + t * 0.05) * dt); // drying speeds up a little
+      if (level[i] <= 0) { say("Oh no, the " + SP[i].name.toLowerCase() + " wilted!"); repaint(i); api.fail(); return; }
+      const dry = level[i] < DRY;
+      if (dry !== wasDry[i]) { wasDry[i] = dry; repaint(i); counters(); if (dry) say(SP[i].name + " is thirsty!"); }
+      else {
+        const bar = $('[data-p="' + i + '"] .dv-fillbar');
+        if (bar) bar.style.width = Math.round(level[i]) + "%";
+      }
+    }
+  };
 
   $("#gd-grid").addEventListener("click", (e) => {
     const b = e.target.closest("[data-p]");
@@ -90,7 +125,8 @@ export function mount(api) {
     if (e.key >= "1" && e.key <= "6" && !e.ctrlKey && !e.metaKey && !e.altKey) { water(Number(e.key) - 1); return true; }
     return false;
   });
-  say(hintFor(thirsty.size));
-  const firstDry = $('[data-p="' + idxs[0] + '"]');
-  api.focus(firstDry);
+  counters();
+  say("Water each plant when it turns orange, before it wilts. " + GOAL + " drinks to win!");
+  const loopId = setInterval(() => loop(performance.now()), 33);
+  api.focus($('[data-p="' + idxs[0] + '"]'));
 }

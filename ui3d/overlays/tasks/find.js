@@ -1,4 +1,5 @@
-// Task: find the shiny rock (ice on the Moon, water rock on Mars) 3 times. Rocks are buttons.
+// Task: spot the hidden ice (a water rock on Mars) 3 times. Every rock looks plain; the right one only
+// glints for a moment now and then. A wrong pick costs time. Rocks are buttons.
 const SHAPES = [
   { p: "M20 72 C14 52 30 30 52 28 C76 24 100 38 102 60 C104 80 82 88 60 86 C40 86 24 84 20 72Z", f: "M40 44 C50 36 64 34 74 38" },
   { p: "M16 66 C18 42 40 24 62 32 C84 38 104 52 98 70 C92 86 64 90 42 86 C26 82 14 78 16 66Z", f: "M36 40 L56 34" },
@@ -36,14 +37,14 @@ export function mount(api) {
     `<g fill="none" stroke="#3A4258" stroke-width="3" stroke-linecap="round"><path d="M520 530 l8 -14 M548 520 l8 -14 M560 496 l8-14 M588 486 l8-14"></path></g>` +
     `<g class="dv-breathe" transform="translate(626 210)"><circle cx="0" cy="-40" r="14" fill="#B99AF5" stroke="#1E2430" stroke-width="3"></circle><rect x="-10" y="-44" width="20" height="10" rx="5" fill="#1E2430"></rect><circle class="dv-glow" cx="10" cy="-46" r="4" fill="#F5C518" stroke="#1E2430" stroke-width="2"></circle><rect x="-12" y="-26" width="24" height="30" rx="7" fill="#B99AF5" stroke="#1E2430" stroke-width="3"></rect><path d="M12 -18 l18 6" stroke="#1E2430" stroke-width="4" stroke-linecap="round"></path><rect x="28" y="-18" width="16" height="10" rx="2" fill="#13211D" stroke="#1E2430" stroke-width="2"></rect></g>` +
     `</svg>` +
-    `<div style="position: absolute; left: 20px; top: 216px; width: 220px; padding: 12px 14px; border-radius: 12px; background: #13211D; box-shadow: inset 0 0 0 3px #2B3833; color: #A8F5C2; font-size: 14px; line-height: 1.45"><b style="color: #E4FFEC; font-size: 15px">Zuri's ${mars ? "rock" : "ice"} scanner</b><br>${mars ? "Water clue" : "Cold spot"}: <b class="dv-blink" style="color: #E4FFEC">nearby!</b><br>Only one rock sparkles.</div>` +
+    `<div style="position: absolute; left: 20px; top: 216px; width: 220px; padding: 12px 14px; border-radius: 12px; background: #13211D; box-shadow: inset 0 0 0 3px #2B3833; color: #A8F5C2; font-size: 14px; line-height: 1.45"><b style="color: #E4FFEC; font-size: 15px">Zuri's ${mars ? "rock" : "ice"} scanner</b><br>${mars ? "Water clue" : "Cold spot"}: <b class="dv-blink" style="color: #E4FFEC">nearby!</b><br>One rock glints now and then.</div>` +
     `<p style="position: absolute; right: 20px; top: 222px; margin: 0; padding: 8px 12px; border-radius: 10px; background: rgba(11,15,28,0.85); color: #C9D2E3; font-size: 14px; max-width: 220px; line-height: 1.4">${mars ? "Jezero was a lake long ago. Rocks that touched water look different!" : "This part of the crater never sees the Sun. It's extra cold!"}</p>` +
     `<div id="fd-rocks"></div>` +
     `</div>`;
   api.foot.innerHTML =
     `<div role="status" aria-live="polite" style="width: 330px; display: flex; flex-direction: column; justify-content: center; padding: 10px 16px; border-radius: 12px; background: #F7F8F9; border: 3px solid #1E2430">` +
     `<p id="fd-hint" style="margin: 0; font-size: 17px; font-weight: 700"></p>` +
-    `<p style="margin: 2px 0 0; font-size: 15px; color: #4A5363">Win: <b style="color: #1F7A35">extra science</b>. Missing costs nothing.</p></div>`;
+    `<p style="margin: 2px 0 0; font-size: 15px; color: #4A5363">Wrong rocks cost time. Win: <b style="color: #1F7A35">extra science</b>.</p></div>`;
 
   const $ = (s) => api.body.querySelector(s);
   const hintEl = api.foot.querySelector("#fd-hint");
@@ -64,13 +65,33 @@ export function mount(api) {
       const sh = SHAPES[i % 4];
       const w = Math.round(120 * s[2]), h = Math.round(100 * s[2]);
       return `<button type="button" data-r="${i}" class="dv-key dv-pop dv-d${(i % 8) + 1}" aria-label="Rock ${i + 1}" style="position: absolute; left: ${s[0] - w / 2}px; top: ${s[1] - h / 2}px; min-width: 44px; min-height: 44px; padding: 0; border: none; background: transparent; cursor: pointer; border-radius: 16px">` +
-        `<svg aria-hidden="true" width="${w}" height="${h}" viewBox="0 0 120 100"><ellipse cx="60" cy="90" rx="46" ry="7" fill="#0B0F1C" opacity="0.6"></ellipse><path d="${sh.p}" fill="${ice ? "#BDEBFF" : GREYS[i % 3]}" stroke="#1E2430" stroke-width="5" stroke-linejoin="round"></path><path d="${sh.f}" fill="none" stroke="${ice ? "#FFFFFF" : "#B8BEC8"}" stroke-width="4" stroke-linecap="round"></path><path class="dv-twinkle" d="${ice ? SPARK : ""}" fill="#FFFFFF"></path></svg>` +
+        `<svg aria-hidden="true" width="${w}" height="${h}" viewBox="0 0 120 100"><ellipse cx="60" cy="90" rx="46" ry="7" fill="#0B0F1C" opacity="0.6"></ellipse><path${ice ? ' data-ice' : ""} d="${sh.p}" fill="${GREYS[i % 3]}" stroke="#1E2430" stroke-width="5" stroke-linejoin="round" style="transition: fill 150ms ease"></path><path d="${sh.f}" fill="none" stroke="#B8BEC8" stroke-width="4" stroke-linecap="round"></path>${ice ? `<path data-spark d="${SPARK}" fill="#FFFFFF" opacity="0" style="transition: opacity 150ms ease"></path>` : ""}</svg>` +
         "" +
         `</button>`;
     }).join("");
     // The sparkling rock is announced to screen readers as sparkling, since sparkle is a picture.
     const t = rocksEl.querySelector('[data-r="' + target + '"]');
     if (t) t.setAttribute("aria-label", "Rock " + (target + 1) + ", sparkling " + thing);
+    glint(target, 900);
+  }
+
+  // the hidden rock glints briefly, then looks plain again; the wait between glints is random
+  let glintT = 0;
+  function glint(target, wait) {
+    clearTimeout(glintT);
+    glintT = api.later(() => {
+      if (round > ROUNDS || target !== iceAt[round - 1]) return;
+      const body = rocksEl.querySelector('[data-r="' + target + '"] [data-ice]');
+      const spark = rocksEl.querySelector('[data-r="' + target + '"] [data-spark]');
+      if (!body) return;
+      body.setAttribute("fill", "#BDEBFF");
+      if (spark) spark.setAttribute("opacity", "1");
+      api.later(() => {
+        body.setAttribute("fill", GREYS[target % 3]);
+        if (spark) spark.setAttribute("opacity", "0");
+        if (round <= ROUNDS && target === iceAt[round - 1]) glint(target, 900 + Math.random() * 1300); // only while this rock is still the one
+      }, Math.max(260, 520 - round * 80)); // the glint gets shorter each round
+    }, wait);
   }
 
   function pick(i) {
@@ -83,12 +104,13 @@ export function mount(api) {
       pips();
       if (round > ROUNDS) { say("You found all 3 " + (mars ? "water rocks" : "pieces of ice") + "!"); api.win(); return; }
       renderRocks();
-      say("Round " + round + " of 3: which rock sparkles?");
+      say("Round " + round + " of 3: watch for the next glint!");
       const first = rocksEl.querySelector('[data-r="0"]');
       if (first) first.focus();
     } else {
       miss = true;
-      say("Just plain rock. Look for the sparkle!");
+      api.penalty(1.5);
+      say("Just plain rock! That cost you time. Watch for the glint.");
       if (btn) api.swap(btn, "dv-shake-a", "dv-shake-b");
     }
   }
@@ -99,6 +121,6 @@ export function mount(api) {
   });
   pips();
   renderRocks();
-  say("Round 1 of 3: which rock sparkles?");
+  say("Round 1 of 3: one rock glints for a moment. Watch closely!");
   api.focus(rocksEl.querySelector('[data-r="0"]'));
 }

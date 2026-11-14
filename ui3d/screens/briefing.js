@@ -5,6 +5,11 @@ const DATA_LINE = {
   recent: "Real NASA flares from the last 30 days (15 Oct to 13 Nov 2026), one day per sol.",
   may2024: "Real NASA flares from May 2024, the strongest storm in 20 years, one day per sol.",
 };
+// Mars sols are real; on the Moon a real day lasts about a month, so the game counts one Earth day as a sol.
+const SOL_LINE = {
+  mars: "Space crews call a day a <b>sol</b>. A sol on Mars is about 40 minutes longer than a day on Earth.",
+  moon: "Space crews call a day a <b>sol</b>. Here, one sol is one Earth day. A full day on the Moon lasts about a month!",
+};
 const BEST = {
   maya: "Best at <b>making oxygen</b> and <b>fixing the shield</b>.",
   leo: "Best at <b>growing food</b>. He gets hungry first!",
@@ -50,12 +55,12 @@ ${CREW.map(crewCard).join("")}
 </ol>
 </div>
 <div class="dv-rise dv-d8" style="width: 320px; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px">
-<p style="margin: 0; font-size: 14px; line-height: 1.4; color: #4A5363">Space crews call a day a <b>sol</b>. A sol on Mars is about 40 minutes longer than a day on Earth.</p>
+<p style="margin: 0; font-size: 16px; line-height: 1.4; color: #4A5363">${SOL_LINE[store.site] || SOL_LINE.moon}</p>
 <div role="group" aria-label="Sun data" style="display: flex; gap: 8px">
 <button type="button" id="b-recent" class="dv-key" style="${KEYBASE} flex: 1; background: #F7F8F9; box-shadow: 0 4px 0 #7C8592;">Last 30 days</button>
 <button type="button" id="b-may" class="dv-key" style="${KEYBASE} flex: 1; background: #F7F8F9; box-shadow: 0 4px 0 #7C8592;">May 2024 storms</button>
 </div>
-<p id="b-line" aria-live="polite" style="margin: 0; padding: 8px 10px; border-radius: 8px; background: #13211D; color: #A8F5C2; font-size: 12px; line-height: 1.4; min-height: 34px"></p>
+<p id="b-line" aria-live="polite" style="margin: 0; padding: 8px 10px; border-radius: 8px; background: #13211D; color: #A8F5C2; font-size: 14px; line-height: 1.4; min-height: 38px"></p>
 <button type="button" id="b-start" class="dv-key" style="display: flex; justify-content: center; padding: 18px; border-radius: 16px; background: #F26A1B; border: 3px solid #1E2430; box-shadow: 0 7px 0 #8E3A0B; color: #1E2430; font-family: inherit; cursor: pointer; font-weight: 800; font-size: 28px">Start sol 1</button>
 </div>
 </div>

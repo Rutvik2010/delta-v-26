@@ -12,12 +12,13 @@ const H = 340; // half the slab size in px
 // screen-front is (x + y) > 0 and screen-right is (x − y) > 0.
 const POS = { rest: [-220, 150], oxygen_gen: [10, 238], reinforce_shield: [-30, -30], grow_food: [205, -205], science: [236, 36] };
 const FEET = { rest: [-160, 178], oxygen_gen: [82, 196], reinforce_shield: [70, -64], grow_food: [136, -146], science: [142, 72] };
-const HOME = { maya: [84, 132], leo: [120, 120], zuri: [132, 84] };
+const HOME = { maya: [70, 150], leo: [118, 118], zuri: [150, 70] };
 const DOOR = { maya: [58, 72], leo: [65, 65], zuri: [72, 58] };
 const PAD = [-40, -238];
+const ROVER = [-250, -40]; // the rover patrols an empty corner, away from the crew (loop in game3d.css)
 const DOOR_C = [65, 65];
 // how tall each model is, so its label floats just above it
-const LIFT = { rest: 150, oxygen_gen: 96, reinforce_shield: 120, grow_food: 92 };
+const LIFT = { rest: 150, oxygen_gen: 96, reinforce_shield: 146, grow_food: 92 };
 
 // ---- CSS 3D building blocks ----
 // box: w × d footprint, h tall, centred at (x, y) inside its parent, sitting at height z.
@@ -49,11 +50,22 @@ ${box(12, 12, 124, { cls: "white" })}
   oxygen_gen: () => `${box(96, 74, 62, { cls: "white", py: `<b class="slot"></b><b class="lights"><u></u><u></u><u></u></b>`, px: `<b class="winbox"></b><b class="winbox two"></b>` })}
 ${cyl(10, 40, { x: 18, y: -12, z: 62, n: 10, cls: "white" })}
 ${cyl(20, 92, { x: -38, y: 62, n: 14, cls: "tank", t: `<b class="shine"></b>` })}`,
-  reinforce_shield: () => `${cyl(92, 18, { n: 20, cls: "plinth" })}
-${box(40, 40, 46, { x: 66, y: 66, z: 0, cls: "white airlock", py: `<b class="door"></b>`, px: `<b class="door"></b>` })}`,
+  // the habitat buried under rings of piled-up dirt (a stepped dome), with an airlock poking out
+  reinforce_shield: () => `${cyl(94, 12, { n: 22, cls: "plinth" })}
+${[[86, 22, 12], [77, 18, 34], [65, 16, 52], [50, 14, 68], [32, 11, 82]].map(([r, h, z], i) => cyl(r, h, { z, n: 22, cls: "dirt" + (i % 2 ? " d2" : ""), t: `<b class="clods"></b>` })).join("")}
+${cyl(17, 8, { z: 93, n: 12, cls: "white", t: `<b class="hatch"></b>` })}
+${box(4, 4, 30, { x: 6, y: -6, z: 101, cls: "white" })}${box(10, 10, 4, { x: 6, y: -6, z: 131, cls: "beacon" })}
+${box(44, 46, 50, { x: 70, y: 70, z: 12, cls: "white airlock", py: `<b class="door"></b>`, px: `<b class="door"></b>`, t: `<b class="vent"></b>` })}
+${box(18, 18, 10, { x: -58, y: 52, z: 12, cls: "white", px: `<b class="lamp"></b>` })}`,
   grow_food: () => `${box(128, 100, 70, { cls: "glass", t: `<b class="roof"></b>`, py: `<b class="frame"></b>`, px: `<b class="frame"></b>`, ny: `<b class="frame"></b>`, nx: `<b class="frame"></b>` })}
 ${box(128, 10, 10, { z: 70, cls: "ridge" })}`,
 };
+
+// ---- terrain: craters with raised rims and chunky boulders ----
+// crater: a sunken bowl inside a low rim wall. The big one (main) is the science crater.
+const crater = (r, main = false) => `<div class="flat bowl${main ? " main" : ""}" style="width: ${2 * r}px; height: ${2 * r}px"></div>${cyl(r + 5, main ? 10 : Math.max(4, Math.round(r / 5)), { n: main ? 22 : 14, cls: "rimwall" })}`;
+// boulder: a squat seven-sided rock with a smaller cap, plus a pebble beside it
+const boulder = (r) => `${cyl(r, Math.round(r * 0.7), { n: 7, cls: "rockc" })}${cyl(Math.round(r * 0.62), Math.round(r * 0.45), { z: Math.round(r * 0.7), n: 7, cls: "rockc r2" })}${cyl(Math.max(3, Math.round(r * 0.35)), 4, { x: r + 6, y: 4, n: 6, cls: "rockc" })}`;
 
 // ---- flat sprites (toy style: 3px ink outlines, flat fills); only the crater flag is still one ----
 const SPR = {
@@ -63,21 +75,18 @@ const SPR = {
 <path d="M52 130l7-15 7 15-7 7z" fill="${m ? "#E9C9A8" : "#BFE9FF"}" stroke="#1E2430" stroke-width="3" stroke-linejoin="round"/>
 <path class="sparkle" d="M100 94l2-7 2 7 7 2-7 2-2 7-2-7-7-2z" fill="#fff"/><path class="sparkle s2" d="M66 108l1.5-5 1.5 5 5 1.5-5 1.5-1.5 5-1.5-5-5-1.5z" fill="#fff"/></svg>`,
 };
-const rover = () => `<svg width="90" height="70" viewBox="0 0 90 70" aria-hidden="true">
-<path class="beam" d="M70 28 140 6v46z" fill="#FFF3C4" opacity=".5"/>
-<rect x="12" y="24" width="56" height="24" rx="5" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"/>
-<rect x="20" y="30" width="16" height="10" rx="2" fill="#4BA3F0" stroke="#1E2430" stroke-width="2"/>
-<path d="M54 24V8" stroke="#1E2430" stroke-width="3"/><circle class="blink" cx="54" cy="7" r="4" fill="#F26A1B" stroke="#1E2430" stroke-width="2"/>
-<rect x="64" y="24" width="10" height="9" rx="2" fill="#4BA3F0" stroke="#1E2430" stroke-width="2"/>
-<circle cx="22" cy="54" r="9" fill="#4A5363" stroke="#1E2430" stroke-width="3"/><circle cx="58" cy="54" r="9" fill="#4A5363" stroke="#1E2430" stroke-width="3"/></svg>`;
-// the habitat dome is round, so a camera-facing billboard looks right from every side
-const DOME = () => `<svg width="250" height="200" viewBox="0 0 250 200" aria-hidden="true">
-<ellipse class="dome" cx="125" cy="128" rx="120" ry="112" fill="#9B7BF7" fill-opacity=".14" stroke="#9B7BF7" stroke-width="4" stroke-dasharray="10 8" style="opacity: var(--shield-op, .8)"/>
-<path d="M39 196 a86 86 0 0 1 172 0z" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"/>
-<path d="M58 196 a67 67 0 0 1 36 -58" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
-<path d="M48 166 h154" stroke="#9AA3AF" stroke-width="7" stroke-dasharray="15 10"/>
-<circle class="win" cx="160" cy="140" r="11" stroke="#1E2430" stroke-width="3"/><circle class="win" cx="92" cy="146" r="8" stroke="#1E2430" stroke-width="3"/>
-<g class="dish"><path d="M125 112V90" stroke="#1E2430" stroke-width="4"/><path d="M104 84a21 10 0 0 0 42 0z" fill="#EEF0F2" stroke="#1E2430" stroke-width="3"/><circle class="blink" cx="125" cy="74" r="4.5" fill="#F26A1B"/></g></svg>`;
+// the rover is a little 3D model too: a body, a cab, a mast and four wheels standing on their edges
+const wheel = (x, y) => `<div class="wheel" style="left: ${x}px; top: ${y}px">${cyl(9, 7, { n: 12, cls: "tyre", t: `<b class="hub"></b>` })}</div>`;
+const rover = () => `<div class="rv">${wheel(-17, -21)}${wheel(17, -21)}${wheel(-17, 14)}${wheel(17, 14)}
+${box(58, 34, 14, { z: 9, cls: "white", px: `<b class="hl"></b>`, py: `<b class="stripe"></b>`, ny: `<b class="stripe"></b>` })}
+${box(24, 30, 15, { x: 10, z: 23, cls: "white", px: `<b class="cabwin"></b>`, py: `<b class="sidewin"></b>`, ny: `<b class="sidewin"></b>` })}
+${box(26, 30, 3, { x: -15, z: 23, cls: "panel", t: `<b class="grid"></b>` })}
+${box(3, 3, 22, { x: 18, y: -12, z: 38, cls: "white" })}${box(8, 8, 4, { x: 18, y: -12, z: 60, cls: "beacon" })}
+<div class="rvbeam"></div></div>`;
+// the shield bubble is round, so a camera-facing billboard looks right from every side
+const DOME = () => `<svg width="270" height="230" viewBox="0 0 270 230" aria-hidden="true">
+<ellipse class="dome" cx="135" cy="138" rx="128" ry="124" fill="#9B7BF7" fill-opacity=".12" stroke="#9B7BF7" stroke-width="4" stroke-dasharray="10 8" style="opacity: var(--shield-op, .8)"/>
+<path class="dome" d="M40 120 a96 96 0 0 1 64 -80" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".5" style="opacity: calc(var(--shield-op, .8) * .6)"/></svg>`;
 const plant = (i) => `<svg width="34" height="44" viewBox="0 0 34 44" aria-hidden="true"><g class="sway" style="animation-delay: ${-i * 0.6}s"><path d="M17 44V22" stroke="#2F7A2C" stroke-width="4" stroke-linecap="round"/><circle cx="17" cy="16" r="12" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/>${i % 2 ? `<circle cx="13" cy="13" r="3" fill="#FF7AD9"/>` : ""}</g></svg>`;
 const shipFlag = () => `<svg width="56" height="90" viewBox="0 0 56 90" aria-hidden="true"><path d="M10 88V10" stroke="#1E2430" stroke-width="4" stroke-linecap="round"/><rect x="12" y="6" width="40" height="28" rx="4" fill="#F5C518" stroke="#1E2430" stroke-width="3"/><text id="shipn" x="32" y="27" text-anchor="middle" font-family="Lexend, sans-serif" font-weight="800" font-size="17" fill="#1E2430"></text></svg>`;
 const astro = (color) => `<svg class="fig" width="50" height="74" viewBox="0 0 44 70" aria-hidden="true"><rect x="9" y="17" width="26" height="28" rx="5" fill="#c9cedb" stroke="#1E2430" stroke-width="2"/><rect x="4" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="31" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="13" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="22.5" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="12" y="21" width="20" height="26" rx="7" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="12" y="34" width="20" height="5" fill="${color}"/><circle cx="22" cy="12" r="11" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="14" y="6" width="16" height="11" rx="5.5" fill="#E9B44C" stroke="#1E2430" stroke-width="1.5"/><path d="M17 9h5" stroke="#FFF3C4" stroke-width="2" stroke-linecap="round"/></svg>`;
@@ -122,9 +131,10 @@ export function mount(root, ctx) {
   ${skySvg(mars)}
   <div class="stage3d"><div class="board" id="board" style="--yaw: ${yaw}deg">
     ${slabs}<div class="top"></div>
-    <div class="flat crater" style="left: ${H + POS.science[0]}px; top: ${H + POS.science[1]}px"></div>
-    ${[[82, 164], [551, 562], [140, 550], [420, 90], [600, 330]].map(([x, y]) => `<div class="flat pit" style="left: ${x}px; top: ${y}px"></div>`).join("")}
-    ${[[47, 351], [610, 140], [351, 638], [250, 470], [470, 300]].map(([x, y]) => `<div class="flat rock" style="left: ${x}px; top: ${y}px"></div>`).join("")}
+    <div class="model terrain" style="left: ${H + POS.science[0]}px; top: ${H + POS.science[1]}px">${crater(76, true)}</div>
+    ${[[82, 164, 26], [551, 562, 30], [110, 600, 20], [420, 84, 22], [640, 250, 18], [230, 640, 14], [560, 500, 12]].map(([x, y, r]) => `<div class="model terrain" style="left: ${x}px; top: ${y}px">${crater(r)}</div>`).join("")}
+    ${[[47, 351, 12, 20], [650, 120, 9, 70], [420, 650, 11, 10], [230, 430, 8, 45], [620, 215, 10, 30], [330, 500, 6, 15], [640, 600, 9, 50]].map(([x, y, r, a]) => `<div class="model terrain" style="left: ${x}px; top: ${y}px; rotate: z ${a}deg">${boulder(r)}</div>`).join("")}
+    <div class="flat tracks" style="left: ${H + ROVER[0] + 50}px; top: ${H + ROVER[1] - 50}px"></div>
     <div class="model padm" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px">${cyl(76, 10, { n: 20, cls: "plinth" })}</div>
     <div class="flat pad" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px; transform: translate(-50%, -50%) translateZ(11px)"></div>
     <svg class="paths" viewBox="0 0 ${H * 2} ${H * 2}" aria-hidden="true">${paths}</svg>
@@ -133,7 +143,7 @@ export function mount(root, ctx) {
     ${JOB_ORDER.map((id) => `<div class="flat ring" id="ring-${id}" style="left: ${H + POS[id][0]}px; top: ${H + POS[id][1]}px"></div>`).join("")}
     <div class="shade"></div>
     <div class="bb" style="${bbAt([PAD[0] + 55, PAD[1] - 10])}" aria-hidden="true">${shipFlag()}</div>
-    <div class="bb rover" style="--yaw: ${yaw}deg" aria-hidden="true">${rover()}</div>
+    <div class="model rover" style="left: ${H + ROVER[0]}px; top: ${H + ROVER[1]}px" aria-hidden="true">${rover()}</div>
     ${JOB_ORDER.filter((id) => MODEL[id]).map((id, i) => `<div class="model bld" id="md-${id}" data-job="${id}" style="left: ${H + POS[id][0]}px; top: ${H + POS[id][1]}px; --i: ${i}" aria-hidden="true">${MODEL[id]()}</div>`).join("")}
     <div class="bb domebb" style="${bbAt(POS.reinforce_shield)}" aria-hidden="true"><div class="domewrap">${DOME()}</div></div>
     ${[[-34, -22], [8, -26], [-20, 18], [30, 14]].map(([dx, dy], i) => `<div class="bb plant" style="${bbAt([POS.grow_food[0] + dx, POS.grow_food[1] + dy])}" aria-hidden="true">${plant(i)}</div>`).join("")}
@@ -148,12 +158,11 @@ export function mount(root, ctx) {
 <button type="button" class="key turn r" id="t-r" aria-label="Turn the base right"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E2430" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 7 5 5-5 5M20 12H9a5 5 0 0 1-5-5"/></svg></button>
 <div class="hint">Drag to turn the base, or press Q and E</div>
 <header class="hud">
-  <div class="logo">Delta-V 26</div><div class="place">${mars ? "Mars · Jezero crater" : "Moon · Shackleton crater"}</div>
+  <div class="logo">Delta&#8209;V 26</div><div class="place">${mars ? "Mars · Jezero crater" : "Moon · Shackleton crater"}</div>
   <div class="solbox" role="group" aria-label="Mission day"><span class="sl">Sol<strong id="sol"></strong>of 30</span><div class="path" id="path" aria-hidden="true"></div><span class="wx" id="wx"></span></div>
   <button type="button" class="key tbtn sci" id="b-sci" aria-label="Science points">${iconSvg("science", 20, "#1E2430")}<span id="sci"></span></button>
   <button type="button" class="key tbtn" id="b-tasks"></button>
   <button type="button" class="key tbtn" id="b-up">Upgrades</button>
-  <button type="button" class="key tbtn bonus" id="b-bonus" aria-pressed="true"></button>
 </header>
 <div class="meters" id="meters">${RES.map((k) => `<div class="meter" id="m-${k}" role="img" style="--c: ${RES_INFO[k].color}">
   <span class="ic">${iconSvg(k, 22, "#1E2430")}</span>
@@ -349,8 +358,6 @@ ${CREW.map((c) => {
     $("b-tasks").setAttribute("aria-label", `Mission Control goals, ${done} of 3 done`);
     $("b-up").setAttribute("aria-label", `Upgrades${canBuy ? ". You can build one now" : ""}`);
     $("b-up").classList.toggle("glow", canBuy);
-    $("b-bonus").textContent = "Bonus games " + (store.minigames ? "on" : "off");
-    $("b-bonus").setAttribute("aria-pressed", String(store.minigames));
     RES.forEach((k) => {
       const m = $("m-" + k), v = s[k], was = shown[k];
       m.classList.toggle("is-low", v < 30);
@@ -457,7 +464,6 @@ ${CREW.map((c) => {
   $("b-tasks").addEventListener("click", async () => { ctx.sfx("click"); await (await import("../overlays/missions.js")).showMissions(ctx); if (alive) draw(); });
   $("b-up").addEventListener("click", async () => { ctx.sfx("click"); await (await import("../overlays/upgrades.js")).showUpgrades(ctx); if (alive) draw(); });
   $("b-sci").addEventListener("click", async () => { ctx.sfx("click"); await (await import("../overlays/upgrades.js")).showUpgrades(ctx); if (alive) draw(); });
-  $("b-bonus").addEventListener("click", () => { store.minigames = !store.minigames; ctx.sfx("click"); draw(); });
 
   async function send(id, crewId) {
     const s0 = S();
@@ -475,9 +481,7 @@ ${CREW.map((c) => {
     placeWalker(crewId, FEET[id], "working");
     draw();
     let won = false;
-    if (store.minigames) {
-      try { won = !!(await (await import("../overlays/tasks.js")).runTask(ctx, id, crewId)); } catch (e) { won = false; }
-    } else await wait(700);
+    try { won = !!(await (await import("../overlays/tasks.js")).runTask(ctx, id, crewId)); } catch (e) { won = false; }
     if (!alive) return;
     const res = JOBS[id].res, before = S()[res];
     store.state = eng.applyAction(S(), id, { crew: crewId, bonus: won });

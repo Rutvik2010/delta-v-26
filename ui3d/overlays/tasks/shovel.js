@@ -1,5 +1,6 @@
-// Task: tap fast to shovel 20 scoops before time runs out.
-const GOAL = 20;
+// Task: a marker sweeps across a meter; dig when it is in the green zone. A miss spills a scoop.
+// The marker speeds up and the zone shrinks with every good scoop.
+const GOAL = 8;
 
 export function mount(api) {
   let count = 0;
@@ -56,13 +57,14 @@ export function mount(api) {
     `<div id="sh-cells" style="display: flex; gap: 3px"></div>` +
     (shieldNow == null ? "" : `<span style="font-size: 15px">Shield after this job: <b id="sh-after" style="color: #E4FFEC; font-variant-numeric: tabular-nums"></b></span>`) +
     `</div>` +
-    `<button type="button" id="sh-dig" class="dv-key dv-bump-a" aria-label="Dig! Scoop once. Tap, click, Enter or Space." style="flex-grow: 1; min-height: 120px; border-radius: 28px; cursor: pointer; background: #F26A1B; border: 4px solid #1E2430; box-shadow: 0 10px 0 #8E3A0B; color: #1E2430; font-family: Lexend, sans-serif; font-weight: 800; font-size: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px">` +
+    `<div aria-hidden="true" style="padding: 10px 12px; border-radius: 16px; background: #F7F8F9; border: 3px solid #1E2430; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 800; font-size: 16px">Dig when the arrow is in the green</span><div id="sh-track" style="position: relative; height: 44px; border-radius: 10px; background: #DDE1E6; border: 3px solid #1E2430; overflow: hidden"><div id="sh-zone" style="position: absolute; top: 0; bottom: 0; background: #5CBF5A; border-left: 3px solid #1F7A35; border-right: 3px solid #1F7A35"></div><div id="sh-mark" style="position: absolute; top: -2px; bottom: -2px; left: 0; width: 8px; margin-left: -4px; border-radius: 4px; background: #1E2430; box-shadow: 0 0 0 2px #F7F8F9"></div></div></div>` +
+    `<button type="button" id="sh-dig" class="dv-key dv-bump-a" aria-label="Dig! Scoop once. Tap, click, Enter or Space." style="flex-grow: 1; min-height: 100px; border-radius: 28px; cursor: pointer; background: #F26A1B; border: 4px solid #1E2430; box-shadow: 0 10px 0 #8E3A0B; color: #1E2430; font-family: Lexend, sans-serif; font-weight: 800; font-size: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px">` +
     `<svg aria-hidden="true" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6M17 7l-8 8M5 15l4 4-3 1-2-2z"></path></svg>` +
-    `<span id="sh-label">Dig!</span><span style="font-size: 16px; font-weight: 600">Tap, click, or press Space</span></button>` +
+    `<span id="sh-label">Dig!</span><span id="sh-sub" style="font-size: 16px; font-weight: 600">Tap, click, or press Space</span></button>` +
     `</div></div>`;
   api.foot.innerHTML =
     `<div style="width: 330px; display: flex; flex-direction: column; justify-content: center; padding: 10px 16px; border-radius: 12px; background: #F7F8F9; border: 3px solid #1E2430">` +
-    `<p style="margin: 0; font-size: 15px; color: #4A5363">Win: <b style="color: #1F7A35">extra shield</b><br>Missing it costs nothing.</p></div>`;
+    `<p style="margin: 0; font-size: 15px; color: #4A5363">Only green scoops count. A miss spills one. Win: <b style="color: #1F7A35">extra shield</b>.</p></div>`;
 
   const $ = (id) => api.body.querySelector("#" + id);
   const cellsEl = $("sh-cells");
@@ -70,7 +72,7 @@ export function mount(api) {
   const cells = [...cellsEl.children];
 
   function update() {
-    const top = 460 - Math.min(count, GOAL) * 13;
+    const top = 460 - Math.round(Math.min(count, GOAL) * (260 / GOAL));
     $("sh-soil").setAttribute("y", String(top));
     [["sh-r1", "sh-d1", 300], ["sh-r2", "sh-d2", 230], ["sh-r3", "sh-d3", 350]].forEach(([r, d, lim], i) => {
       const y = Math.max(top, lim) - 4;
@@ -87,10 +89,42 @@ export function mount(api) {
     if (after) after.textContent = String(Math.min(100, Math.round(shieldNow + shieldGain + (count >= GOAL ? bonus : 0))));
   }
 
+  // the sweeping marker
+  let pos = 0, dir = 1, speed = 70; // percent of the track per second
+  let zw = 26, zx = 40;             // green zone width and left edge, in percent
+  const placeZone = () => {
+    zx = 4 + Math.random() * (92 - zw);
+    const z = $("sh-zone");
+    z.style.left = zx + "%"; z.style.width = zw + "%";
+  };
+  let last = performance.now();
+  const loop = (now) => {
+    if (api.done) { clearInterval(loopId); return; }
+    const dt = Math.min(0.12, (now - last) / 1000);
+    last = now;
+    pos += dir * speed * dt;
+    if (pos >= 100) { pos = 100; dir = -1; }
+    if (pos <= 0) { pos = 0; dir = 1; }
+    $("sh-mark").style.left = pos + "%";
+  };
+
   function scoop() {
     if (api.done || count >= GOAL) return;
-    count += 1;
+    const hit = pos >= zx - 1 && pos <= zx + zw + 1;
     api.sfx("click");
+    if (!hit) {
+      count = Math.max(0, count - 1);
+      api.swap($("sh-track"), "dv-shake-a", "dv-shake-b");
+      $("sh-sub").textContent = "Spilled! Wait for the green.";
+      api.penalty(0.5);
+      update();
+      return;
+    }
+    count += 1;
+    speed += 14;
+    zw = Math.max(13, zw - 1.8);
+    placeZone();
+    $("sh-sub").textContent = count >= GOAL ? "Roof full!" : "Good scoop!";
     update();
     api.swap($("sh-count"), "dv-bump-a", "dv-bump-b");
     api.swap($("sh-toss"), "dv-burst-a", "dv-burst-b");
@@ -108,6 +142,8 @@ export function mount(api) {
     }
     return false;
   });
+  placeZone();
   update();
+  const loopId = setInterval(() => loop(performance.now()), 33);
   api.focus(dig);
 }

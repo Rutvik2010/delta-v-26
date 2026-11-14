@@ -1,4 +1,5 @@
-// Task: open the four valves in the order shown. Buttons, or press 1-4 (left to right).
+// Task: memorise the order, then open the four valves from memory. A wrong valve shuts them all.
+// Buttons, or press 1-4 (left to right).
 const S = {
   circle: "M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18z",
   tri: "M12 3 22 20H2z",
@@ -16,8 +17,10 @@ function shuffle(arr) {
 }
 
 export function mount(api) {
+  const row = shuffle(ROW); // the valves stand in a new order every time
   const order = shuffle(ROW);
   let done = 0;
+  let showing = true; // the order is on screen only while this is true
   let wrong = -1, wn = 0;
 
   api.body.innerHTML =
@@ -59,7 +62,7 @@ export function mount(api) {
   api.foot.innerHTML =
     `<div role="status" aria-live="polite" style="width: 330px; display: flex; flex-direction: column; justify-content: center; padding: 10px 16px; border-radius: 12px; background: #F7F8F9; border: 3px solid #1E2430">` +
     `<p id="vl-hint" style="margin: 0; font-size: 17px; font-weight: 700"></p>` +
-    `<p style="margin: 2px 0 0; font-size: 15px; color: #4A5363">Win: <b style="color: #1F7A35">extra oxygen</b>. Missing costs nothing.</p></div>`;
+    `<p style="margin: 2px 0 0; font-size: 15px; color: #4A5363">A wrong valve shuts them all. Win: <b style="color: #1F7A35">extra oxygen</b>.</p></div>`;
 
   const $ = (s) => api.body.querySelector(s);
   const hintEl = api.foot.querySelector("#vl-hint");
@@ -67,15 +70,16 @@ export function mount(api) {
   function render() {
     // order list
     const seqEl = $("#vl-seq");
-    seqEl.setAttribute("aria-label", "Open in this order: " + order.map((k, i) => (i + 1) + " " + NAMES[k]).join(", then "));
-    seqEl.innerHTML = `<span style="font-weight: 700; font-size: 16px; color: #A8F5C2; margin-right: 4px">Open in<br>this order</span>` +
+    seqEl.setAttribute("aria-label", showing ? "Remember this order: " + order.map((k, i) => (i + 1) + " " + NAMES[k]).join(", then ") : "Order hidden. " + done + " of 4 open.");
+    seqEl.innerHTML = `<span style="font-weight: 700; font-size: 16px; color: #A8F5C2; margin-right: 4px">${showing ? "Remember<br>this order!" : "Open them<br>from memory"}</span>` +
       order.map((k, i) => {
-        const bg = i < done ? "#5CBF5A" : (i === done ? "#F5C518" : "#A8F5C2");
-        return `<span style="width: 50px; height: 58px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; background: ${bg}"><span style="font-size: 12px; font-weight: 800; color: #13211D">${i + 1}</span><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24"><path d="${S[k]}" fill="#13211D"></path></svg></span>`;
+        const bg = i < done ? "#5CBF5A" : (showing ? "#F5C518" : "#A8F5C2");
+        const see = showing || i < done;
+        return `<span style="width: 50px; height: 58px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; background: ${bg}"><span style="font-size: 12px; font-weight: 800; color: #13211D">${i + 1}</span>${see ? `<svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24"><path d="${S[k]}" fill="#13211D"></path></svg>` : `<span style="font-size: 24px; font-weight: 800; line-height: 26px; color: #13211D">?</span>`}</span>`;
       }).join("");
 
     const hadFocus = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute("data-v");
-    $("#vl-valves").innerHTML = ROW.map((k, i) => {
+    $("#vl-valves").innerHTML = row.map((k, i) => {
       const idx = order.indexOf(k);
       const open = idx < done;
       const shake = wrong === k ? (wn % 2 ? " dv-shake-a" : " dv-shake-b") : "";
@@ -95,9 +99,16 @@ export function mount(api) {
   }
   function say(t) { hintEl.textContent = t; }
 
+  function peek(ms, after) {
+    showing = true;
+    render();
+    api.later(() => { showing = false; render(); say(after); }, ms);
+  }
+
   function press(i) {
     if (api.done) return;
-    const k = ROW[i];
+    if (showing) { say("Wait for it... remember the order first!"); return; }
+    const k = row[i];
     const idx = order.indexOf(k);
     if (idx < done) return; // already open
     api.sfx("click");
@@ -105,12 +116,15 @@ export function mount(api) {
       done += 1;
       wrong = -1;
       if (done >= 4) { say("All open! Oxygen is flowing."); render(); api.win(); return; }
-      say(done + " of 4 open. Next: the " + NAMES[order[done]] + " valve.");
+      say(done + " of 4 open. Which shape comes next?");
       render();
     } else {
       wrong = k; wn += 1;
-      say("Not that one. Find the yellow shape!");
-      render();
+      done = 0; // the pressure drops and every valve slams shut
+      api.penalty(1);
+      api.sfx("warning");
+      say("Wrong valve! They all shut. Look again, quick!");
+      peek(1300, "Go! Open them from memory.");
     }
   }
   $("#vl-valves").addEventListener("click", (e) => {
@@ -122,7 +136,7 @@ export function mount(api) {
     return false;
   });
 
-  say("Look at the screen. Open the valves in that order.");
-  render();
+  say("Remember the order on the screen. It will hide soon!");
+  peek(3000, "Go! Open them from memory.");
   api.focus($('[data-v="0"]'));
 }

@@ -1,4 +1,4 @@
-// The five bonus tasks. runTask(ctx, actionId, crewId?) -> Promise<boolean> (true only on a win).
+// The five job tasks (every job plays one; winning earns the bonus). runTask(ctx, actionId, crewId?) -> Promise<boolean> (true only on a win).
 // crewId (maya | leo | zuri) is the astronaut doing the job; it sets the name and helmet colour.
 import { helmet, factBox, esc, JOBS } from "../parts.js";
 
@@ -27,20 +27,20 @@ function meta(id, mars, crewId) {
 function baseMeta(id, mars) {
   switch (id) {
     case "rest":
-      return { color: "#B99AF5", kicker: "Zuri is resting at the solar tower", title: "Aim the panel at the Sun", secs: 7,
+      return { color: "#B99AF5", kicker: "Zuri is resting at the solar tower", title: "Follow the Sun", secs: 12,
         fact: "The International Space Station's giant solar wings turn to follow the Sun. Pointing straight at the Sun makes the most power." };
     case "oxygen_gen":
-      return { color: "#F79A6B", kicker: "Maya is making oxygen", title: "Open the valves in order", secs: 9,
+      return { color: "#F79A6B", kicker: "Maya is making oxygen", title: "Remember the valve order", secs: 16,
         fact: mars ? JOBS.oxygen_gen.real(true) : "About 40% of moon dirt's weight is oxygen. It's locked inside the rocks. Heating the dirt can set it free." };
     case "reinforce_shield":
-      return { color: "#F79A6B", kicker: "Maya is piling dirt on the roof", title: "Shovel fast!", secs: 6,
+      return { color: "#F79A6B", kicker: "Maya is piling dirt on the roof", title: "Scoop in the green", secs: 13,
         fact: mars ? JOBS.reinforce_shield.real() : "The Moon has no thick air to block harmful rays from the Sun. NASA has studied covering moon bases with moon dirt to keep crews safe." };
     case "grow_food":
-      return { color: "#8ED16C", kicker: "Leo is tending the veggie garden", title: "Water the droopy plants", secs: 8,
+      return { color: "#8ED16C", kicker: "Leo is tending the veggie garden", title: "Keep the garden alive", secs: 15,
         fact: "In 2015, astronauts on the space station ate lettuce they grew in space. The garden is called Veggie, and its lights glow pink." };
     default:
       return { color: "#B99AF5", kicker: mars ? "Zuri is hunting for a water rock in the crater" : "Zuri is hunting for ice in the crater",
-        title: mars ? "Find the shiny rock" : "Find the shiny ice", secs: 10,
+        title: mars ? "Spot the water rock" : "Spot the hidden ice", secs: 13,
         fact: mars ? JOBS.science.real(true) : "In 2009, NASA crashed its LCROSS probe into a dark crater near the Moon's south pole. The cloud it kicked up had water ice in it!" };
   }
 }
@@ -58,12 +58,11 @@ export function runTask(ctx, actionId, crewId) {
       let tickId = 0;
       let keyFn = null;
       layer.innerHTML =
-        `<div data-root role="dialog" aria-modal="true" aria-label="${esc(m.title)}. Bonus task." tabindex="-1" style="position: absolute; left: 0; top: 0; width: 1280px; height: 800px; box-sizing: border-box; padding: 24px 48px; background: #C9CED6; font-family: Lexend, system-ui, sans-serif; color: #1E2430; display: flex; flex-direction: column; gap: 16px; outline: none">` +
+        `<div data-root role="dialog" aria-modal="true" aria-label="${esc(m.title)}. Job task." tabindex="-1" style="position: absolute; left: 0; top: 0; width: 1280px; height: 800px; box-sizing: border-box; padding: 24px 48px; background: #C9CED6; font-family: Lexend, system-ui, sans-serif; color: #1E2430; display: flex; flex-direction: column; gap: 16px; outline: none">` +
         `<div style="display: flex; align-items: center; gap: 16px">${helmet(m.color, 60)}` +
-        `<div><p style="margin: 0; font-size: 18px; font-weight: 600; color: #4A5363">Bonus task · ${esc(m.kicker)}</p><h1 style="margin: 0; font-weight: 800; font-size: 38px; letter-spacing: -0.02em">${esc(m.title)}</h1></div>` +
+        `<div><p style="margin: 0; font-size: 18px; font-weight: 600; color: #4A5363">Job task · ${esc(m.kicker)}</p><h1 style="margin: 0; font-weight: 800; font-size: 38px; letter-spacing: -0.02em">${esc(m.title)}</h1></div>` +
         `<div data-hx style="margin-left: auto; display: flex; align-items: center; gap: 8px"></div>` +
         `<div role="timer" data-timer aria-label="${m.secs} seconds left" style="position: relative; overflow: hidden; width: 96px; height: 64px; border-radius: 14px; background: #13211D; box-shadow: inset 0 0 0 4px #2B3833; color: #E4FFEC; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 32px; font-variant-numeric: tabular-nums"><span data-tnum style="margin-top: -6px">${m.secs} s</span><span aria-hidden="true" style="position: absolute; left: 8px; right: 8px; bottom: 7px; height: 7px; border-radius: 4px; background: #2B3833; overflow: hidden"><span data-tbar style="display: block; height: 100%; background: #A8F5C2; transform-origin: left center; transform: scaleX(1)"></span></span></div>` +
-        `<button type="button" data-skip class="dv-key" aria-label="Skip this bonus task (Escape)" style="height: 64px; box-sizing: border-box; display: inline-flex; align-items: center; padding: 0 24px; border-radius: 14px; background: #F7F8F9; border: 3px solid #1E2430; box-shadow: 0 5px 0 #7C8592; color: #1E2430; font-family: inherit; font-weight: 700; font-size: 20px; cursor: pointer">Skip</button>` +
         `</div>` +
         `<div data-body style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px"></div>` +
         `<div style="display: flex; gap: 20px; align-items: stretch"><div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center">${factBox(m.fact)}</div><div data-foot style="display: contents"></div></div>` +
@@ -96,14 +95,14 @@ export function runTask(ctx, actionId, crewId) {
           `</div></div>`;
         timeouts.add(setTimeout(() => closeAll(win), 900));
       };
-      const skip = () => { if (!done) closeAll(false); };
 
       // Countdown: whole seconds as a number plus a shrinking bar.
       const start = performance.now();
+      let lost = 0; // seconds taken away by mistakes
       let lastShown = m.secs;
       tickId = setInterval(() => {
         if (done) return;
-        const left = m.secs - (performance.now() - start) / 1000;
+        const left = m.secs - lost - (performance.now() - start) / 1000;
         tbar.style.transform = "scaleX(" + Math.max(0, left / m.secs).toFixed(3) + ")";
         const n = Math.max(0, Math.ceil(left));
         if (n !== lastShown) {
@@ -115,7 +114,7 @@ export function runTask(ctx, actionId, crewId) {
       }, 100);
 
       const onKey = (e) => {
-        if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); skip(); return; }
+        if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); return; } // every job plays its task
         if (e.key === "Tab") { // keep focus inside the dialog
           const items = [...root.querySelectorAll("button:not([disabled]), input")].filter((el) => el.offsetParent !== null);
           if (items.length) {
@@ -131,7 +130,6 @@ export function runTask(ctx, actionId, crewId) {
         e.stopPropagation();
       };
       document.addEventListener("keydown", onKey, true);
-      q("[data-skip]").addEventListener("click", skip);
 
       const api = {
         ctx, mars, secs: m.secs,
@@ -139,6 +137,14 @@ export function runTask(ctx, actionId, crewId) {
         get done() { return done; },
         win: () => finish(true),
         fail: () => finish(false),
+        // a mistake costs time: the clock jumps down and flashes red
+        penalty: (sec) => {
+          if (done) return;
+          lost += sec;
+          timerEl.style.background = "#5A1A14";
+          const t = setTimeout(() => { timeouts.delete(t); timerEl.style.background = "#13211D"; }, 350);
+          timeouts.add(t);
+        },
         sfx: (n) => ctx.sfx(n),
         onKey: (fn) => { keyFn = fn; },
         later: (fn, ms) => { const t = setTimeout(() => { timeouts.delete(t); if (!done) fn(); }, ms); timeouts.add(t); return t; },

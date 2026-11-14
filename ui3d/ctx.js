@@ -11,7 +11,7 @@ export const store = {
   plan: null,            // the real-weather plan for the mode, or null (practice weather)
   state: null,           // the engine state for the mission in progress
   facts: 0,              // how many real facts the player has seen (events)
-  minigames: true,       // bonus tasks on/off
+  minigames: true,       // kept for old callers; every job now always plays its task
 };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
