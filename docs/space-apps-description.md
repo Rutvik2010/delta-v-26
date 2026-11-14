@@ -1,0 +1,7 @@
+# Delta-V 26 — Junior Astronaut Mission Trainer
+
+Delta-V 26 is a browser game built for NASA Space Apps 2026. It invites young players to plan a 30-sol mission on the Moon or Mars. Each turn asks them to decide how to use a small set of actions while keeping four systems running: oxygen, power, food, and radiation shielding. Resting can restore power but uses food. Making oxygen uses power. A good choice today may leave less room for a surprise tomorrow.
+
+The game connects that resource puzzle to space science. A live request to NASA's DONKI database checks recent solar flares and turns the strongest flare class into a simple starting weather cue. If the request fails, the game uses clearly labeled sample weather. During play, simulated storms, dust, tiny impacts, equipment problems, and radio blackouts create decisions for the player. The in-game facts and outcome lessons explain the mission ideas behind those hazards. The later turns are game simulation, not a forecast of actual conditions on the Moon or Mars.
+
+We designed the experience for players around ages 10 to 16. Short explanations and a glossary help them learn words such as shielding, regolith, and solar flare while they play. The goal is to make the tradeoffs of a space mission understandable: save supplies, plan for trouble, and keep a crew safe long enough to explore. This is an independent Space Apps project; NASA does not endorse it.
