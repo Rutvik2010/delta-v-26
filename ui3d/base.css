@@ -6,6 +6,7 @@ html, body { margin: 0; height: 100%; background: #0E1424; overflow: hidden; }
   position: absolute; left: 50%; top: 50%; width: 1280px; height: 800px; transform-origin: center center;
   overflow: hidden; background: #C9CED6; color: #1E2430; font-family: Lexend, system-ui, sans-serif;
 }
+#stage.bleed { overflow: visible; background: transparent; }
 #screen { position: absolute; inset: 0; }
 .dv-overlay { position: absolute; inset: 0; z-index: 50; }
 button { font-family: inherit; }

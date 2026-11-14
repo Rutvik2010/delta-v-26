@@ -16,10 +16,13 @@ app.innerHTML = `<div id="viewport"><div id="stage"><div id="screen"></div></div
 const stage = document.getElementById("stage");
 const screen = document.getElementById("screen");
 
-// Scale the whole stage to fit, with letterboxing.
+// Scale the whole stage to fit, with letterboxing. --ex / --ey are the letterbox sizes in stage
+// pixels, so a screen that wants to go edge to edge (the game) can bleed into them.
 function fit() {
   const s = Math.min(window.innerWidth / 1280, window.innerHeight / 800);
   stage.style.transform = `translate(-50%, -50%) scale(${s})`;
+  stage.style.setProperty("--ex", Math.max(0, (window.innerWidth / s - 1280) / 2) + "px");
+  stage.style.setProperty("--ey", Math.max(0, (window.innerHeight / s - 800) / 2) + "px");
 }
 window.addEventListener("resize", fit);
 window.addEventListener("orientationchange", fit);

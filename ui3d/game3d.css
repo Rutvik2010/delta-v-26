@@ -4,13 +4,13 @@
 @property --ry { syntax: "<number>"; inherits: false; initial-value: 110; }
 
 #g3 {
-  --tilt: 58deg; --yaw: 45deg; --h: 290px;
+  --tilt: 58deg; --yaw: 45deg; --h: 340px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --spring: linear(0, 0.021 2.5%, 0.075 5%, 0.15 7.5%, 0.498 17.5%, 0.647 22.5%, 0.71 25%, 0.813 30%, 0.886 35%, 0.936 40%, 0.98 47.5%, 1);
   --bouncy: linear(0, 0.029 2.5%, 0.104 5%, 0.205 7.5%, 0.55 15%, 0.654 17.5%, 0.746 20%, 0.824 22.5%, 0.888 25%, 0.939 27.5%, 0.978 30%, 1.006 32.5%, 1.038 37.5%, 1.045 45%, 1);
   --ink: #1E2430; --panel: #EEF0F2; --key: #F7F8F9; --signal: #F26A1B; --screen: #13211D; --phos: #A8F5C2;
   --sky1: #070B18; --sky2: #141C3C; --ground: #C4C8D2; --ground2: #A9AEBC; --rim: #E4E6EC; --side: #6E7486; --side2: #585E70; --soil: #A9ADBB;
-  position: absolute; inset: 0; overflow: hidden; color: var(--ink); font-family: Lexend, system-ui, sans-serif;
+  position: absolute; inset: calc(var(--ey, 0px) * -1) calc(var(--ex, 0px) * -1); overflow: hidden; color: var(--ink); font-family: Lexend, system-ui, sans-serif;
   background: radial-gradient(90% 70% at 45% 60%, var(--sky2), var(--sky1) 75%);
 }
 #g3.mars { --sky1: #1C0B10; --sky2: #4A2420; --ground: #D08458; --ground2: #B06A40; --rim: #E8AE86; --side: #8A4426; --side2: #6E331B; --soil: #B9643A; }
@@ -19,7 +19,7 @@
 #g3 .world { position: absolute; inset: 0; perspective: 2200px; perspective-origin: 45% 58%; cursor: grab; touch-action: none; user-select: none; }
 #g3 .world.dragging { cursor: grabbing; }
 #g3 .sky { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-#g3 .stage3d { position: absolute; left: 45%; top: 59%; width: 0; height: 0; transform-style: preserve-3d; transform: scale(1.18); }
+#g3 .stage3d { position: absolute; left: calc(50% - 130px); top: 57%; scale: 1.12; width: 0; height: 0; transform-style: preserve-3d; }
 #g3 .board { position: absolute; left: calc(var(--h) * -1); top: calc(var(--h) * -1); width: calc(var(--h) * 2); height: calc(var(--h) * 2); transform-style: preserve-3d;
   transform: rotateX(var(--tilt)) rotateZ(var(--yaw)); transition: transform 700ms var(--spring); }
 #g3 .world.dragging .board, #g3 .world.dragging .bb { transition: none; }
@@ -27,7 +27,7 @@
 
 /* entrance: the base rises out of the dark while it spins into place (one orchestrated moment) */
 #g3.intro .stage3d { animation: g3-rise 1300ms var(--ease) both; }
-@keyframes g3-rise { from { opacity: 0; translate: 0 140px; scale: .7; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes g3-rise { from { opacity: 0; translate: 0 140px; scale: .78; } to { opacity: 1; translate: 0 0; scale: 1.12; } }
 #g3.intro .station .art { animation: g3-drop 800ms var(--bouncy) both; animation-delay: calc(700ms + var(--i) * 110ms); }
 #g3.intro .station .lbl { animation: g3-pop-lbl 400ms var(--ease) both; animation-delay: calc(1200ms + var(--i) * 110ms); }
 #g3.intro .walker .fig { animation: g3-drop 700ms var(--bouncy) both; animation-delay: calc(1500ms + var(--i) * 120ms); }
@@ -123,7 +123,7 @@
 
 /* rover patrols around the crater (registered custom properties make the loop animatable) */
 #g3 .rover { --x: var(--rx); --y: var(--ry); pointer-events: none; animation: g3-patrol 18s ease-in-out infinite; transition: none; }
-@keyframes g3-patrol { 0%, 100% { --rx: 110; --ry: 150; } 25% { --rx: 150; --ry: 150; } 50% { --rx: 145; --ry: 105; } 75% { --rx: 100; --ry: 120; } }
+@keyframes g3-patrol { 0%, 100% { --rx: 129; --ry: 176; } 25% { --rx: 176; --ry: 176; } 50% { --rx: 170; --ry: 123; } 75% { --rx: 117; --ry: 140; } }
 #g3 .rover svg { animation: g3-rumble .4s steps(2) infinite; }
 @keyframes g3-rumble { 50% { translate: 0 -1px; } }
 #g3 .beam { animation: g3-beam 3s ease-in-out infinite; transform-box: fill-box; transform-origin: 0 50%; }
@@ -311,3 +311,61 @@
   #g3 *, #g3 *::before, #g3 *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   #g3 .rover { animation: none; }
 }
+
+/* ---------- CSS 3D buildings ---------- */
+#g3 .model { position: absolute; width: 0; height: 0; transform-style: preserve-3d; transform: translateZ(1px); }
+#g3 .model.bld { cursor: pointer; }
+#g3 .cube, #g3 .cyl { position: absolute; transform-style: preserve-3d; }
+#g3 .cube .f, #g3 .cyl .f { position: absolute; left: 0; top: 0; display: block; box-sizing: border-box; background: var(--fc, #F7F8F9); }
+#g3 .cube .f { border: 3px solid var(--ink); }
+#g3 .cube .f.py { filter: brightness(.8); } #g3 .cube .f.px { filter: brightness(.93); }
+#g3 .cube .f.ny { filter: brightness(.7); } #g3 .cube .f.nx { filter: brightness(.75); }
+#g3 .cyl .f.s { border-top: 3px solid var(--ink); border-bottom: 3px solid var(--ink); }
+#g3 .cyl .f.t { border-radius: 50%; border: 3px solid var(--ink); }
+/* night: every face dims, windows stay lit */
+#g3 .cube .f::after, #g3 .cyl .f::after { content: ""; position: absolute; inset: -3px; border-radius: inherit; background: #050815; opacity: 0; transition: opacity 1.4s ease; pointer-events: none; }
+#g3.night .cube .f::after, #g3.night .cyl .f::after { opacity: .45; }
+#g3 .f > b { position: absolute; display: block; z-index: 1; }
+
+#g3 .white { --fc: #F7F8F9; }
+#g3 .plinth { --fc: #C9CED6; }
+#g3 .tank { --fc: #4BA3F0; }
+#g3 .tank .shine { left: 22%; top: 22%; width: 30%; height: 30%; border-radius: 50%; background: #BFE3FF; }
+#g3 .panel { --fc: #D9A43A; }
+#g3 .panel .grid { inset: 0; background:
+  linear-gradient(90deg, transparent calc(25% - 2px), var(--ink) calc(25% - 2px) calc(25% + 1px), transparent calc(25% + 1px) calc(50% - 2px), var(--ink) calc(50% - 2px) calc(50% + 1px), transparent calc(50% + 1px) calc(75% - 2px), var(--ink) calc(75% - 2px) calc(75% + 1px), transparent calc(75% + 1px)),
+  linear-gradient(0deg, transparent calc(50% - 2px), var(--ink) calc(50% - 2px) calc(50% + 1px), transparent calc(50% + 1px)),
+  linear-gradient(135deg, rgba(255, 243, 196, .55) 0 22%, transparent 22%); }
+#g3 .track { position: absolute; width: 0; height: 0; transform-style: preserve-3d; animation: g3-track 16s ease-in-out infinite; }
+#g3 .tilt { position: absolute; width: 0; height: 0; transform-style: preserve-3d; transform: rotateX(-38deg); }
+@keyframes g3-track { 0%, 100% { rotate: z -70deg; } 50% { rotate: z -25deg; } }
+#g3.night .track { animation-play-state: paused; }
+#g3 .bolt { left: 50%; top: 50%; width: 10px; height: 14px; translate: -50% -50%; background: #F5C518; clip-path: polygon(60% 0, 0 60%, 45% 60%, 35% 100%, 100% 40%, 55% 40%); animation: g3-blink 1.6s steps(1) infinite; }
+#g3 .slot { left: 12%; top: 34%; width: 28%; height: 22%; background: #F26A1B; border: 2px solid var(--ink); }
+#g3 .lights { right: 10%; top: 40%; display: flex; gap: 5px; }
+#g3 .lights u { width: 9px; height: 9px; background: #F5C518; animation: g3-blink 1.2s steps(1) infinite; }
+#g3 .lights u:nth-child(2) { animation-delay: -.4s; } #g3 .lights u:nth-child(3) { animation-delay: -.8s; }
+#g3 .winbox { left: 18%; top: 30%; width: 24%; height: 30%; background: #9FD8FF; border: 2px solid var(--ink); transition: background 1.4s ease; }
+#g3 .winbox.two { left: 58%; }
+#g3.night .winbox { background: #FFE18A; box-shadow: 0 0 14px 4px rgba(255, 225, 138, .6); }
+#g3 .airlock .door { left: 50%; bottom: 0; width: 46%; height: 70%; translate: -50% 0; border-radius: 8px 8px 0 0; background: #4A5363; border: 2px solid var(--ink); transition: background 400ms ease; }
+#g3 .model.occupied .door { background: #FFE18A; box-shadow: 0 0 16px 4px rgba(255, 225, 138, .6); }
+#g3 .model.flash .door { animation: g3-doorflash 600ms ease-out; }
+@keyframes g3-doorflash { 0% { background: #FFF6C8; box-shadow: 0 0 30px 10px rgba(255, 246, 200, .9); } }
+#g3 .glass { --fc: rgba(252, 230, 244, .5); }
+#g3 .glass .f { border-color: #C2479B; }
+#g3 .glass .f.t { background: rgba(255, 122, 217, .32); }
+#g3 .glass .frame { inset: 0; background: linear-gradient(90deg, transparent 32%, rgba(194, 71, 155, .8) 32% 35%, transparent 35% 65%, rgba(194, 71, 155, .8) 65% 68%, transparent 68%); }
+#g3 .glass .roof { inset: 0; background: linear-gradient(90deg, transparent 47%, #FF7AD9 47% 53%, transparent 53%), linear-gradient(0deg, transparent 47%, #FF7AD9 47% 53%, transparent 53%); }
+#g3 .ridge { --fc: #FF7AD9; }
+#g3 .plant { pointer-events: none; }
+#g3 .domebb, #g3 .puffbb { pointer-events: none; }
+#g3 .domewrap { padding-bottom: 18px; }
+#g3 .station.has3d .lbl { margin-bottom: 4px; }
+#g3 .station.has3d .lift { display: block; width: 90px; }
+/* tap squash and the entrance drop (no opacity on 3D groups: it would flatten them) */
+#g3 .model.bounce { animation: g3-squash3d 520ms var(--bouncy); }
+@keyframes g3-squash3d { 0% { scale: 1 1 1; } 25% { scale: 1.08 1.08 .82; } 55% { scale: .97 .97 1.08; } 100% { scale: 1 1 1; } }
+#g3.intro .model.bld { animation: g3-drop3d 850ms var(--bouncy) both; animation-delay: calc(650ms + var(--i) * 120ms); }
+@keyframes g3-drop3d { from { translate: 0 0 420px; } to { translate: 0 0 0; } }
+#g3.intro .domebb .domewrap, #g3.intro .plant svg, #g3.intro .puffbb svg { animation: g3-drop 800ms var(--bouncy) both; animation-delay: 1000ms; }

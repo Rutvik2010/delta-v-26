@@ -1,58 +1,62 @@
 // Main game screen: a big isometric base floating in space that you can turn.
-// Buildings and crew are upright billboards on a tilted square slab (pure CSS 3D, see ui3d/game3d.css).
+// Buildings are real CSS 3D models (boxes and cylinders) on a tilted square slab; crew, flags and
+// the round dome are upright billboards (see ui3d/game3d.css).
 import { RES, RES_INFO, CREW, JOBS, JOB_ORDER, WARN, WEATHER_LABEL, esc, helmet, iconSvg, dateText } from "../parts.js";
 
 const MINUS = "−";
 const sign = (n) => (n >= 0 ? "+" : MINUS) + Math.abs(n);
 const CREW_BY = Object.fromEntries(CREW.map((c) => [c.id, c]));
-const H = 290; // half the slab size in px
+const H = 340; // half the slab size in px
 
 // Where things stand on the slab (px from the centre). With the default 45° turn,
 // screen-front is (x + y) > 0 and screen-right is (x − y) > 0.
-const POS = { rest: [-185, 140], oxygen_gen: [10, 200], reinforce_shield: [-18, -18], grow_food: [180, -180], science: [200, 30] };
-const FEET = { rest: [-115, 125], oxygen_gen: [15, 135], reinforce_shield: [45, -15], grow_food: [150, -100], science: [140, 30] };
-const HOME = { maya: [12, 82], leo: [48, 48], zuri: [82, 12] };
-const DOOR = { maya: [13, 27], leo: [20, 20], zuri: [27, 13] };
-const PAD = [-25, -200];
-const DOOR_C = [20, 20];
+const POS = { rest: [-220, 150], oxygen_gen: [10, 238], reinforce_shield: [-30, -30], grow_food: [205, -205], science: [236, 36] };
+const FEET = { rest: [-160, 178], oxygen_gen: [82, 196], reinforce_shield: [70, -64], grow_food: [136, -146], science: [142, 72] };
+const HOME = { maya: [84, 132], leo: [120, 120], zuri: [132, 84] };
+const DOOR = { maya: [58, 72], leo: [65, 65], zuri: [72, 58] };
+const PAD = [-40, -238];
+const DOOR_C = [65, 65];
+// how tall each model is, so its label floats just above it
+const LIFT = { rest: 150, oxygen_gen: 96, reinforce_shield: 120, grow_food: 92 };
 
-// ---- sprites (toy style: 3px ink outlines, flat fills) ----
+// ---- CSS 3D building blocks ----
+// box: w × d footprint, h tall, centred at (x, y) inside its parent, sitting at height z.
+// Faces: t (top), py/ny (+y / −y sides), px/nx (+x / −x sides). Extra HTML can go on any face.
+function box(w, d, h, o = {}) {
+  const { x = 0, y = 0, z = 0, cls = "", t = "", py = "", px = "", ny = "", nx = "" } = o;
+  const side = (ww, extra, tf, body) => `<i class="f ${extra}" style="width: ${ww}px; height: ${h}px; left: ${(w - ww) / 2}px; top: ${(d - h) / 2}px; transform: translateZ(${h / 2}px) ${tf}">${body}</i>`;
+  return `<div class="cube ${cls}" style="width: ${w}px; height: ${d}px; left: ${x}px; top: ${y}px; transform: translate(-50%, -50%) translateZ(${z}px)">
+<i class="f t" style="width: ${w}px; height: ${d}px; transform: translateZ(${h}px)">${t}</i>
+${side(w, "py", `rotateX(-90deg) translateZ(${d / 2}px)`, py)}${side(w, "ny", `rotateX(90deg) translateZ(${d / 2}px)`, ny)}
+${side(d, "px", `rotateZ(-90deg) rotateX(-90deg) translateZ(${w / 2}px)`, px)}${side(d, "nx", `rotateZ(90deg) rotateX(-90deg) translateZ(${w / 2}px)`, nx)}</div>`;
+}
+// cylinder: radius r, h tall, n sides, centred at (x, y), sitting at height z. Sides are shaded toward the Sun.
+function cyl(r, h, o = {}) {
+  const { x = 0, y = 0, z = 0, n = 14, cls = "", t = "" } = o;
+  const s = 2 * r * Math.tan(Math.PI / n) + 1.5, ap = r * Math.cos(Math.PI / n);
+  let sides = "";
+  for (let i = 0; i < n; i++) {
+    const a = (i * 360) / n, lit = 0.72 + 0.28 * Math.max(0, Math.cos(((a - 200) * Math.PI) / 180));
+    sides += `<i class="f s" style="width: ${s}px; height: ${h}px; left: ${r - s / 2}px; top: ${r - h / 2}px; filter: brightness(${lit.toFixed(2)}); transform: translateZ(${h / 2}px) rotateZ(${a}deg) rotateX(-90deg) translateZ(${ap}px)"></i>`;
+  }
+  return `<div class="cyl ${cls}" style="width: ${2 * r}px; height: ${2 * r}px; left: ${x}px; top: ${y}px; transform: translate(-50%, -50%) translateZ(${z}px)">${sides}<i class="f t" style="width: ${2 * r}px; height: ${2 * r}px; transform: translateZ(${h}px)">${t}</i></div>`;
+}
+// the five buildings
+const MODEL = {
+  rest: () => `${box(30, 30, 22, { x: 34, y: 24, cls: "white" , py: `<b class="bolt"></b>` })}
+${box(12, 12, 124, { cls: "white" })}
+<div class="track" style="transform: translateZ(128px)"><div class="tilt">${box(150, 80, 6, { cls: "panel", t: `<b class="grid"></b>` })}</div></div>`,
+  oxygen_gen: () => `${box(96, 74, 62, { cls: "white", py: `<b class="slot"></b><b class="lights"><u></u><u></u><u></u></b>`, px: `<b class="winbox"></b><b class="winbox two"></b>` })}
+${cyl(10, 40, { x: 18, y: -12, z: 62, n: 10, cls: "white" })}
+${cyl(20, 92, { x: -38, y: 62, n: 14, cls: "tank", t: `<b class="shine"></b>` })}`,
+  reinforce_shield: () => `${cyl(92, 18, { n: 20, cls: "plinth" })}
+${box(40, 40, 46, { x: 66, y: 66, z: 0, cls: "white airlock", py: `<b class="door"></b>`, px: `<b class="door"></b>` })}`,
+  grow_food: () => `${box(128, 100, 70, { cls: "glass", t: `<b class="roof"></b>`, py: `<b class="frame"></b>`, px: `<b class="frame"></b>`, ny: `<b class="frame"></b>`, nx: `<b class="frame"></b>` })}
+${box(128, 10, 10, { z: 70, cls: "ridge" })}`,
+};
+
+// ---- flat sprites (toy style: 3px ink outlines, flat fills); only the crater flag is still one ----
 const SPR = {
-  rest: () => `<svg width="165" height="209" viewBox="0 0 150 190" aria-hidden="true">
-<rect x="70" y="60" width="10" height="120" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"/>
-<path d="M52 180 75 160 98 180" fill="none" stroke="#1E2430" stroke-width="4" stroke-linecap="round"/>
-<g class="panel-tilt"><g transform="rotate(-16 75 46)"><rect x="12" y="22" width="126" height="48" rx="4" fill="#D9A43A" stroke="#1E2430" stroke-width="4"/>
-<path d="M43 22v48M75 22v48M107 22v48M12 46h126" stroke="#1E2430" stroke-width="2.5"/><rect x="14" y="24" width="28" height="20" fill="#FFF3C4" opacity=".45"/></g>
-<circle cx="75" cy="58" r="7" fill="#F26A1B" stroke="#1E2430" stroke-width="3"/></g>
-<rect x="96" y="150" width="40" height="30" rx="5" fill="#EEF0F2" stroke="#1E2430" stroke-width="3"/><path class="blink" d="M118 155 110 166h7l-3 9 9-12h-7z" fill="#F5C518" stroke="#1E2430" stroke-width="1.5"/></svg>`,
-  oxygen_gen: () => `<svg width="210" height="175" viewBox="0 0 170 140" aria-hidden="true">
-<g fill="#fff"><circle class="puff" cx="58" cy="22" r="8"/><circle class="puff p2" cx="62" cy="22" r="6"/><circle class="puff p3" cx="54" cy="22" r="7"/></g>
-<path d="M14 70 60 50l52 20v62l-52 6-46-6z" fill="#F7F8F9" stroke="#1E2430" stroke-width="4" stroke-linejoin="round"/>
-<path d="M60 50v88M14 70l46 12 52-12" fill="none" stroke="#1E2430" stroke-width="3"/>
-<rect x="52" y="30" width="14" height="30" fill="#EEF0F2" stroke="#1E2430" stroke-width="3"/>
-<rect x="22" y="92" width="26" height="12" fill="#F26A1B" stroke="#1E2430" stroke-width="2.5"/>
-<path d="M72 98h8M86 96h8M100 94h8" stroke="#F5C518" stroke-width="6"/>
-<rect x="122" y="56" width="32" height="76" rx="16" fill="#4BA3F0" stroke="#1E2430" stroke-width="4"/><path d="M130 72v44" stroke="#BFE3FF" stroke-width="5" stroke-linecap="round"/>
-<path d="M112 116h10" stroke="#1E2430" stroke-width="5"/></svg>`,
-  reinforce_shield: () => `<svg width="270" height="189" viewBox="0 0 250 175" aria-hidden="true">
-<ellipse class="dome" cx="125" cy="125" rx="120" ry="108" fill="#9B7BF7" fill-opacity=".14" stroke="#9B7BF7" stroke-width="4" stroke-dasharray="10 8" style="opacity: var(--shield-op, .8)"/>
-<path d="M22 165h206l-10 10H32z" fill="#C9CED6" stroke="#1E2430" stroke-width="3" stroke-linejoin="round"/>
-<path d="M40 165 a85 80 0 0 1 170 0z" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"/>
-<path d="M54 138 h142" stroke="#9AA3AF" stroke-width="6" stroke-dasharray="14 10"/>
-<path d="M60 165 a65 65 0 0 1 40 -60" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".9"/>
-<rect class="door" x="110" y="132" width="30" height="33" rx="8" fill="#4A5363" stroke="#1E2430" stroke-width="3"/>
-<circle class="win" cx="160" cy="112" r="10" stroke="#1E2430" stroke-width="3"/>
-<g class="dish"><path d="M125 86V66" stroke="#1E2430" stroke-width="4"/><path d="M106 60a19 9 0 0 0 38 0z" fill="#EEF0F2" stroke="#1E2430" stroke-width="3"/><circle class="blink" cx="125" cy="52" r="4" fill="#F26A1B"/></g></svg>`,
-  grow_food: () => `<svg width="190" height="190" viewBox="0 0 150 150" aria-hidden="true">
-<path d="M12 60 75 34l63 26v70l-63 16-63-16z" fill="#FCE6F4" fill-opacity=".85" stroke="#1E2430" stroke-width="4" stroke-linejoin="round"/>
-<path d="M12 60l63 18 63-18M75 78v68" fill="none" stroke="#1E2430" stroke-width="3"/>
-<path d="M12 60 75 34l63 26" fill="none" stroke="#FF7AD9" stroke-width="7" stroke-linejoin="round"/>
-<path d="M40 60 75 47l35 13" fill="none" stroke="#FF7AD9" stroke-width="4"/>
-<g class="sway"><circle cx="34" cy="108" r="9" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/></g>
-<g class="sway" style="animation-delay: -1s"><circle cx="56" cy="116" r="9" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/></g>
-<g class="sway" style="animation-delay: -.5s"><circle cx="96" cy="116" r="9" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/></g>
-<g class="sway" style="animation-delay: -1.5s"><circle cx="118" cy="106" r="9" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/></g>
-<rect class="grow" x="26" y="84" width="20" height="5" rx="2" fill="#FF7AD9"/><rect class="grow g2" x="104" y="84" width="20" height="5" rx="2" fill="#FF7AD9"/></svg>`,
   science: (m) => `<svg width="140" height="160" viewBox="0 0 120 140" aria-hidden="true">
 <path d="M30 132V30" stroke="#1E2430" stroke-width="5" stroke-linecap="round"/><path class="flag" d="M32 30h44l-10 14 10 14H32z" fill="#F26A1B" stroke="#1E2430" stroke-width="3" stroke-linejoin="round"/>
 <path d="M76 124l10-22 10 22-10 10z" fill="${m ? "#E9C9A8" : "#BFE9FF"}" stroke="#1E2430" stroke-width="3" stroke-linejoin="round"/>
@@ -66,6 +70,15 @@ const rover = () => `<svg width="90" height="70" viewBox="0 0 90 70" aria-hidden
 <path d="M54 24V8" stroke="#1E2430" stroke-width="3"/><circle class="blink" cx="54" cy="7" r="4" fill="#F26A1B" stroke="#1E2430" stroke-width="2"/>
 <rect x="64" y="24" width="10" height="9" rx="2" fill="#4BA3F0" stroke="#1E2430" stroke-width="2"/>
 <circle cx="22" cy="54" r="9" fill="#4A5363" stroke="#1E2430" stroke-width="3"/><circle cx="58" cy="54" r="9" fill="#4A5363" stroke="#1E2430" stroke-width="3"/></svg>`;
+// the habitat dome is round, so a camera-facing billboard looks right from every side
+const DOME = () => `<svg width="250" height="200" viewBox="0 0 250 200" aria-hidden="true">
+<ellipse class="dome" cx="125" cy="128" rx="120" ry="112" fill="#9B7BF7" fill-opacity=".14" stroke="#9B7BF7" stroke-width="4" stroke-dasharray="10 8" style="opacity: var(--shield-op, .8)"/>
+<path d="M39 196 a86 86 0 0 1 172 0z" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"/>
+<path d="M58 196 a67 67 0 0 1 36 -58" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+<path d="M48 166 h154" stroke="#9AA3AF" stroke-width="7" stroke-dasharray="15 10"/>
+<circle class="win" cx="160" cy="140" r="11" stroke="#1E2430" stroke-width="3"/><circle class="win" cx="92" cy="146" r="8" stroke="#1E2430" stroke-width="3"/>
+<g class="dish"><path d="M125 112V90" stroke="#1E2430" stroke-width="4"/><path d="M104 84a21 10 0 0 0 42 0z" fill="#EEF0F2" stroke="#1E2430" stroke-width="3"/><circle class="blink" cx="125" cy="74" r="4.5" fill="#F26A1B"/></g></svg>`;
+const plant = (i) => `<svg width="34" height="44" viewBox="0 0 34 44" aria-hidden="true"><g class="sway" style="animation-delay: ${-i * 0.6}s"><path d="M17 44V22" stroke="#2F7A2C" stroke-width="4" stroke-linecap="round"/><circle cx="17" cy="16" r="12" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/>${i % 2 ? `<circle cx="13" cy="13" r="3" fill="#FF7AD9"/>` : ""}</g></svg>`;
 const shipFlag = () => `<svg width="56" height="90" viewBox="0 0 56 90" aria-hidden="true"><path d="M10 88V10" stroke="#1E2430" stroke-width="4" stroke-linecap="round"/><rect x="12" y="6" width="40" height="28" rx="4" fill="#F5C518" stroke="#1E2430" stroke-width="3"/><text id="shipn" x="32" y="27" text-anchor="middle" font-family="Lexend, sans-serif" font-weight="800" font-size="17" fill="#1E2430"></text></svg>`;
 const astro = (color) => `<svg class="fig" width="50" height="74" viewBox="0 0 44 70" aria-hidden="true"><rect x="9" y="17" width="26" height="28" rx="5" fill="#c9cedb" stroke="#1E2430" stroke-width="2"/><rect x="4" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="31" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="13" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="22.5" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="12" y="21" width="20" height="26" rx="7" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="12" y="34" width="20" height="5" fill="${color}"/><circle cx="22" cy="12" r="11" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="14" y="6" width="16" height="11" rx="5.5" fill="#E9B44C" stroke="#1E2430" stroke-width="1.5"/><path d="M17 9h5" stroke="#FFF3C4" stroke-width="2" stroke-linecap="round"/></svg>`;
 
@@ -110,9 +123,10 @@ export function mount(root, ctx) {
   <div class="stage3d"><div class="board" id="board" style="--yaw: ${yaw}deg">
     ${slabs}<div class="top"></div>
     <div class="flat crater" style="left: ${H + POS.science[0]}px; top: ${H + POS.science[1]}px"></div>
-    <div class="flat pit" style="left: 70px; top: 140px"></div><div class="flat pit" style="left: 470px; top: 480px"></div><div class="flat pit" style="left: 120px; top: 470px"></div>
-    <div class="flat rock" style="left: 40px; top: 300px"></div><div class="flat rock" style="left: 520px; top: 120px"></div><div class="flat rock" style="left: 300px; top: 545px"></div>
-    <div class="flat pad" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px"></div>
+    ${[[82, 164], [551, 562], [140, 550], [420, 90], [600, 330]].map(([x, y]) => `<div class="flat pit" style="left: ${x}px; top: ${y}px"></div>`).join("")}
+    ${[[47, 351], [610, 140], [351, 638], [250, 470], [470, 300]].map(([x, y]) => `<div class="flat rock" style="left: ${x}px; top: ${y}px"></div>`).join("")}
+    <div class="model padm" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px">${cyl(76, 10, { n: 20, cls: "plinth" })}</div>
+    <div class="flat pad" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px; transform: translate(-50%, -50%) translateZ(11px)"></div>
     <svg class="paths" viewBox="0 0 ${H * 2} ${H * 2}" aria-hidden="true">${paths}</svg>
     <div class="flat flood" style="left: ${H + POS.reinforce_shield[0]}px; top: ${H + POS.reinforce_shield[1]}px"></div><div class="flat flood" style="left: ${H + POS.grow_food[0]}px; top: ${H + POS.grow_food[1]}px"></div>
     ${JOB_ORDER.map((id) => `<div class="flat shadow" style="left: ${H + POS[id][0] + 14}px; top: ${H + POS[id][1] - 14}px"></div>`).join("")}
@@ -120,8 +134,12 @@ export function mount(root, ctx) {
     <div class="shade"></div>
     <div class="bb" style="${bbAt([PAD[0] + 55, PAD[1] - 10])}" aria-hidden="true">${shipFlag()}</div>
     <div class="bb rover" style="--yaw: ${yaw}deg" aria-hidden="true">${rover()}</div>
-    ${JOB_ORDER.map((id, i) => `<button type="button" class="bb station${id === "reinforce_shield" ? " hab" : ""}" id="st-${id}" data-job="${id}" style="${bbAt(POS[id])}; --i: ${i}; --c: ${RES_INFO[JOBS[id].res].color}" aria-label="${esc(JOBS[id].label(mars))}">
-      <span class="lbl"><i>${iconSvg(JOBS[id].res, 18, "#1E2430")}</i>${esc(JOBS[id].short)}</span><span class="art">${SPR[id](mars)}</span>${id === "reinforce_shield" ? `<span class="zzz" id="zzz" hidden></span>` : ""}</button>`).join("")}
+    ${JOB_ORDER.filter((id) => MODEL[id]).map((id, i) => `<div class="model bld" id="md-${id}" data-job="${id}" style="left: ${H + POS[id][0]}px; top: ${H + POS[id][1]}px; --i: ${i}" aria-hidden="true">${MODEL[id]()}</div>`).join("")}
+    <div class="bb domebb" style="${bbAt(POS.reinforce_shield)}" aria-hidden="true"><div class="domewrap">${DOME()}</div></div>
+    ${[[-34, -22], [8, -26], [-20, 18], [30, 14]].map(([dx, dy], i) => `<div class="bb plant" style="${bbAt([POS.grow_food[0] + dx, POS.grow_food[1] + dy])}" aria-hidden="true">${plant(i)}</div>`).join("")}
+    <div class="bb puffbb" style="${bbAt([POS.oxygen_gen[0] + 18, POS.oxygen_gen[1] - 12])}" aria-hidden="true"><svg width="40" height="60" viewBox="0 0 40 60"><g fill="#fff" stroke="#C9CED6" stroke-width="1.5"><circle class="puff" cx="20" cy="50" r="8"/><circle class="puff p2" cx="23" cy="50" r="6"/><circle class="puff p3" cx="17" cy="50" r="7"/></g></svg><div style="height: 102px"></div></div>
+    ${JOB_ORDER.map((id, i) => `<button type="button" class="bb station${id === "reinforce_shield" ? " hab" : ""}${MODEL[id] ? " has3d" : ""}" id="st-${id}" data-job="${id}" style="${bbAt(POS[id])}; --i: ${i}; --c: ${RES_INFO[JOBS[id].res].color}" aria-label="${esc(JOBS[id].label(mars))}">
+      <span class="lbl"><i>${iconSvg(JOBS[id].res, 18, "#1E2430")}</i>${esc(JOBS[id].short)}</span>${MODEL[id] ? `<span class="lift" style="height: ${LIFT[id]}px"></span>` : `<span class="art">${SPR[id](mars)}</span>`}${id === "reinforce_shield" ? `<span class="zzz" id="zzz" hidden></span>` : ""}</button>`).join("")}
     ${CREW.map((c, i) => `<div class="bb walker" id="w-${c.id}" style="${bbAt(HOME[c.id])}; --i: ${i}"><span class="tag" style="border-color: ${c.color}">${c.name}</span>${astro(c.color)}<span class="kick" aria-hidden="true"><i></i><i></i><i></i></span><span class="zz" hidden>zz</span></div>`).join("")}
   </div></div>
 </div>
@@ -154,6 +172,10 @@ export function mount(root, ctx) {
 
   const $ = (id) => root.querySelector("#" + id);
   const g3 = $("g3"), world = $("world"), board = $("board");
+  // let the game bleed into the letterbox so it fills the whole window
+  const stageEl = document.getElementById("stage");
+  if (stageEl) stageEl.classList.add("bleed");
+  root.style.overflow = "visible";
 
   // ---------- turning the base ----------
   function setYaw(v, instant) {
@@ -165,11 +187,21 @@ export function mount(root, ctx) {
   let drag = null;
   world.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button")) return;
-    drag = { x: e.clientX, yaw };
+    const bld = e.target.closest(".bld");
+    drag = { x: e.clientX, yaw, moved: false, job: bld ? bld.dataset.job : null };
     world.setPointerCapture(e.pointerId);
   });
-  world.addEventListener("pointermove", (e) => { if (drag) setYaw(drag.yaw + (e.clientX - drag.x) * 0.35, true); });
-  const endDrag = () => { if (drag) { drag = null; world.classList.remove("dragging"); } };
+  world.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    if (Math.abs(e.clientX - drag.x) > 6) drag.moved = true;
+    if (drag.moved) setYaw(drag.yaw + (e.clientX - drag.x) * 0.35, true);
+  });
+  // tapping a 3D building (without dragging) is the same as tapping its label
+  const endDrag = (e) => {
+    if (!drag) return;
+    const d = drag; drag = null; world.classList.remove("dragging");
+    if (e && e.type === "pointerup" && !d.moved && d.job) { const b = $("st-" + d.job); if (b && !b.disabled) b.click(); }
+  };
   world.addEventListener("pointerup", endDrag);
   world.addEventListener("pointercancel", endDrag);
   $("t-l").addEventListener("click", () => setYaw(yaw - 45));
@@ -346,6 +378,7 @@ ${CREW.map((c) => {
     });
     const hab = $("st-reinforce_shield"), zzz = $("zzz");
     hab.classList.toggle("occupied", inside.size > 0);
+    $("md-reinforce_shield").classList.toggle("occupied", inside.size > 0);
     zzz.hidden = inside.size === 0;
     zzz.textContent = "Zzz ×" + inside.size;
     $("crew").innerHTML = CREW.map((c) => {
@@ -373,7 +406,7 @@ ${CREW.map((c) => {
   // a chip carrying the gain flies from the building into its meter
   async function flyToMeter(res, text, fromEl, perfect) {
     const m = $("m-" + res);
-    const sr = g3.getBoundingClientRect(), scale = sr.width / 1280;
+    const sr = g3.getBoundingClientRect(), scale = sr.width / g3.offsetWidth;
     const a = fromEl.getBoundingClientRect(), b = m.querySelector(".val").getBoundingClientRect();
     const x0 = (a.left + a.width / 2 - sr.left) / scale, y0 = (a.top - sr.top) / scale;
     const x1 = (b.left + b.width / 2 - sr.left) / scale, y1 = (b.top + b.height / 2 - sr.top) / scale;
@@ -405,7 +438,7 @@ ${CREW.map((c) => {
     placeWalker(crewId, DOOR[crewId], "walking");
     await wait(1000); if (!ok()) return;
     placeWalker(crewId, DOOR[crewId], "entering");
-    pulse($("st-reinforce_shield"), "flash");
+    pulse($("md-reinforce_shield"), "flash");
     await wait(420); if (!ok()) return;
     $("w-" + crewId).classList.add("inside");
     inside.add(crewId);
@@ -416,7 +449,7 @@ ${CREW.map((c) => {
   JOB_ORDER.forEach((id) => $("st-" + id).addEventListener("click", () => {
     if (busy) return;
     ctx.sfx("click");
-    pulse($("st-" + id), "bounce");
+    pulse($("md-" + id) || $("st-" + id), "bounce");
     openJob = openJob === id ? null : id;
     preview(null, null);
     draw();
@@ -507,5 +540,5 @@ ${CREW.map((c) => {
   });
 
   draw();
-  return () => { alive = false; document.removeEventListener("keydown", onKey); timers.forEach(clearTimeout); };
+  return () => { alive = false; document.removeEventListener("keydown", onKey); timers.forEach(clearTimeout); if (stageEl) stageEl.classList.remove("bleed"); };
 }
