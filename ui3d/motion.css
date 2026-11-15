@@ -98,7 +98,7 @@ svg *{transform-box:fill-box}
 .dv-tick{transform-origin:center;animation:dv-tick 1.4s var(--dv-ease-io) infinite}
 
 /* ---------- one-shot reactions (re-triggered by swapping a/b class) ---------- */
-@keyframes dv-turn{from{rotate:-90deg}to{rotate:0deg}}
+@keyframes dv-turn{from{transform:rotate(0deg)}to{transform:rotate(45deg)}}
 @keyframes dv-shake{0%,100%{translate:0 0}20%{translate:-7px 0}40%{translate:6px 0}60%{translate:-4px 0}80%{translate:2px 0}}
 @keyframes dv-shake2{0%,100%{translate:0 0}20%{translate:-7px 0}40%{translate:6px 0}60%{translate:-4px 0}80%{translate:2px 0}}
 @keyframes dv-perk{0%{scale:.86;translate:0 4px}60%{scale:1.06}100%{scale:1;translate:0 0}}
@@ -106,7 +106,8 @@ svg *{transform-box:fill-box}
 @keyframes dv-burst2{0%{opacity:1;translate:0 0;scale:1}100%{opacity:0;translate:0 -40px;scale:.6}}
 @keyframes dv-bump{0%{scale:1}40%{scale:1.12}100%{scale:1}}
 @keyframes dv-bump2{0%{scale:1}40%{scale:1.12}100%{scale:1}}
-.dv-turn{transform-origin:center;animation:dv-turn 620ms var(--dv-bouncy) both}
+.dv-turn{transform-box:fill-box;transform-origin:center;transition:transform 360ms var(--dv-bouncy)}
+.dv-turn.open{transform:rotate(45deg)}
 .dv-shake-a{animation:dv-shake 380ms var(--dv-ease-out)}
 .dv-shake-b{animation:dv-shake2 380ms var(--dv-ease-out)}
 .dv-perk{transform-origin:50% 100%;animation:dv-perk 620ms var(--dv-bouncy) backwards}
