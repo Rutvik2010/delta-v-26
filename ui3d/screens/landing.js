@@ -105,7 +105,12 @@ export function mount(root, ctx) {
     later(() => go.focus({ preventScroll: true }), 11000);
     root.querySelector("#la-skip").focus({ preventScroll: true });
   }
-  const onKey = (e) => { if (e.key === "Escape") start(); };
+  const onKey = (e) => {
+    if (e.key === "Escape" || e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      start();
+    }
+  };
   document.addEventListener("keydown", onKey);
   return () => { timers.forEach(clearTimeout); document.removeEventListener("keydown", onKey); if (stageEl) stageEl.classList.remove("bleed"); };
 }

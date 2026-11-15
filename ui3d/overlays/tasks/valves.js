@@ -78,7 +78,7 @@ export function mount(api) {
         return `<span style="width: 50px; height: 58px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; background: ${bg}"><span style="font-size: 12px; font-weight: 800; color: #13211D">${i + 1}</span>${see ? `<svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24"><path d="${S[k]}" fill="#13211D"></path></svg>` : `<span style="font-size: 24px; font-weight: 800; line-height: 26px; color: #13211D">?</span>`}</span>`;
       }).join("");
 
-    const hadFocus = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute("data-v");
+    const hadFocus = document.activeElement && document.activeElement.getAttribute ? document.activeElement.getAttribute("data-v") : null;
     $("#vl-valves").innerHTML = row.map((k, i) => {
       const idx = order.indexOf(k);
       const open = idx < done;

@@ -342,7 +342,10 @@ ${mars ? "" : `<div class="nighttag">Moon night: dark for 14 sols</div>`}
   world.addEventListener("pointermove", (e) => {
     if (!drag) return;
     if (Math.abs(e.clientX - drag.x) > 6) drag.moved = true;
-    if (drag.moved) setYaw(drag.yaw - (e.clientX - drag.x) * 0.35, true);
+    if (drag.moved) {
+      world.classList.add("dragging");
+      setYaw(drag.yaw - (e.clientX - drag.x) * 0.35, true);
+    }
   });
   // tapping a 3D building (without dragging) is the same as tapping its label
   const endDrag = (e) => {
@@ -360,6 +363,8 @@ ${mars ? "" : `<div class="nighttag">Moon night: dark for 14 sols</div>`}
     const k = e.key.toLowerCase();
     if (k === "q") setYaw(yaw + 30);
     else if (k === "e") setYaw(yaw - 30);
+    else if (!e.target.closest("button, [role='button']") && e.key === "ArrowLeft") setYaw(yaw + 30);
+    else if (!e.target.closest("button, [role='button']") && e.key === "ArrowRight") setYaw(yaw - 30);
     else if (e.key === "Escape" && openJob) closeJob();
   };
   document.addEventListener("keydown", onKey);

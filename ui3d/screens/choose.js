@@ -64,4 +64,13 @@ ${card("mars", "dv-rise dv-d4", "background: #F7F8F9; box-shadow: 0 6px 0 #7C859
     ctx.store.site = b.dataset.site;
     ctx.go("briefing");
   }));
+  const onKey = (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      ctx.sfx("click");
+      ctx.go("title");
+    }
+  };
+  document.addEventListener("keydown", onKey);
+  return () => document.removeEventListener("keydown", onKey);
 }
