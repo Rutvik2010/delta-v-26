@@ -342,8 +342,9 @@ ${label.real ? `<p>${esc(label.text)}</p>` : `<div class="practice-banner">Pract
 <p style="font-weight: 800; font-size: 16px">Who goes?</p>
 ${CREW.map((c) => {
       const a = eng.getActions(s, c.id).find((x) => x.id === openJob), m = s.crew[c.id];
+      // same words as main's PR #9: out on a job = Working, done for the day = Resting
       const off = m.job || walking[c.id] || inside.has(c.id);
-      const word = off ? "Busy" : a.skilled && !a.tired ? "Best at this!" : a.tired ? "Tired" : "Ready";
+      const word = walking[c.id] ? "Working" : off ? "Resting" : a.skilled && !a.tired ? "Best at this!" : a.tired ? "Tired" : "Ready";
       const cls = off ? "busy" : a.skilled && !a.tired ? "best" : a.tired ? "tired" : "";
       return `<button type="button" class="key pick" data-crew="${c.id}" ${off ? "disabled" : ""} aria-label="Send ${esc(c.name)}. ${esc(word)}. ${esc(fx(a.gain))}. ${esc(fx(a.cost, true))}.">${helmet(c.color, 48)}<span class="who">${esc(c.name)} <span class="badge ${cls}">${esc(word)}</span></span><span class="nums"><span class="g">${esc(fx(a.gain))}</span> · <span class="c">${esc(fx(a.cost, true))}</span></span></button>`;
     }).join("")}
