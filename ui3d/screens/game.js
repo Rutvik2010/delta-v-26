@@ -277,7 +277,7 @@ ${mars ? "" : `<div class="nighttag">Moon night: dark for 14 sols</div>`}
   world.addEventListener("pointermove", (e) => {
     if (!drag) return;
     if (Math.abs(e.clientX - drag.x) > 6) drag.moved = true;
-    if (drag.moved) setYaw(drag.yaw + (e.clientX - drag.x) * 0.35, true);
+    if (drag.moved) setYaw(drag.yaw - (e.clientX - drag.x) * 0.35, true);
   });
   // tapping a 3D building (without dragging) is the same as tapping its label
   const endDrag = (e) => {
@@ -287,14 +287,14 @@ ${mars ? "" : `<div class="nighttag">Moon night: dark for 14 sols</div>`}
   };
   world.addEventListener("pointerup", endDrag);
   world.addEventListener("pointercancel", endDrag);
-  $("t-l").addEventListener("click", () => setYaw(yaw - 45));
-  $("t-r").addEventListener("click", () => setYaw(yaw + 45));
+  $("t-l").addEventListener("click", () => setYaw(yaw + 45));
+  $("t-r").addEventListener("click", () => setYaw(yaw - 45));
   const closeJob = () => { const id = openJob; openJob = null; preview(null, null); draw(); if (id) $("st-" + id).focus(); };
   const onKey = (e) => {
     if (document.querySelector(".dv-overlay") || e.target.tagName === "INPUT") return;
     const k = e.key.toLowerCase();
-    if (k === "q") setYaw(yaw - 30);
-    else if (k === "e") setYaw(yaw + 30);
+    if (k === "q") setYaw(yaw + 30);
+    else if (k === "e") setYaw(yaw - 30);
     else if (e.key === "Escape" && openJob) closeJob();
   };
   document.addEventListener("keydown", onKey);
