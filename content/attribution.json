@@ -1,67 +1,42 @@
 [
   {
+    "name": "NASA CCMC DONKI Solar Flare Records",
+    "used_for": "Space weather datasets (May 2024 storm sequence and autumn 2026 snapshot)",
+    "url": "https://ccmc.gsfc.nasa.gov/tools/DONKI/"
+  },
+  {
     "name": "NASA Solar System Exploration: Moon",
-    "url": "https://science.nasa.gov/moon/",
-    "live": true
+    "used_for": "Shackleton crater geography and lunar environmental parameters",
+    "url": "https://science.nasa.gov/moon/"
   },
   {
     "name": "NASA Mars Exploration Program",
-    "url": "https://mars.nasa.gov/",
-    "live": true
+    "used_for": "Jezero crater geography and Martian environmental data",
+    "url": "https://mars.nasa.gov/"
   },
   {
     "name": "NASA Artemis Mission Architecture",
-    "url": "https://www.nasa.gov/humans-in-space/artemis/",
-    "live": true
+    "used_for": "Base infrastructure concepts, life support systems, and crew mission planning",
+    "url": "https://www.nasa.gov/humans-in-space/artemis/"
   },
   {
     "name": "NASA Space Radiation Analysis Group (SRAG)",
-    "url": "https://www.nasa.gov/johnson/space-radiation-analysis-group/",
-    "live": true
+    "used_for": "Radiation exposure metrics, shielding calculations, and astronaut safety protocols",
+    "url": "https://www.nasa.gov/johnson/space-radiation-analysis-group/"
   },
   {
     "name": "NASA JPL Deep Space Network (DSN)",
-    "url": "https://www.jpl.nasa.gov/missions/deep-space-network-dsn",
-    "live": true
+    "used_for": "Interplanetary telemetry and deep space communication modeling",
+    "url": "https://www.jpl.nasa.gov/missions/deep-space-network-dsn"
   },
   {
-    "name": "ESA Human and Robotic Exploration Archive",
-    "url": "https://www.esa.int/Science_Exploration/Human_and_Robotic_Exploration",
-    "live": false
+    "name": "Lexend Font",
+    "used_for": "Interface typography (loaded from Google Fonts in index.html, SIL Open Font License)",
+    "url": "https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&display=swap"
   },
   {
-    "name": "NASA CCMC DONKI solar flare records: May 2024 and a 30-day snapshot to 13 Nov 2026",
-    "url": "https://ccmc.gsfc.nasa.gov/tools/DONKI/",
-    "live": true
-  },
-  {
-    "name": "Fredoka font (SIL Open Font License)",
-    "url": "https://github.com/google/fonts/blob/main/ofl/fredoka/OFL.txt",
-    "live": true
-  },
-  {
-    "name": "Nunito font (SIL Open Font License)",
-    "url": "https://github.com/google/fonts/blob/main/ofl/nunito/OFL.txt",
-    "live": true
-  },
-  {
-    "name": "Archivo font (planned; SIL Open Font License)",
-    "url": "https://github.com/google/fonts/blob/main/ofl/archivo/OFL.txt",
-    "live": false
-  },
-  {
-    "name": "IBM Plex Mono font (planned; SIL Open Font License)",
-    "url": "https://github.com/google/fonts/blob/main/ofl/ibmplexmono/OFL.txt",
-    "live": false
-  },
-  {
-    "name": "Mars background assets/bg-mars.png \u2014 source and license unverified",
-    "url": "",
-    "live": false
-  },
-  {
-    "name": "Sound effects \u2014 synthesized in ui/audio.js; no third-party sound files",
-    "url": "",
-    "live": false
+    "name": "Sound Effects",
+    "used_for": "Procedural audio synthesizer generated via Web Audio API in ui/audio.js (no third-party audio files)",
+    "url": ""
   }
 ]

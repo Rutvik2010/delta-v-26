@@ -1,8 +1,13 @@
 // Title screen, ported from Main.dc.html.
+import { esc, speakerSvg } from "../parts.js";
+
 const KEY = "font-family: inherit; cursor: pointer; border: 3px solid #1E2430; border-radius: 16px; color: #1E2430;";
 
 export function mount(root, ctx) {
   root.innerHTML = `<div style="width: 1280px; height: 800px; position: relative; overflow: hidden; background: #0E1424; font-family: Lexend, system-ui, sans-serif; color: #F3F4F6">
+<button type="button" id="t-mute" class="dv-key" style="${KEY} position: absolute; right: 28px; top: 24px; width: 48px; height: 48px; min-width: 44px; min-height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: #EEF0F2; box-shadow: 0 5px 0 #7C8592; z-index: 10;" aria-label="${ctx.muted ? "Unmute sound" : "Mute sound"}" title="${ctx.muted ? "Unmute sound" : "Mute sound"}">
+  ${speakerSvg(ctx.muted, 24, "#1E2430")}
+</button>
 <svg aria-hidden="true" width="1280" height="800" viewBox="0 0 1280 800" style="position: absolute; left: 0; top: 0">
 <g fill="#F3F4F6">
 <circle class="dv-twinkle" cx="40" cy="60" r="1.4" opacity="0.6"></circle><circle class="dv-twinkle-b" cx="120" cy="30" r="1" opacity="0.4"></circle><circle class="dv-twinkle" cx="210" cy="90" r="1.8" opacity="0.7"></circle><circle class="dv-twinkle-b" cx="330" cy="40" r="1.1" opacity="0.5"></circle><circle class="dv-twinkle" cx="460" cy="70" r="1.4" opacity="0.6"></circle><circle class="dv-twinkle-b" cx="610" cy="34" r="2" opacity="0.8"></circle><circle class="dv-twinkle" cx="700" cy="110" r="1" opacity="0.4"></circle><circle class="dv-twinkle-b" cx="820" cy="52" r="1.3" opacity="0.5"></circle><circle class="dv-twinkle" cx="930" cy="96" r="1" opacity="0.4"></circle><circle class="dv-twinkle-b" cx="1010" cy="28" r="1.7" opacity="0.7"></circle><circle class="dv-twinkle" cx="1120" cy="74" r="1.1" opacity="0.5"></circle><circle class="dv-twinkle-b" cx="1230" cy="44" r="1.5" opacity="0.6"></circle><circle class="dv-twinkle" cx="1250" cy="160" r="1" opacity="0.4"></circle><circle class="dv-twinkle-b" cx="30" cy="250" r="1.2" opacity="0.5"></circle><circle class="dv-twinkle" cx="610" cy="200" r="1" opacity="0.3"></circle><circle class="dv-twinkle-b" cx="1200" cy="300" r="1.3" opacity="0.5"></circle><circle class="dv-twinkle" cx="20" cy="470" r="1" opacity="0.4"></circle><circle class="dv-twinkle-b" cx="620" cy="520" r="1.2" opacity="0.4"></circle><circle class="dv-twinkle" cx="1240" cy="470" r="1" opacity="0.4"></circle>
@@ -105,9 +110,10 @@ export function mount(root, ctx) {
 <div style="position: absolute; left: 660px; top: 150px; width: 560px; display: flex; flex-direction: column; gap: 22px">
 <h1 class="dv-rise dv-d2" style="margin: 0; font-weight: 800; font-size: 104px; line-height: 0.95; letter-spacing: -0.03em">Delta-V 26</h1>
 <p class="dv-rise dv-d3" style="margin: 0; font-weight: 500; font-size: 26px; line-height: 1.4; color: #C9D2E3">Lead three astronauts for 30 days on the Moon or Mars. Every choice costs something.</p>
-<div class="dv-rise dv-d4" style="display: flex; gap: 20px; margin-top: 8px">
-<button type="button" id="t-start" class="dv-key" style="${KEY} display: inline-flex; align-items: center; gap: 12px; padding: 20px 36px; background: #F26A1B; box-shadow: 0 7px 0 #8E3A0B; font-weight: 800; font-size: 28px">Start mission</button>
-<button type="button" id="t-how" class="dv-key" style="${KEY} display: inline-flex; align-items: center; padding: 20px 30px; background: #EEF0F2; box-shadow: 0 7px 0 #7C8592; font-weight: 700; font-size: 24px">How to play</button>
+<div class="dv-rise dv-d4" style="display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; align-items: center">
+<button type="button" id="t-start" class="dv-key" style="${KEY} display: inline-flex; align-items: center; gap: 12px; padding: 18px 30px; background: #F26A1B; box-shadow: 0 7px 0 #8E3A0B; font-weight: 800; font-size: 26px">Start mission</button>
+<button type="button" id="t-how" class="dv-key" style="${KEY} display: inline-flex; align-items: center; padding: 18px 24px; background: #EEF0F2; box-shadow: 0 7px 0 #7C8592; font-weight: 700; font-size: 22px">How to play</button>
+<button type="button" id="t-credits" class="dv-key" style="${KEY} display: inline-flex; align-items: center; padding: 18px 24px; background: #EEF0F2; box-shadow: 0 7px 0 #7C8592; font-weight: 700; font-size: 22px">Credits</button>
 </div>
 <div class="dv-rise dv-d5" style="display: flex; align-items: center; gap: 16px; margin-top: 18px">
 <div style="display: flex">
@@ -145,4 +151,82 @@ export function mount(root, ctx) {
       b.focus();
     });
   });
+
+  root.querySelector("#t-credits").addEventListener("click", () => {
+    ctx.sfx("click");
+    ctx.openOverlay(async (layer, close) => {
+      let entriesHtml = "";
+      try {
+        const res = await fetch("./content/attribution.json");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const list = await res.json();
+        entriesHtml = list.map((item) => {
+          const name = esc(item.name || "Resource");
+          const usedFor = esc(item.used_for || item.description || "");
+          const hasValidUrl = typeof item.url === "string" && item.url.trim().length > 0;
+          const linkHtml = hasValidUrl
+            ? `<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" style="color: #1B4F9C; font-size: 16px; word-break: break-all; text-decoration: underline">${esc(item.url)}</a>`
+            : `<span style="color: #555E6D; font-style: italic; font-size: 16px">source and license not verified</span>`;
+          return `<div style="padding: 12px 16px; border-radius: 12px; background: #F7F8F9; border: 2px solid #D5D9E0; display: flex; flex-direction: column; gap: 4px">
+            <div style="font-weight: 800; font-size: 18px; color: #1E2430">${name}</div>
+            <div style="font-size: 16px; color: #323B4B; line-height: 1.4">${usedFor}</div>
+            <div style="margin-top: 2px">${linkHtml}</div>
+          </div>`;
+        }).join("");
+      } catch (err) {
+        entriesHtml = `<p style="margin: 0; font-size: 16px; color: #B3261E">Could not load attribution details offline.</p>`;
+      }
+
+      layer.innerHTML = `<div style="position: absolute; inset: 0; background: rgba(14,20,36,0.75); display: flex; align-items: center; justify-content: center; font-family: Lexend, system-ui, sans-serif; color: #1E2430">
+<div role="dialog" aria-modal="true" aria-labelledby="cr-title" class="dv-dialog" style="position: relative; width: 740px; max-width: 92%; max-height: 700px; box-sizing: border-box; padding: 28px 32px; border-radius: 18px; background: #EEF0F2; border: 3px solid #1E2430; box-shadow: 0 8px 0 #7C8592; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; justify-content: space-between; align-items: center">
+  <h2 id="cr-title" style="margin: 0; font-weight: 800; font-size: 32px; letter-spacing: -0.02em">Credits &amp; Attribution</h2>
+</div>
+
+<div style="overflow-y: auto; padding-right: 8px; display: flex; flex-direction: column; gap: 14px; max-height: 520px">
+  <div style="padding: 12px 16px; border-radius: 12px; background: #FFF1C9; border: 2px dashed #B8862A; font-size: 16px; line-height: 1.45; font-weight: 600; color: #1E2430">
+    Built for NASA Space Apps 2026. Not endorsed by NASA. NASA data is from the DONKI database (<a href="https://ccmc.gsfc.nasa.gov/DONKI" target="_blank" rel="noopener noreferrer" style="color: #1B4F9C; word-break: break-all; text-decoration: underline">ccmc.gsfc.nasa.gov/DONKI</a>).
+  </div>
+
+  <div style="padding: 12px 16px; border-radius: 12px; background: #E4FFEC; border: 2px solid #2E8B57; font-size: 16px; line-height: 1.45; color: #1E2430">
+    <div style="font-weight: 800; margin-bottom: 6px; font-size: 17px">Data files used:</div>
+    <ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 16px">
+      <li><b>May 2024 flares</b> (<code>flares_2024_05.json</code>) — Solar storm sequence recorded by NASA DONKI.</li>
+      <li><b>Last-30-days snapshot</b> fetched 14 Nov 2026 (<code>flares_recent_2026.json</code>) — Recent solar weather snapshot.</li>
+      <li><code>data/space_weather_fallback.json</code> is sample data for offline use only and is not NASA data.</li>
+    </ul>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    ${entriesHtml}
+  </div>
+</div>
+
+<button type="button" id="cr-close" class="dv-key" style="${KEY} align-self: flex-end; padding: 12px 28px; min-height: 48px; background: #F26A1B; box-shadow: 0 6px 0 #8E3A0B; font-weight: 800; font-size: 20px">Close</button>
+</div></div>`;
+
+      const b = layer.querySelector("#cr-close");
+      b.addEventListener("click", () => close());
+      b.focus();
+    });
+  });
+
+  const tMute = root.querySelector("#t-mute");
+  const updateTitleMute = () => {
+    if (!tMute) return;
+    const m = ctx.muted;
+    tMute.setAttribute("aria-label", m ? "Unmute sound" : "Mute sound");
+    tMute.title = m ? "Unmute sound" : "Mute sound";
+    tMute.innerHTML = speakerSvg(m, 24, "#1E2430");
+  };
+  tMute.addEventListener("click", () => {
+    const isMuted = ctx.toggleMute();
+    if (!isMuted) ctx.sfx("click");
+    updateTitleMute();
+  });
+  const unsubTitleMute = ctx.onMuteChange?.(updateTitleMute);
+
+  return () => {
+    unsubTitleMute?.();
+  };
 }
