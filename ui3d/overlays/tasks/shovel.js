@@ -1,9 +1,9 @@
-// Task: a marker sweeps across a meter; dig when it is in the green zone. A miss spills a scoop.
-// The marker speeds up and the zone shrinks with every good scoop.
-let GOAL = 8; // set per game in mount (Easy: 6)
+// Task: a marker sweeps across a meter at constant speed; dig when it is in the green zone.
+// The green zone shrinks with every good scoop.
+let GOAL = 6; // set per game in mount (Easy: 5, Normal: 6)
 
 export function mount(api) {
-  GOAL = api.easy ? 6 : 8;
+  GOAL = api.easy ? 5 : 6;
   let count = 0;
   // Real shield numbers when the engine can tell us; otherwise the line is left out.
   let shieldNow = null, shieldGain = 0;
@@ -66,7 +66,7 @@ export function mount(api) {
     `</div></div>`;
   api.foot.innerHTML =
     `<div style="width: 330px; display: flex; flex-direction: column; justify-content: center; padding: 10px 16px; border-radius: 12px; background: #F7F8F9; border: 3px solid #1E2430">` +
-    `<p style="margin: 0; font-size: 15px; color: #4A5363">Only green scoops count. A miss spills one. Win: <b style="color: #1F7A35">extra shield</b>.</p></div>`;
+    `<p style="margin: 0; font-size: 15px; color: #4A5363">Only green scoops count. Fill the roof to win: <b style="color: #1F7A35">extra shield</b>.</p></div>`;
 
   const $ = (id) => api.body.querySelector("#" + id);
   const cellsEl = $("sh-cells");
@@ -92,8 +92,8 @@ export function mount(api) {
   }
 
   // the sweeping marker
-  let pos = 0, dir = 1, speed = 70; // percent of the track per second
-  let zw = api.easy ? 32 : 26, zx = 40; // green zone width and left edge, in percent
+  let pos = 0, dir = 1, speed = api.easy ? 50 : 60; // percent of the track per second
+  let zw = api.easy ? 32 : 28, zx = 40; // green zone width and left edge, in percent
   const placeZone = () => {
     zx = 4 + Math.random() * (92 - zw);
     const z = $("sh-zone");
@@ -112,21 +112,18 @@ export function mount(api) {
 
   function scoop() {
     if (api.done || count >= GOAL) return;
-    const hit = pos >= zx - 1 && pos <= zx + zw + 1;
+    const hit = pos >= zx - 3.5 && pos <= zx + zw + 3.5;
     if (!hit) {
-      count = Math.max(0, count - 1);
       api.swap($("sh-track"), "dv-shake-a", "dv-shake-b");
       $("sh-sub").textContent = "Spilled! Wait for the green.";
-      api.penalty(0.5);
+      api.penalty(0.3);
       api.sfx("miss");
-      update();
       return;
     }
     count += 1;
     api.sfx("scoop");
     api.good();
-    speed += api.easy ? 8 : 14;
-    zw = Math.max(13, zw - 1.8);
+    zw = Math.max(16, zw - 2);
     placeZone();
     $("sh-sub").textContent = count >= GOAL ? "Roof full!" : "Good scoop!";
     update();
@@ -138,6 +135,17 @@ export function mount(api) {
 
   const dig = $("sh-dig");
   dig.addEventListener("click", scoop);
+  const track = $("sh-track");
+  if (track) {
+    track.style.cursor = "pointer";
+    track.addEventListener("click", scoop);
+    if (track.parentElement) {
+      track.parentElement.style.cursor = "pointer";
+      track.parentElement.addEventListener("click", (e) => {
+        if (e.target !== track && !track.contains(e.target)) scoop();
+      });
+    }
+  }
   api.onKey((e) => {
     // On a focused button, Enter/Space already click it, so only handle them elsewhere.
     if ((e.key === "Enter" || e.key === " ") && !(e.target && e.target.tagName === "BUTTON")) {

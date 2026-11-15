@@ -33,7 +33,7 @@ function baseMeta(id, mars) {
       return { color: "#F79A6B", kicker: "Maya is making oxygen", title: "Remember the valve order", secs: 16,
         fact: mars ? JOBS.oxygen_gen.real(true) : "About 40% of moon dirt's weight is oxygen. It's locked inside the rocks. Heating the dirt can set it free." };
     case "reinforce_shield":
-      return { color: "#F79A6B", kicker: "Maya is piling dirt on the roof", title: "Scoop in the green", secs: 13,
+      return { color: "#F79A6B", kicker: "Maya is piling dirt on the roof", title: "Scoop in the green", secs: 16,
         fact: mars ? JOBS.reinforce_shield.real() : "The Moon has no thick air to block harmful rays from the Sun. NASA has studied covering moon bases with moon dirt to keep crews safe." };
     case "grow_food":
       return { color: "#8ED16C", kicker: "Leo is tending the veggie garden", title: "Keep the garden alive", secs: 15,
@@ -50,7 +50,7 @@ function baseMeta(id, mars) {
 const PRACTICE = {
   rest: { how: "The Sun moves across the sky. Tap the tilt buttons (or slide) to point the gold panel at the Sun until the bar passes the dashed line.", hand: "#sl-right", goal: 1, done: "That's it! In the real round, keep the panel on the Sun until the battery is full." },
   oxygen_gen: { how: "Look at the order at the top, then open the valves in that order. In the real round the order hides after a few seconds, so remember it!", hand: "#vl-seq", goal: 2, more: "Good! Now the next one.", done: "Great memory! In the real round a wrong valve shuts them all." },
-  reinforce_shield: { how: "Watch the black arrow slide. Tap Dig when it is inside the green zone. Try two good scoops!", hand: "#sh-dig", goal: 2, more: "Nice scoop! One more.", done: "Perfect timing! In the real round the arrow gets faster." },
+  reinforce_shield: { how: "Watch the black arrow slide. Tap Dig when it is inside the green zone. Try two good scoops!", hand: "#sh-dig", goal: 2, more: "Nice scoop! One more.", done: "Perfect timing! In the real round the green zone gets smaller." },
   grow_food: { how: "Plants with an orange border are thirsty. Tap them to water. Don't water happy plants!", hand: "[data-p][aria-label*='thirsty']", goal: 2, more: "Good! Find another thirsty one.", done: "Nice gardening! In the real round, don't let any plant wilt.", retry: "That plant wilted. Let's try again!" },
   science: { how: "Watch the rocks closely. One of them glints blue for a moment. Tap that one!", hand: "#fd-rocks", goal: 1, done: "Sharp eyes! In the real round you need to find it three times." },
 };
