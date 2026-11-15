@@ -89,7 +89,6 @@ delta-v-26/
 │   ├── parts.js     # Color palette, icons, crew and site constants
 │   ├── overlays/    # Overlays: missions, upgrades, events, mini games (tasks/), training tour (coach.js)
 │   └── screens/     # Screens: title, choose, briefing, landing (rocket intro), game, win, lose
-├── ui/              # Legacy 2D frontend interface
 └── index.html       # Entry point loading ./ui3d/main.js
 ```
 

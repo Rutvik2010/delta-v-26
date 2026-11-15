@@ -21,7 +21,7 @@
   },
   {
     "name": "Sound effects",
-    "used_for": "Synthesized with Web Audio API in ui/audio.js; no third-party sound files",
+    "used_for": "Synthesized with Web Audio API in ui3d/audio.js; no third-party sound files",
     "url": ""
   },
   {

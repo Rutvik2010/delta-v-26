@@ -1,7 +1,7 @@
 // Shared context for every screen and overlay. Screens never import each other; they use ctx.
 import * as engine from "../engine/index.js";
 import { loadRealWeather } from "../engine/donki.js";
-import { playSfx } from "../ui/audio.js";
+import { playSfx } from "./audio.js";
 import { esc } from "./parts.js";
 
 function getInitialMuted() {
