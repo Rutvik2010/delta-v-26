@@ -8,7 +8,7 @@ export function mount(api) {
   let vel = (Math.random() < 0.5 ? -1 : 1) * 14; // degrees per second
   let a = Math.round(Math.max(10, Math.min(170, sun < 90 ? sun + 50 : sun - 50)));
   let charge = 0; // battery 0..100: fills while the panel is lined up
-  const sunXY = () => [Math.round(406 - 330 * Math.cos(rad(sun))), Math.round(420 - 330 * Math.sin(rad(sun)))];
+  const sunXY = () => [Math.round(406 - 300 * Math.cos(rad(sun))), Math.round(420 - 300 * Math.sin(rad(sun)))];
   let [sx, sy] = sunXY();
 
   api.body.innerHTML =
@@ -16,7 +16,7 @@ export function mount(api) {
     `<div style="position: relative; flex-grow: 1; border-radius: 24px; border: 6px solid #1E2430; background: #0B1020; overflow: hidden">` +
     `<svg aria-hidden="true" width="100%" height="100%" viewBox="0 0 812 548" preserveAspectRatio="xMidYMax slice" style="position: absolute; left: 0; top: 0">` +
     `<g fill="#F3F4F6"><circle class="dv-twinkle" cx="40" cy="30" r="1.4" opacity="0.7"></circle><circle class="dv-twinkle-b" cx="140" cy="90" r="1" opacity="0.5"></circle><circle class="dv-twinkle" cx="250" cy="40" r="1.5" opacity="0.7"></circle><circle class="dv-twinkle-b" cx="400" cy="20" r="1" opacity="0.5"></circle><circle class="dv-twinkle" cx="560" cy="60" r="1.3" opacity="0.6"></circle><circle class="dv-twinkle-b" cx="700" cy="30" r="1.6" opacity="0.7"></circle><circle class="dv-twinkle" cx="770" cy="140" r="1" opacity="0.5"></circle><circle class="dv-twinkle-b" cx="60" cy="200" r="1.1" opacity="0.5"></circle></g>` +
-    `<path d="M76 420 A330 330 0 0 1 736 420" fill="none" stroke="#3A4258" stroke-width="3" stroke-dasharray="3 10" stroke-linecap="round"></path>` +
+    `<path d="M106 420 A300 300 0 0 1 706 420" fill="none" stroke="#3A4258" stroke-width="3" stroke-dasharray="3 10" stroke-linecap="round"></path>` +
     `<g stroke="#5A6478" stroke-width="3" stroke-linecap="round"><path d="M100 330 l12 6"></path><path d="M180 200 l10 9"></path><path d="M300 118 l6 11"></path><path d="M406 88 v12"></path><path d="M512 118 l-6 11"></path><path d="M632 200 l-10 9"></path><path d="M712 330 l-12 6"></path></g>` +
     `<g class="dv-bob" transform="translate(700 404)"><circle r="20" fill="#3D7BD9" stroke="#1E2430" stroke-width="3"></circle><path d="M-12 -6 c6-8 14-4 12 4s-10 6-12 0z" fill="#5CBF5A"></path><path d="M2 -20 A20 20 0 0 1 2 20 A14 20 0 0 0 2 -20Z" fill="#0B1020" opacity="0.45"></path></g>` +
     `<polygon id="sl-beam" points="" fill="#F5C518" opacity="0.2"></polygon>` +
@@ -26,21 +26,21 @@ export function mount(api) {
     `<g><ellipse cx="120" cy="506" rx="44" ry="8" fill="#9CA1B0"></ellipse><path d="M76 506 a44 8 0 0 1 88 0" fill="none" stroke="#E6E8EE" stroke-width="2"></path></g>` +
     `<g><ellipse cx="690" cy="520" rx="30" ry="6" fill="#9CA1B0"></ellipse></g>` +
     `<g fill="none" stroke="#9CA1B0" stroke-width="3" stroke-linecap="round"><path d="M250 520 l6 -8 M270 512 l6 -8 M282 528 l6 -8 M300 518 l6 -8"></path></g>` +
-    `<rect x="378" y="420" width="16" height="70" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"></rect>` +
-    `<g stroke="#1E2430" stroke-width="2"><path d="M378 436h16M378 452h16M378 468h16"></path></g>` +
+    `<rect x="378" y="320" width="16" height="170" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"></rect>` +
+    `<g stroke="#1E2430" stroke-width="2"><path d="M378 344h16M378 368h16M378 392h16M378 416h16M378 440h16M378 464h16"></path></g>` +
     `<path d="M356 492 h60 l-8 -10 h-44z" fill="#7C8592" stroke="#1E2430" stroke-width="4" stroke-linejoin="round"></path>` +
-    `<g id="sl-panel" class="dv-rot" transform="translate(386 420) rotate(0)">` +
+    `<g id="sl-panel" transform="translate(386 320) rotate(0)" style="transform-box: view-box; transform-origin: 0 0">` +
     `<rect x="-110" y="-14" width="220" height="22" rx="3" fill="#D9A43A" stroke="#1E2430" stroke-width="5"></rect>` +
     `<g stroke="#1E2430" stroke-width="2"><path d="M-82 -14v22M-55 -14v22M-27 -14v22M0 -14v22M27 -14v22M55 -14v22M82 -14v22M-110 -3h220"></path></g>` +
     `<path d="M-108 -12 h40" stroke="#F9DC6A" stroke-width="3" stroke-linecap="round"></path>` +
     `<rect x="-8" y="8" width="16" height="10" fill="#9AA3AF" stroke="#1E2430" stroke-width="3"></rect></g>` +
-    `<circle cx="386" cy="420" r="10" fill="#F26A1B" stroke="#1E2430" stroke-width="4"></circle>` +
+    `<circle cx="386" cy="320" r="10" fill="#F26A1B" stroke="#1E2430" stroke-width="4"></circle>` +
     `<path d="M394 488 C440 500 480 500 520 488" fill="none" stroke="#1E2430" stroke-width="4"></path>` +
     `<rect x="520" y="440" width="76" height="56" rx="6" fill="#F7F8F9" stroke="#1E2430" stroke-width="5"></rect>` +
     `<rect x="530" y="450" width="56" height="12" rx="2" fill="#13211D"></rect>` +
     `<g><rect id="sl-b1" x="532" y="468" width="10" height="20" rx="2" fill="#2B3833" stroke="#1E2430" stroke-width="2"></rect><rect id="sl-b2" x="546" y="468" width="10" height="20" rx="2" fill="#2B3833" stroke="#1E2430" stroke-width="2"></rect><rect id="sl-b3" x="560" y="468" width="10" height="20" rx="2" fill="#2B3833" stroke="#1E2430" stroke-width="2"></rect><rect id="sl-b4" x="574" y="468" width="10" height="20" rx="2" fill="#2B3833" stroke="#1E2430" stroke-width="2"></rect></g>` +
     `<text x="558" y="460" text-anchor="middle" font-family="Lexend" font-weight="700" font-size="9" fill="#A8F5C2">BATTERY</text>` +
-    `<g transform="translate(250 490)"><rect x="18" y="-48" width="30" height="28" rx="4" fill="#DDE1E6" stroke="#1E2430" stroke-width="3"></rect><path d="M33 -48 v-12" stroke="#1E2430" stroke-width="4" stroke-linecap="round"></path><circle class="dv-blink" cx="33" cy="-62" r="5" fill="#F26A1B" stroke="#1E2430" stroke-width="2"></circle><path d="M33 -20 v20" stroke="#1E2430" stroke-width="4"></path><circle cx="0" cy="-86" r="14" fill="#B99AF5" stroke="#1E2430" stroke-width="3"></circle><rect x="-10" y="-90" width="20" height="10" rx="5" fill="#1E2430"></rect><rect x="-14" y="-71" width="28" height="40" rx="8" fill="#B99AF5" stroke="#1E2430" stroke-width="3"></rect><path d="M12 -60 l18 -2" stroke="#1E2430" stroke-width="5" stroke-linecap="round"></path><rect x="-12" y="-33" width="10" height="33" rx="4" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"></rect><rect x="2" y="-33" width="10" height="33" rx="4" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"></rect></g>` +
+    `<g transform="translate(250 490)"><rect x="18" y="-48" width="30" height="28" rx="4" fill="#DDE1E6" stroke="#1E2430" stroke-width="3"></rect><path d="M33 -48 v-12" stroke="#1E2430" stroke-width="4" stroke-linecap="round"></path><circle class="dv-blink" cx="33" cy="-62" r="5" fill="#F26A1B" stroke="#1E2430" stroke-width="2"></circle><path d="M33 -20 v20" stroke="#1E2430" stroke-width="4"></path><circle cx="0" cy="-86" r="14" fill="${api.color || "#B99AF5"}" stroke="#1E2430" stroke-width="3"></circle><rect x="-10" y="-90" width="20" height="10" rx="5" fill="#1E2430"></rect><rect x="-14" y="-71" width="28" height="40" rx="8" fill="${api.color || "#B99AF5"}" stroke="#1E2430" stroke-width="3"></rect><path d="M12 -60 l18 -2" stroke="#1E2430" stroke-width="5" stroke-linecap="round"></path><rect x="-12" y="-33" width="10" height="33" rx="4" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"></rect><rect x="2" y="-33" width="10" height="33" rx="4" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"></rect></g>` +
     `</svg>` +
     `<p style="position: absolute; left: 18px; top: 16px; margin: 0; padding: 8px 12px; border-radius: 10px; background: rgba(11,16,32,0.85); color: #C9D2E3; font-size: 15px; line-height: 1.4; max-width: 300px">The Sun keeps moving! Keep the gold panel pointed at it to fill the battery.</p>` +
     `</div>` +
@@ -71,9 +71,9 @@ export function mount(api) {
     const pct = calc();
     const rot = a - 90, half = 110;
     const ex = Math.cos(rad(rot)) * half, ey = Math.sin(rad(rot)) * half;
-    $("sl-beam").setAttribute("points", [sx, sy, 386 - ex, 420 - ey, 386 + ex, 420 + ey].map((n) => Math.round(n)).join(" "));
+    $("sl-beam").setAttribute("points", [sx, sy, 386 - ex, 320 - ey, 386 + ex, 320 + ey].map((n) => Math.round(n)).join(" "));
     $("sl-beam").setAttribute("opacity", (0.08 + (pct / 100) * 0.3).toFixed(2));
-    $("sl-panel").setAttribute("transform", "translate(386 420) rotate(" + rot + ")");
+    $("sl-panel").setAttribute("transform", "translate(386 320) rotate(" + rot + ")");
     const cells = Math.ceil(charge / 25);
     for (let i = 1; i <= 4; i++) $("sl-b" + i).setAttribute("fill", i <= cells ? "#5CBF5A" : "#2B3833");
     $("sl-chg").textContent = Math.floor(charge) + "%";

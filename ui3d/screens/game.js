@@ -486,9 +486,11 @@ ${CREW.map((c) => {
 
   // a chip carrying the gain flies from the building into its meter
   async function flyToMeter(res, text, fromEl, perfect) {
-    const m = $("m-" + res);
+    // science has no meter: its gains fly to the science counter at the top instead
+    const m = res === "science" ? $("b-sci") : $("m-" + res);
+    if (!m || !fromEl) return;
     const sr = g3.getBoundingClientRect(), scale = sr.width / g3.offsetWidth;
-    const a = fromEl.getBoundingClientRect(), b = m.querySelector(".val").getBoundingClientRect();
+    const a = fromEl.getBoundingClientRect(), b = (m.querySelector(".val") || m).getBoundingClientRect();
     const x0 = (a.left + a.width / 2 - sr.left) / scale, y0 = (a.top - sr.top) / scale;
     const x1 = (b.left + b.width / 2 - sr.left) / scale, y1 = (b.top + b.height / 2 - sr.top) / scale;
     const f = document.createElement("div");

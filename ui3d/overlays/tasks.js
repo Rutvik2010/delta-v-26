@@ -194,7 +194,7 @@ export function runTask(ctx, actionId, crewId) {
         let goods = 0;
         const me = {
           dead: false,
-          ctx, mars, secs: m.secs, easy, early, practice,
+          ctx, mars, secs: m.secs, easy, early, practice, crew: crewId, color: m.color,
           body, foot, hx, root,
           get done() { return done || me.dead; },
           win: () => { if (me.dead) return; if (practice) practiceDone(); else finish(true); },

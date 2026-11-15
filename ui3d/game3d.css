@@ -427,7 +427,9 @@
   #stage.bleed > .dv-overlay > [data-root] { zoom: 1.12; left: -77px !important; height: 714px !important; }
   /* the fact strip goes; the hint box moves up into the empty middle of the header */
   #stage.bleed > .dv-overlay > [data-root] .tk-fact { display: none !important; }
-  #stage.bleed > .dv-overlay > [data-root] .tk-row { position: absolute; top: 12px; left: 560px; width: 330px; z-index: 2; }
+  #stage.bleed > .dv-overlay > [data-root] .tk-row { position: absolute; top: 12px; left: 590px; width: 270px; z-index: 2; } /* between the title and the round dots / ? / timer */
+  #stage.bleed > .dv-overlay > [data-root] h1 { font-size: 32px !important; }
+  #stage.bleed > .dv-overlay > [data-root] [data-hx] > span:first-child { display: none; } /* "Round" word; the dots stay */
   #stage.bleed > .dv-overlay > [data-root] .tk-row > div { width: 100% !important; box-sizing: border-box; padding: 6px 12px !important; }
 }
 #g3 .endsol { white-space: nowrap; }
