@@ -64,7 +64,7 @@ export function mount(api) {
   const $ = (id) => api.body.querySelector("#" + id);
   const slider = $("angle");
   const hintEl = api.foot.querySelector("#sl-hint");
-  let lastHint = "", lastPct = -1;
+  let lastHint = "", lastPct = -1, lastCell = 0;
 
   const calc = () => Math.max(0, Math.round(100 - Math.abs(a - sun) * 2.6));
   const update = () => {
@@ -75,6 +75,12 @@ export function mount(api) {
     $("sl-beam").setAttribute("opacity", (0.08 + (pct / 100) * 0.3).toFixed(2));
     $("sl-panel").setAttribute("transform", "translate(386 320) rotate(" + rot + ")");
     const cells = Math.ceil(charge / 25);
+    if (cells > lastCell && cells > 0) {
+      api.sfx("chime");
+      lastCell = cells;
+    } else if (cells < lastCell) {
+      lastCell = cells;
+    }
     for (let i = 1; i <= 4; i++) $("sl-b" + i).setAttribute("fill", i <= cells ? "#5CBF5A" : "#2B3833");
     $("sl-chg").textContent = Math.floor(charge) + "%";
     $("sl-chgbar").style.transform = "scaleX(" + (charge / 100).toFixed(3) + ")";

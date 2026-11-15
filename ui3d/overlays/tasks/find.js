@@ -104,6 +104,7 @@ export function mount(api) {
     api.sfx("click");
     const btn = rocksEl ? rocksEl.querySelector('[data-r="' + i + '"]') : null;
     if (i === iceAt[round - 1]) {
+      api.sfx("chime");
       api.good();
       round += 1;
       miss = false;

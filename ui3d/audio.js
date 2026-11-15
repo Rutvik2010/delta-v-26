@@ -151,6 +151,33 @@ export function playSfx(name) {
       [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => setTimeout(() => playTone(f, 0.16, "triangle", { gain: 0.09 }), i * 90));
       break;
 
+    case "turn":
+      // Crisp mechanical stepper / ratchet click
+      playTone(1200, 0.035, "triangle", { sweep: [1400, 400], gain: 0.04 });
+      break;
+
+    case "whoosh":
+      // Subtle smooth UI pan / card reveal whoosh
+      playNoise(0.22, 500, { gain: 0.05 });
+      break;
+
+    case "thud":
+      // Low weight impact for landing / dropped soil
+      playTone(95, 0.15, "sine", { sweep: [130, 45], gain: 0.09 });
+      playNoise(0.08, 380, { gain: 0.04 });
+      break;
+
+    case "chime":
+      // Pristine crystal sparkle ping
+      playTone(1318.5, 0.2, "sine", { gain: 0.06 });
+      setTimeout(() => playTone(1760, 0.25, "sine", { gain: 0.05 }), 50);
+      break;
+
+    case "powerup":
+      // Warm sci-fi riser for sol victory / streak bonuses
+      playTone(330, 0.32, "triangle", { sweep: [220, 880], gain: 0.08 });
+      break;
+
     default:
       console.log(`[SFX] ${name}`);
       break;
