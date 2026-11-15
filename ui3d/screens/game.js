@@ -106,7 +106,22 @@ const slabSvg = (i) => { const [sc, z] = LAYERS[i]; return `<svg class="slab${i 
 // costs frame time, because the whole scene is recomposited whenever anything on screen moves.
 // Coordinates are slab pixels (0..680); craters fake a raised rim with a lit edge and a shadowed edge.
 const CRATERS = [[POS.science[0] + H, POS.science[1] + H, 76], [150, 140, 26], [520, 530, 30], [150, 560, 20], [420, 84, 22], [610, 270, 18], [250, 610, 14], [560, 470, 12]];
-const BOULDERS = [[47, 351, 12], [470, 610, 11], [230, 430, 8], [590, 230, 10], [330, 500, 6]];
+const BOULDERS = [[330, 500, 6]];
+// ---- 3D ground features (real CSS 3D, kept low-poly so the frame rate holds) ----
+// positions are from the centre of the base; chosen to stay clear of buildings, paths and the rover loop
+const HILLS3D = [[-190, 50, 40], [-130, 220, 46]];
+const RIMS3D = [[POS.science[0], POS.science[1], 81, 9, 12], [180, 190, 35, 6, 10], [-190, -200, 31, 6, 10]];
+const ROCKS3D = [[-293, 11, 16, 20], [130, 270, 15, 64], [-110, 90, 12, 35], [250, -110, 14, 80]];
+function terrain3d() {
+  const at = (x, y, inner, rot = 0) => `<div class="model terrain" style="left: ${H + x}px; top: ${H + y}px${rot ? `; rotate: z ${rot}deg` : ""}">${inner}</div>`;
+  // hills: three low, wide steps, so they read as gentle mounds
+  const hill = (r) => [[1, 0, ""], [0.66, 6, " t2"], [0.34, 12, " t3"]].map(([k, z, c], i) => cyl(Math.round(r * k), 6, { z, x: i * 2, y: i, n: 8, cls: "hill" + c, t: i === 2 ? `<b class="hilltop"></b>` : "" })).join("");
+  // rocks: a squat, wide base with a smaller cap set off to one side
+  const rock = (r) => cyl(r, Math.round(r * 0.5), { n: 5, cls: "rockc" }) + cyl(Math.round(r * 0.66), Math.round(r * 0.42), { z: Math.round(r * 0.5), x: -3, y: 2, n: 4, cls: "rockc", t: `<b class="rocktop"></b>` });
+  return HILLS3D.map(([x, y, r]) => at(x, y, hill(r))).join("")
+    + RIMS3D.map(([x, y, r, h, n]) => at(x, y, cyl(r, h, { n, cls: "rimwall" }))).join("")
+    + ROCKS3D.map(([x, y, r, rot]) => at(x, y, rock(r), rot)).join("");
+}
 function decals() {
   const v = (n) => `style="fill: var(${n})"`;
   const defs = `<defs><radialGradient id="dc-pit" cx="44%" cy="42%" r="60%"><stop offset="0" style="stop-color: var(--pit2)"/><stop offset="1" style="stop-color: var(--pit1)"/></radialGradient>
@@ -119,7 +134,9 @@ function decals() {
     + `<ellipse cx="${x + r + 8}" cy="${y + 4}" rx="${Math.max(3.5, r / 2)}" ry="${Math.max(2.5, r * 0.35)}" fill="url(#dc-rock)" stroke="#1E2430" stroke-width="2"/>`;
   const shadow = (id) => `<ellipse cx="${H + POS[id][0] + 14}" cy="${H + POS[id][1] - 14}" rx="65" ry="35" fill="url(#dc-shadow)"/>`;
   // clipped to the round ground outline, so nothing can hang over the edge into space
-  return defs.replace("</defs>", `<clipPath id="dc-clip"><path d="${TOP_D}"/></clipPath></defs>`) + `<g clip-path="url(#dc-clip)">` + CRATERS.map(crat).join("") + BOULDERS.map(rock).join("") + JOB_ORDER.map(shadow).join("")
+  const shadow3d = HILLS3D.map(([x, y, r]) => `<ellipse cx="${H + x + 10}" cy="${H + y + 8}" rx="${r + 8}" ry="${r * 0.8}" fill="url(#dc-shadow)"/>`).join("")
+    + ROCKS3D.map(([x, y, r]) => `<ellipse cx="${H + x + 6}" cy="${H + y + 6}" rx="${r + 6}" ry="${r}" fill="#050814" opacity=".22"/>`).join("");
+  return defs.replace("</defs>", `<clipPath id="dc-clip"><path d="${TOP_D}"/></clipPath></defs>`) + `<g clip-path="url(#dc-clip)">` + shadow3d + CRATERS.map(crat).join("") + BOULDERS.map(rock).join("") + JOB_ORDER.map(shadow).join("")
     + `<rect x="${H + ROVER[0] - 10}" y="${H + ROVER[1] - 110}" width="120" height="120" rx="14" fill="none" stroke="rgba(30,36,48,.16)" stroke-width="6" stroke-dasharray="1 10" stroke-linecap="round"/></g>`;
 }
 
@@ -200,6 +217,7 @@ export function mount(root, ctx) {
     <div class="model padm" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px">${cyl(76, 10, { n: 12, cls: "plinth" })}</div>
     <div class="flat pad" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px; transform: translate(-50%, -50%) translateZ(11px)"></div>
     <svg class="paths" viewBox="0 0 ${H * 2} ${H * 2}" aria-hidden="true">${decals()}${paths}</svg>
+    ${terrain3d()}
     <div class="flat flood" style="left: ${H + POS.reinforce_shield[0]}px; top: ${H + POS.reinforce_shield[1]}px"></div><div class="flat flood" style="left: ${H + POS.grow_food[0]}px; top: ${H + POS.grow_food[1]}px"></div>
     ${JOB_ORDER.map((id) => `<div class="flat ring" id="ring-${id}" style="left: ${H + POS[id][0]}px; top: ${H + POS[id][1]}px"></div>`).join("")}
     <div class="shade" style="clip-path: path('${TOP_D}')"></div>

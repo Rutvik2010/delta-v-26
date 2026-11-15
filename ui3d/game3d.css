@@ -520,3 +520,16 @@
 .tk-help { width: 64px; height: 64px; border-radius: 14px; background: #F7F8F9; border: 3px solid #1E2430; box-shadow: 0 5px 0 #7C8592; font-family: inherit; font-weight: 800; font-size: 30px; color: #1E2430; cursor: pointer; flex: 0 0 auto; }
 .tk-help:active { translate: 0 3px; box-shadow: none; }
 @media (prefers-reduced-motion: reduce) { .tk-hand svg, .tk-count.tick, .tk-coach { animation: none; } .tk-hand { transition: opacity 200ms ease; } }
+
+/* ---------- 3D ground features (game.js terrain3d) ---------- */
+#g3 .hill { --fc: var(--ground2); }
+#g3 .hill.t2 { --fc: color-mix(in oklab, var(--ground2) 50%, var(--ground)); }
+#g3 .hill.t3 { --fc: var(--ground); }
+#g3 .hill .f.s { border-width: 2px 0 !important; } /* soft outlines so the steps blend into a mound */
+#g3 .hilltop { inset: 0; border-radius: 50%; background: radial-gradient(circle at 38% 34%, rgba(255, 255, 255, .45), transparent 65%); }
+#g3 .rimwall { --fc: var(--rim); }
+#g3 .rimwall .f { backface-visibility: visible !important; } /* a rim is a thin wall: show both sides */
+#g3 .rimwall .f.t { display: none; }
+#g3 .rockc { --fc: var(--rock); }
+#g3 .rockc .f.t { --fc: var(--rock2); }
+#g3 .rocktop { inset: 18%; border-radius: 40%; background: rgba(255, 255, 255, .22); }
