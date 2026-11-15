@@ -1,7 +1,7 @@
 // Main game screen: a big isometric base floating in space that you can turn.
 // Buildings are real CSS 3D models (boxes and cylinders) on a tilted square slab; crew, flags and
 // the round dome are upright billboards (see ui3d/game3d.css).
-import { RES, RES_INFO, CREW, JOBS, JOB_ORDER, WARN, WEATHER_LABEL, esc, helmet, iconSvg, dateText } from "../parts.js";
+import { RES, RES_INFO, CREW, JOBS, JOB_ORDER, WARN, WEATHER_LABEL, esc, helmet, iconSvg, dateText, speakerSvg } from "../parts.js";
 
 const MINUS = "−";
 const sign = (n) => (n >= 0 ? "+" : MINUS) + Math.abs(n);
@@ -225,6 +225,7 @@ export function mount(root, ctx) {
   <button type="button" class="key tbtn sci" id="b-sci" aria-label="Science points">${iconSvg("science", 20, "#1E2430")}<span id="sci"></span></button>
   <button type="button" class="key tbtn" id="b-tasks"></button>
   <button type="button" class="key tbtn" id="b-up">Upgrades</button>
+  <button type="button" class="key tbtn" id="b-mute" aria-label="${ctx.muted ? "Unmute sound" : "Mute sound"}" title="${ctx.muted ? "Unmute sound" : "Mute sound"}" style="min-width: 48px; width: 48px; height: 52px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">${speakerSvg(ctx.muted, 22, "#1E2430")}</button>
 </header>
 <div class="meters" id="meters">${RES.map((k) => `<div class="meter" id="m-${k}" role="img" style="--c: ${RES_INFO[k].color}">
   <span class="ic">${iconSvg(k, 22, "#1E2430")}</span>
@@ -541,6 +542,21 @@ ${CREW.map((c) => {
   $("b-up").addEventListener("click", async () => { ctx.sfx("click"); await (await import("../overlays/upgrades.js")).showUpgrades(ctx); if (alive) draw(); });
   $("b-sci").addEventListener("click", async () => { ctx.sfx("click"); await (await import("../overlays/upgrades.js")).showUpgrades(ctx); if (alive) draw(); });
 
+  const bMute = $("b-mute");
+  const updateMuteBtn = () => {
+    if (!bMute) return;
+    const m = ctx.muted;
+    bMute.setAttribute("aria-label", m ? "Unmute sound" : "Mute sound");
+    bMute.title = m ? "Unmute sound" : "Mute sound";
+    bMute.innerHTML = speakerSvg(m, 22, "#1E2430");
+  };
+  bMute.addEventListener("click", () => {
+    const isMuted = ctx.toggleMute();
+    if (!isMuted) ctx.sfx("click");
+    updateMuteBtn();
+  });
+  const unsubMute = ctx.onMuteChange?.(updateMuteBtn);
+
   async function send(id, crewId) {
     const s0 = S();
     if (busy || s0.status !== "playing" || s0.actionsLeft <= 0 || s0.crew[crewId].job || walking[crewId] || inside.has(crewId)) return;
@@ -628,5 +644,5 @@ ${CREW.map((c) => {
       if (alive) stopTour = startTour(ctx, g3, { state: S, yaw: () => yaw, cardOpen: () => openJob, busy: () => busy });
     }, reduced ? 300 : 2600);
   });
-  return () => { if (stopTour) stopTour(); alive = false; document.removeEventListener("keydown", onKey); timers.forEach(clearTimeout); if (stageEl) stageEl.classList.remove("bleed"); window.removeEventListener("resize", placeSun); };
+  return () => { if (stopTour) stopTour(); alive = false; unsubMute?.(); document.removeEventListener("keydown", onKey); timers.forEach(clearTimeout); if (stageEl) stageEl.classList.remove("bleed"); window.removeEventListener("resize", placeSun); };
 }

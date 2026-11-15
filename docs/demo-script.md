@@ -1,12 +1,12 @@
-# Demo video script (about 55 seconds)
+# Demo Video Script (50 seconds)
 
 | Time | On screen | Spoken words |
-| --- | --- | --- |
-| 0:00–0:07 | Title and Start screen | “Welcome to Delta-V 26, a Junior Astronaut Mission Trainer built for NASA Space Apps 2026.” |
-| 0:07–0:15 | Choose Moon or Mars | “Choose a destination. Each world has different hazards, so your plan matters.” |
-| 0:15–0:25 | Show four resource meters and actions | “Keep oxygen, power, food, and shielding above zero. Every action helps one system and may use another.” |
-| 0:25–0:34 | Show weather label and source, if present | “We read recent solar flares from NASA's DONKI database. If the feed is unavailable, the game labels its sample weather.” |
-| 0:34–0:46 | Take actions, advance a sol, show event | “Here, a flare or equipment problem changes the plan. We pick the next repair and learn a real space science fact.” |
-| 0:46–0:55 | End screen and lesson | “Finish the mission, or learn why it failed. Then try a new strategy.” |
-
-Recording note: show the weather source only if that UI is available in the final build; do not present an offline sample as live NASA data.
+| :--- | :--- | :--- |
+| **0:00–0:05** | Title screen with Delta-V 26 mission patch, Start button, Credits, and sound toggle. | "Welcome to Delta-V 26, a Junior Astronaut Mission Trainer." |
+| **0:05–0:10** | Base selection screen showing Moon (Shackleton Crater) and Mars (Jezero Crater). | "Choose to build on the Moon at Shackleton Crater or on Mars at Jezero Crater." |
+| **0:10–0:17** | Briefing screen introducing Maya, Leo, and Zuri, with "Last 30 days" data mode selected. | "Meet your crew. Here we pick the last 30 days of real solar flare records from NASA's DONKI database." |
+| **0:17–0:24** | 3D base screen showing the three astronauts, top HUD, resource bars, and the Sun forecast. | "On the base, three astronauts stand ready. Keep Power, Oxygen, Shield and Food above zero." |
+| **0:24–0:32** | Station job assignment card, astronaut walking to station, and bonus mini-game overlay. | "Assign an astronaut to a station and play the bonus mini-game to earn extra supplies." |
+| **0:32–0:40** | Sun forecast panel and a solar flare event popup showing a true NASA fact. | "The Sun forecast warns of active flares, and mission events teach real space science facts." |
+| **0:40–0:45** | Pressing "End sol" button, night transition banner, and the crew returning to their spots. | "Advance the sol to face the next day's challenge and manage crew stamina." |
+| **0:45–0:52** | Mission end screen displaying survival stats, final telemetry, and a lesson from mission control. | "At the end screen, review telemetry and read a real mission lesson. Built for NASA Space Apps 2026 by team Delta V." |
