@@ -1,42 +1,27 @@
 [
   {
-    "name": "NASA CCMC DONKI Solar Flare Records",
-    "used_for": "Space weather datasets (May 2024 storm sequence and autumn 2026 snapshot)",
+    "name": "NASA CCMC DONKI solar flare records",
+    "used_for": "Real solar flare records for the two data modes: May 2024 storm days and the last 30 days (15 Oct to 13 Nov 2026)",
     "url": "https://ccmc.gsfc.nasa.gov/tools/DONKI/"
   },
   {
     "name": "NASA Solar System Exploration: Moon",
-    "used_for": "Shackleton crater geography and lunar environmental parameters",
+    "used_for": "Reference for facts in the in-game text",
     "url": "https://science.nasa.gov/moon/"
   },
   {
     "name": "NASA Mars Exploration Program",
-    "used_for": "Jezero crater geography and Martian environmental data",
+    "used_for": "Reference for facts in the in-game text",
     "url": "https://mars.nasa.gov/"
   },
   {
-    "name": "NASA Artemis Mission Architecture",
-    "used_for": "Base infrastructure concepts, life support systems, and crew mission planning",
-    "url": "https://www.nasa.gov/humans-in-space/artemis/"
+    "name": "Lexend font",
+    "used_for": "Primary game font (SIL Open Font License, loaded via Google Fonts in index.html)",
+    "url": "https://fonts.google.com/specimen/Lexend"
   },
   {
-    "name": "NASA Space Radiation Analysis Group (SRAG)",
-    "used_for": "Radiation exposure metrics, shielding calculations, and astronaut safety protocols",
-    "url": "https://www.nasa.gov/johnson/space-radiation-analysis-group/"
-  },
-  {
-    "name": "NASA JPL Deep Space Network (DSN)",
-    "used_for": "Interplanetary telemetry and deep space communication modeling",
-    "url": "https://www.jpl.nasa.gov/missions/deep-space-network-dsn"
-  },
-  {
-    "name": "Lexend Font",
-    "used_for": "Interface typography (loaded from Google Fonts in index.html, SIL Open Font License)",
-    "url": "https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&display=swap"
-  },
-  {
-    "name": "Sound Effects",
-    "used_for": "Procedural audio synthesizer generated via Web Audio API in ui/audio.js (no third-party audio files)",
+    "name": "Sound effects",
+    "used_for": "Synthesized with Web Audio API in ui/audio.js; no third-party sound files",
     "url": ""
   }
 ]

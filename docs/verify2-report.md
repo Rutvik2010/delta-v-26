@@ -46,7 +46,7 @@
 - `ui3d/screens/title.js`: Added `#t-credits` button, Credits overlay, and `#t-mute` speaker button.
 - `ui3d/screens/game.js`: Added `#b-mute` button in `.hud` header and wired mute event listeners/cleanups.
 - `docs/verify2-report.md`: Verification report.
-- `docs/ui-shots/verify2/`: 10 numbered proof screenshots (`01-title-credits-mute.png` through `10-full-play-end-screen.png`).
+- `docs/ui-shots/verify2/`: 11 numbered proof screenshots (`01-title-credits-mute.png` through `11-credits-fixed.png`).
 
 ---
 
