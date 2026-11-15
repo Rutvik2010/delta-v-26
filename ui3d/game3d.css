@@ -69,7 +69,7 @@
 #g3 .paths path.lit { stroke: var(--signal); stroke-width: 6; animation: g3-march .7s linear infinite; }
 @keyframes g3-march { to { stroke-dashoffset: -16; } }
 /* ring under the building you tapped */
-#g3 .ring { width: 190px; height: 190px; border-radius: 50%; border: 6px dashed var(--signal); opacity: 0; scale: .6; translate: -50% -50%; transform: translateZ(1px); transition: opacity 200ms ease, scale 400ms var(--bouncy); }
+#g3 .ring { width: 190px; height: 190px; border-radius: 50%; border: 6px dashed var(--signal); opacity: 0; scale: .6; translate: -50% -50%; transform: translateZ(1px); transform-origin: center center; transition: opacity 200ms ease, scale 400ms var(--bouncy); }
 #g3 .ring.on { opacity: 1; scale: 1; animation: g3-spin 8s linear infinite; }
 @keyframes g3-spin { to { rotate: 360deg; } }
 
