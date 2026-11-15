@@ -185,6 +185,8 @@ export function runTask(ctx, actionId, crewId) {
         timeouts.forEach(clearTimeout); timeouts.clear();
         clearInterval(tickId);
         keyFn = null;
+        counting = false;
+        root.querySelectorAll(".tk-count").forEach((el) => el.remove());
         body.innerHTML = ""; foot.innerHTML = ""; hx.innerHTML = "";
         hx.style.cssText = "margin-left: auto; display: flex; align-items: center; gap: 8px";
         q("[data-result]").innerHTML = "";
@@ -268,8 +270,10 @@ export function runTask(ctx, actionId, crewId) {
         say(P.done || "You've got it! Now the real one, with the clock running.", "I'm ready!", (P && P.goal) || 1);
         stamp();
       }
+      let counting = false; // one countdown at a time (a double-click must not start two)
       function countdown() {
-        if (done) return;
+        if (done || counting) return;
+        counting = true;
         if (round) round.dead = true;
         coach.hidden = true; hand.classList.remove("on");
         markPracticed(actionId);
@@ -279,7 +283,7 @@ export function runTask(ctx, actionId, crewId) {
         root.appendChild(c);
         const steps = ["3", "2", "1", "Go!"];
         steps.forEach((t, n) => timeouts.add(setTimeout(() => { c.textContent = t; c.classList.remove("tick"); void c.offsetWidth; c.classList.add("tick"); ctx.sfx(n === 3 ? "charge" : "click"); }, n * 550)));
-        timeouts.add(setTimeout(() => { c.remove(); newRound(false); }, steps.length * 550));
+        timeouts.add(setTimeout(() => { c.remove(); counting = false; newRound(false); }, steps.length * 550));
       }
       // a "?" button in the header replays the practice round any time
       const helpBtn = document.createElement("button");

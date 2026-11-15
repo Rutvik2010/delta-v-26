@@ -107,6 +107,9 @@ export function mount(root, ctx) {
 <path d="m306 104 5 10.5 11.5 1.6-8.3 8 2 11.4L306 130l-10.2 5.5 2-11.4-8.3-8 11.5-1.6z" fill="#B99AF5"></path>
 </g>
 </svg>
+<div id="dv-ai-art-label" style="position: absolute; left: 64px; top: 670px; width: 520px; display: flex; justify-content: center; pointer-events: none;">
+  <span style="font-size: 14px; font-weight: 600; color: #E5E7EB; background: rgba(30, 36, 48, 0.9); padding: 4px 14px; border-radius: 999px; border: 1.5px solid #4B5563; letter-spacing: 0.04em;">AI-generated art</span>
+</div>
 <div style="position: absolute; left: 660px; top: 150px; width: 560px; display: flex; flex-direction: column; gap: 22px">
 <h1 class="dv-rise dv-d2" style="margin: 0; font-weight: 800; font-size: 104px; line-height: 0.95; letter-spacing: -0.03em">Delta-V 26</h1>
 <p class="dv-rise dv-d3" style="margin: 0; font-weight: 500; font-size: 26px; line-height: 1.4; color: #C9D2E3">Lead three astronauts for 30 days on the Moon or Mars. Every choice costs something.</p>
