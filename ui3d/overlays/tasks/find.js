@@ -46,13 +46,14 @@ export function mount(api) {
     `<p id="fd-hint" style="margin: 0; font-size: 17px; font-weight: 700"></p>` +
     `<p style="margin: 2px 0 0; font-size: 15px; color: #4A5363">Wrong rocks cost time. Win: <b style="color: #1F7A35">extra science</b>.</p></div>`;
 
-  const $ = (s) => api.body.querySelector(s);
-  const hintEl = api.foot.querySelector("#fd-hint");
-  const say = (t) => { hintEl.textContent = t; };
+  const $ = (s) => (api.body ? api.body.querySelector(s) : null);
+  const hintEl = api.foot ? api.foot.querySelector("#fd-hint") : null;
+  const say = (t) => { if (hintEl) hintEl.textContent = t; };
   const rocksEl = $("#fd-rocks");
 
   function pips() {
-    const el = api.hx.querySelector("#fd-pips");
+    const el = api.hx ? api.hx.querySelector("#fd-pips") : null;
+    if (!el) return;
     el.setAttribute("role", "img");
     el.setAttribute("aria-label", round > ROUNDS ? "All 3 rounds done" : "Round " + round + " of 3");
     el.innerHTML = [1, 2, 3].map((n) => `<span style="width: 22px; height: 22px; border-radius: 50%; border: 3px solid #1E2430; background: ${n < round ? "#5CBF5A" : (n === round ? "#F5C518" : "#F7F8F9")}"></span>`).join("");
@@ -70,7 +71,7 @@ export function mount(api) {
         `</button>`;
     }).join("");
     // The sparkling rock is announced to screen readers as sparkling, since sparkle is a picture.
-    const t = rocksEl.querySelector('[data-r="' + target + '"]');
+    const t = rocksEl ? rocksEl.querySelector('[data-r="' + target + '"]') : null;
     if (t) t.setAttribute("aria-label", "Rock " + (target + 1) + ", sparkling " + thing);
     glint(target, 900);
   }
@@ -80,15 +81,16 @@ export function mount(api) {
   function glint(target, wait) {
     clearTimeout(glintT);
     glintT = api.later(() => {
-      if (round > ROUNDS || target !== iceAt[round - 1]) return;
-      const body = rocksEl.querySelector('[data-r="' + target + '"] [data-ice]');
-      const spark = rocksEl.querySelector('[data-r="' + target + '"] [data-spark]');
+      if (api.done || round > ROUNDS || target !== iceAt[round - 1]) return;
+      const body = rocksEl ? rocksEl.querySelector('[data-r="' + target + '"] [data-ice]') : null;
+      const spark = rocksEl ? rocksEl.querySelector('[data-r="' + target + '"] [data-spark]') : null;
       if (!body) return;
       body.setAttribute("fill", "#BDEBFF");
       if (spark) spark.setAttribute("opacity", "1");
       api.sfx("glint");
       api.later(() => {
-        body.setAttribute("fill", GREYS[target % 3]);
+        if (api.done) return;
+        if (body) body.setAttribute("fill", GREYS[target % 3]);
         if (spark) spark.setAttribute("opacity", "0");
         if (round <= ROUNDS && target === iceAt[round - 1]) glint(target, 900 + Math.random() * 1300); // only while this rock is still the one
       }, Math.max(260, 520 - round * 80) + (api.easy ? 250 : 0)); // the glint gets shorter each round
@@ -98,7 +100,7 @@ export function mount(api) {
   function pick(i) {
     if (api.done || round > ROUNDS) return;
     api.sfx("click");
-    const btn = rocksEl.querySelector('[data-r="' + i + '"]');
+    const btn = rocksEl ? rocksEl.querySelector('[data-r="' + i + '"]') : null;
     if (i === iceAt[round - 1]) {
       round += 1;
       miss = false;
@@ -106,7 +108,7 @@ export function mount(api) {
       if (round > ROUNDS) { say("You found all 3 " + (mars ? "water rocks" : "pieces of ice") + "!"); api.win(); return; }
       renderRocks();
       say("Round " + round + " of 3: watch for the next glint!");
-      const first = rocksEl.querySelector('[data-r="0"]');
+      const first = rocksEl ? rocksEl.querySelector('[data-r="0"]') : null;
       if (first) first.focus();
     } else {
       miss = true;
@@ -117,12 +119,14 @@ export function mount(api) {
     }
   }
 
-  rocksEl.addEventListener("click", (e) => {
-    const b = e.target.closest("[data-r]");
-    if (b) pick(Number(b.getAttribute("data-r")));
-  });
+  if (rocksEl) {
+    rocksEl.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-r]");
+      if (b) pick(Number(b.getAttribute("data-r")));
+    });
+  }
   pips();
   renderRocks();
   say("Round 1 of 3: one rock glints for a moment. Watch closely!");
-  api.focus(rocksEl.querySelector('[data-r="0"]'));
+  api.focus(rocksEl ? rocksEl.querySelector('[data-r="0"]') : null);
 }
