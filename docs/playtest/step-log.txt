@@ -1,0 +1,82 @@
+﻿[15:06:42] Setup | server :8001 (8000 taken by other session) | built-in browser pane opened at http://localhost:8001/
+[15:07:56] Pre-run | Title | screenshot: crew line 'They're waiting for their Commander' is partly hidden behind the NASA DONKI box
+[15:07:56] Pre-run | Title | Credits clicked -> Credits & Attribution dialog opens; fallback file labelled 'not NASA data' (correct)
+[15:09:16] Pre-run | Title | Mute clicked -> label 'Unmute sound', localStorage dv_muted set; after reload label still 'Unmute sound' (choice survives reload). Audio output itself not audible to tester.
+[15:09:16] Run 1 | Briefing | Moon chosen; defaults Normal + Last 30 days already selected; 'Real NASA flares from the last 30 days (15 Oct to 13 Nov 2026)'
+[15:09:51] Run 1 | Sol 1 | Game screen first 3 s: HUD shows but 3D base is missing (empty starfield) - base appears ~4-5 s after Start sol 1
+[15:09:51] Run 1 | Sol 1 | HUD Power 70 Oxygen 70 Shield 50 Food 60 Science 0; forecast Today Oct 15 Calm, Sol2 Oct 16 M1.3, Sol3 Oct 17 Calm, Sol4 Oct 18 Calm = matches flares_recent_2026.json
+[15:11:21] Run 1 | Sol 1 | Veggie garden picker: Leo 'Best at this!' +18 Food -5 Power; label 'Veggie garden' clipped by picker panel
+[15:11:21] Run 1 | Sol 1 | Leo -> Veggie garden | attempt 1 | timer 18 s (15 x1.2 early-sol), header 'Leo is tending the veggie garden', fact box real text
+[15:11:22] Run 1 | Sol 1 | Leo -> Veggie garden | attempt 1 | LOSE (task ended while tester was reacting; pressed 2 once). Food 60->78 (+18 = base, no bonus), Power 70->65. Leo chip 'Resting inside'
+[15:11:22] Run 1 | Sol 1 | Maya -> Oxygen maker | attempt 1 | timer 19 s (16x1.2). Missed first 3 s peek (screenshot lag); pressed 1 = wrong, order re-shown (star,circle,square,triangle), timer -1 s
+[15:11:22] Run 1 | Sol 1 | Maya -> Oxygen maker | attempt 1 | WIN (keys 4,3,1,2). Oxygen 70->88 = +12 base +4 skill +2 perfect; Power 65->60
+[15:14:21] Run 1 | Sol 2 | End sol 1 -> Sol 2. First frame: Maya+Leo chips still 'Resting ins...', Zzz x2, only Zuri outside; 2 s later all 3 outside, Maya/Leo 'Tired, worked yesterday' (chip text truncated, 13px). Forecast Today Oct 16 M1.3, Sol5 Oct 19 M1.6 = matches data. HUD P57 O81 S43 F71
+[15:14:21] Run 1 | Sol 2 | Zuri -> Crater (Spot the hidden ice) | attempt 1 | timer 16 s (13x1.2), header 'Zuri is hunting for ice in the crater'
+[15:14:21] Run 1 | Sol 2 | Zuri -> Crater | attempt 1 | LOSE (timer ran out, glint never caught by tester screenshots). Science 0->14 (+10 base +4 skill, no bonus), Power 57->52, Oxygen 81->77
+[15:14:21] Run 1 | Sol 2 | Crater picker again: Zuri greyed 'Resting', double-click does nothing (button disabled=true) -> sending same astronaut twice is BLOCKED (pass)
+[15:14:21] Run 1 | Sol 2 | Maya -> Solar tower | attempt 1 | timer 14 s. Frame right after End key (170 deg; panel may still be animating): panel nearly vertical, lower end goes below ground line, upper end at astronaut's hands
+[15:14:21] Run 1 | Sol 2 | Solar | Home key -> 'Panel 10 deg' (read text). Frame: panel tilted, right end dips below ground line beside tower base, left end at astronaut's hand; Sun at 95 deg, beam thin
+[15:14:21] Run 1 | Sol 2 | Solar | Panel 60 deg, Sun 76 deg, 59% caught: left end of panel overlaps astronaut's hand/arm; timer hit 0 s -> result overlay
+[15:14:21] Run 1 | Sol 2 | Maya -> Solar | attempt 1 | LOSE (timeout). Power 52->68 (+16 base, no bonus), Food 71->65. Maya chip 'Done: Solar...', Zzz shown
+[15:15:56] Run 1 | Sol 3 | HUD P65 O70 S39 F58 Sci14; forecast Today Oct 17 Calm, Sol4 Oct 18 Calm, Sol5 Oct 19 M1.6, Sol6 Oct 20 Calm = matches data
+[15:15:56] Run 1 | Sol 3 | Event 'Broken machine!' appears on first click. Esc does NOT close it (good). Chose 'Use a spare part' -> Power 65->57 (-8, matches card)
+[15:15:56] Run 1 | Sol 3 | Maya -> Dirt shield (Scoop in the green) | attempt 1 | timer 16 s; header correct; Space x3 + Enter x1 all 'Spilled' (0 of 8). Panel says 'Shield after this job: 53' while picker said Maya +18 (39+18=57)
+[15:15:56] Run 1 | Sol 3 | Maya -> Dirt shield | attempt 1 | LOSE (timeout). Shield 39->57 (+18) - in-game 'Shield after this job: 53' was WRONG by 4 (ignores skill bonus); Power 57->52
+[15:16:37] Run 1 | Sol 3 | Leo -> Veggie garden | attempt 2 | read plant labels (Radish, Kale Thirsty), pressed 2 and 6; task ended (plant wilted) before next look. LOSE. Food 58->76 (+18 no bonus), Power 52->47
+[15:17:30] Run 1 | Sol 4 | HUD P44 O63 S53 F69; orange tint + text 'Moon night: dark for 14 sols'; forecast Today Oct 18 Calm, Sol5 Oct 19 M1.6, Sol6 Oct 20 Calm, Sol7 Oct 21 Calm = matches
+[15:17:31] Run 1 | Sol 4 | Event 'Tiny space rock!' -> chose 'Patch it later': Oxygen 63->55 (-8), Shield 53->45 (-8) = matches card
+[15:17:31] Run 1 | Sol 4 | Upgrades open: 14 to spend; costs 30/30/40/50, all show 'need N more' (none affordable). Close works
+[15:17:31] Run 1 | Sol 4 | Mission Control: ice 1/3 by sol 10, garden 2/4 by sol 18, shield>40 sol 9-15 0/7; stars panel
+[15:18:58] Run 1 | Sol 4 | Mission Control closed with Esc (pass)
+[15:18:58] Run 1 | Sol 4 | Zuri -> Crater | attempt 2 | 6th burst screenshot caught the light-blue glint; clicked it -> round 1 found
+[15:18:58] Run 1 | Sol 4 | Zuri -> Crater | attempt 2 | round 2 started with only ~5 s left (rocks re-animate in each round)
+[15:18:58] Run 1 | Sol 4 | Zuri -> Crater | attempt 2 | LOSE (timeout, 1 of 3 rounds). Science 14->28 (+14), Power 44->39, Oxygen 55->51
+[15:18:58] Run 1 | Sol 4 | Maya (Tired) -> Oxygen maker | attempt 2 | order square,circle,triangle,star; valves 1 tri 2 star 3 circle 4 square
+[15:18:58] Run 1 | Sol 4 | Maya -> Oxygen maker | attempt 2 | WIN 'Perfect! Bonus earned' (keys 4,3,1,2). Oxygen 51->67 (+14 tired value +2 perfect), Power 39->34
+[15:20:23] Run 1 | Sol 5 | HUD P31 O60 S38 F62 Sci28; forecast Today Oct 19 M1.6, Sol6 Oct 20 Calm, Sol7 Oct 21 Calm, Sol8 Oct 22 Calm = matches. 'Moon night: dark for 14 sols' label shown while the 3D sun is still drawn bright
+[15:20:23] Run 1 | Sol 5 | Leo -> Solar | attempt 2 | Home+5xPageUp -> text 'Panel 90 Sun 115' (13 s). Screenshot (lags ~1 s) shows panel steep, lower-left end touching astronaut's hand
+[15:20:23] Run 1 | Sol 5 | Solar | frame with on-screen text 'Panel 90 Sun 116, 33%': panel drawn tilted up to the right, left end at astronaut's helmet/hand, NOT horizontal; beam from Sun hits panel
+[15:20:23] Run 1 | Sol 5 | Solar | frame with on-screen text 'Panel 170 Sun 91, 0%': panel drawn flat along the ground across the tower top and the start of the battery cable, left end at astronaut's hand; hint 'You lost the Sun! The battery is draining.' at Battery 2%
+[15:20:23] Run 1 | Sol 5 | Leo -> Solar | attempt 2 | LOSE (timeout). Power 31->47 (+16), Food 62->56
+[15:21:10] Run 1 | Sol 5 | Maya (Tired) -> Dirt shield | attempt 2 | 'Shield after this job: 52' (=38+14, correct this time). 2 fast double-clicks on Dig = 4 spills, timer 16->9 s (0.5 s each + time). Resized window to 1000x650 mid-task: overlay scales, timer keeps running, no freeze; resized back to 1280x800 OK
+[15:21:10] Run 1 | Sol 5 | Maya -> Dirt shield | attempt 2 | LOSE (timeout). Shield 38->52 (+14), Power 47->42. Chips: Maya/Leo 'Resting inside', 'Zzz x2'
+[15:23:03] Run 1 | Sol 6 | HUD P39 O53 S48 F49; forecast Today Oct 20 Calm, Sol7 Oct 21 Calm, Sol8 Oct 22 Calm, Sol9 Oct 23 'Calm - C1.3' = matches data
+[15:23:03] Run 1 | Sol 6 | Leo -> Oxygen maker | attempt 3 | timer 16 s (sol 6, no early bonus = correct). Header helmet green (Leo) but the astronaut drawn in the scene is orange (Maya's colour)
+[15:23:03] Run 1 | Sol 6 | Leo -> Oxygen maker | attempt 3 | LOSE (missed peek, pressed 1 at 2 s left; timeout). Oxygen 53->67 (+14 no bonus), Power 39->34
+[15:23:03] Run 1 | Sol 6 | Zuri -> Veggie garden | attempt 3 | sweep keys 1-6 every ~1.5 s: reached at least 3 of 8 drinks, then a plant wilted/timeout -> LOSE. Food 49->63 (+14 no bonus), Power 34->29 'Running low!'
+[15:29:03] Run 1 | Sol 7 | Leo -> Solar | attempt 3 | LOSE (timeout). Power 26->42 (+16), Food 56->50. Panel box read at 10/60/90/125/170: left edge stayed x=330 in all, box at 125 and 170 identical -> panel graphic did not follow the slider (UNSURE: pane not on screen, CSS transition may not have run). NOTE: wrote a helper function window.__r into the page for reading (read-only use).
+[15:29:03] ENV | 15:27 tabs_context says built-in Browser pane HIDDEN; get_layout: this session is not open in any window (page itself reports visibilityState=visible). Tried Claude in Chrome (not connected) and own headed Chrome via CDP (window stayed behind the user's foreground Claude window, page 'hidden'); closed it. Continuing in built-in pane; all visual/timing results marked UNSURE.
+[15:29:03] Run 1 | END at Sol 7 (15:31) to leave time for Runs 2 and 3. HUD at end: P42 O60 S44 F50 Sci28
+[15:33:39] CONSOLE | read 15:31 (Run 1, sols 1-7): 2x 'Uncaught (in promise) TypeError: Cannot read properties of null (reading 'querySelector') at flyToMeter (ui3d/screens/game.js:450:53) at send (game.js:537:5)' - one per Crater (science) job; no science meter element. Network: all 200/304; server.log: GET /favicon.ico 404
+[15:33:39] Run 2 | START 15:33 | Mars Jezero, Easy, May 2024 storms (aria-pressed confirmed). Briefing text 'Real NASA flares from May 2024, the strongest storm in 20 years'. Zuri card on Mars still says 'finding ice'
+[15:33:39] Run 2 | Sol 1 | HUD P70 O70 S50 F60; forecast Today May 1 M1.9 Active, Sol2 May 2 M2.7, Sol3 May 3 X1.6 Storm, Sol4 May 4 M9.1 = matches flares_2024_05.json
+[15:33:39] Run 2 | Sol 1 | Maya -> Oxygen maker | attempt 1 | order circle,square,star,triangle visible ~2 s after start (Easy peek 4.5 s)
+[15:33:39] Run 2 | Sol 1 | Maya -> Oxygen maker | attempt 1 | WIN 'Perfect! Bonus earned' (keys 1,3,2,4). Oxygen 70->90 (+18 +2), Power 70->65
+[15:33:39] Run 2 | Sol 1 | Zuri -> Veggie garden (click meant for Crater opened garden picker) | attempt 1 | timer 24 s (15x1.35x1.2 = correct). Plants 1,3 Thirsty -> pressed 1,3; task over before next look -> LOSE. Food 60->74 (+14 no bonus), Power 65->60
+[15:33:39] Run 2 | Sol 2 | End sol -> HUD P57 O83 S45 F67; forecast Today May 2 M2.7, Sol3 May 3 X1.6, Sol4 May 4 M9.1, Sol5 May 5 X1.3 = matches
+[15:33:39] Run 2 | Sol 2 | Leo -> Solar | timer 19 s (12x1.35x1.2=19.4 ok). 10 deg: attr rotate(-80), css matched. Frame: panel drawn almost flat from astronaut's hand; Sun beam lands on it
+[15:33:39] Run 2 | Sol 2 | Solar 60 deg (attr rotate(-30), css rotate(-30)): panel drawn nearly vertical rising from astronaut's hand; beam triangle ends in empty space right of it (beam and panel do not meet)
+[15:33:39] Run 2 | Sol 2 | Solar 90 deg: attr rotate(0) but css still rotate(-30) 0.8 s later (visual lags slider). Frame: panel tilted up-right from astronaut's hand, not horizontal on the tower
+[15:33:39] Run 2 | Sol 2 | Solar 125 deg: attr rotate(35), css about rotate(-8) 0.8 s later. Frame: panel shallow from astronaut's hand over the tower top
+[15:33:39] Run 2 | Sol 2 | Solar 170 deg: panel drawn steeply DOWN from astronaut's hand, lower end goes through the ground and out of the bottom of the frame; Sun beam ends in empty space near the tower; 4% caught
+[15:36:11] Run 2 | Sol 2 | Leo -> Solar | attempt 1 | LOSE (timeout). Power 57->70 (+13 Mars), Food 67->61
+[15:36:12] Run 2 | Sol 2 | Zuri (Tired) -> Crater 'Spot the water rock' | attempt 1 | timer 20 s (13x1.35x1.2=21; read 2.5 s in). Glint seen on bottom-left rock in 2 of 5 burst shots
+[15:36:12] Run 2 | Sol 2 | Zuri -> Crater | attempt 1 | my click used screenshot coords, which in this pane do not map to page coords (missed); retry at page/1.6 came after timeout -> LOSE. Science 0->10, Power 70->65, Oxygen 83->79
+[15:36:12] Run 2 | Sol 3 | HUD P62 O72 S39 F54; forecast Today May 3 'Storm - X1.6', Sol4 May 4 M9.1, Sol5 May 5 X1.3, Sol6 May 6 X4.5 = matches. Maya: 'Big Sun storm today! The shield is taking hits.'
+[15:36:12] Run 2 | Sol 3 | Maya -> Dirt shield | attempt 1 | timer 21 s (13x1.35x1.2), goal 'of 6' (Easy). Escape pressed mid-task: ignored, task continued (no skip). 3 Space -> 1 of 6 'Good scoop!'; 5 more Space presses: count and message unchanged (UNSURE)
+[15:36:12] Run 2 | Sol 3 | Maya -> Dirt shield | attempt 1 | LOSE (timeout). Shield 39->57 (+18) while panel said 'Shield after this job: 53' (mismatch again). Power 62->57
+[15:38:24] Run 2 | Sol 4 | End sol with 1 job unused -> P54 O65 S52 F47; forecast May 4 M9.1, May 5 X1.3, May 6 X4.5, May 7 M8.2 = matches. Ended Sol 4 with 2 jobs unused
+[15:38:25] Run 2 | Sol 5 | P51 O58 S46 F40; forecast May 5 X1.3 .. May 8 X1.0 = matches. Event 'Broken machine!' - End sol click did nothing while it was open (blocked). Chose 'Fix it by hand': Oxygen 58->54 (-4), jobs 2->1 (matches card)
+[15:38:25] Run 2 | Sol 6 | P48 O47 S40 F33; forecast May 6 X4.5 .. May 9 X2.2 = matches. Event 'Dust storm!' -> 'Clean the panels': resources unchanged, jobs 2->1 (matches card). Page text contains 'Moon night: dark for 14 sols' on Mars (div.nighttag opacity 0, not visible, still in DOM text)
+[15:38:25] Run 2 | Sol 7 | P45 O40 S35 F26 'Running low!'; forecast May 7 M8.2 .. May 10 X3.9 = matches. Event 'Broken machine!' -> 'Use a spare part': Power 45->37 (-8, matches)
+[15:38:25] Run 2 | Sol 8 | END 15:40. P34 O31 S29 'Low for storms!' F17 'Running low!'; forecast May 8 X1.0, May 9 X2.2, May 10 X3.9, May 11 X5.8 = matches. All 5 mini games played once on Mars Easy (valves WIN; garden, solar, find, shovel LOSE)
+[15:38:25] Run 3 | START 15:40 | continuing the Run 2 Mars Easy game from Sol 8, sending nobody, only clicking End sol, until the LOSE screen
+[15:39:24] Run 3 | Sol 8->9 | End sol, no jobs: P31 O22 'Running low!' S23 F8. Event 'Radio blackout!' (one less job, 'Got it!' only). Fact: radio takes 4 to 24 min Mars->Earth
+[15:39:24] Run 3 | LOSE SCREEN 15:42 after End sol 9: 'Sol 10 of 30 - the crew is flying home early / Mission over / The weak shield made the crew sick, and they ran out of food.' Tip 'Send someone to the garden often. Resting uses food too.' Lesson: 'Plants need light, water, air, and nutrients to grow food in a space garden.' Log: Power 28, Oxygen 13, Shield 17, Food 0 'Food reached 0 on sol 10'. No undefined/NaN/null/TODO; buttons Try again 143x94, Change world 145x82, Title 104x58
+[15:43:29] Run 3 | Try again -> Mars briefing with Easy + May 2024 still selected; Start sol 1 -> Sol 1, P70 O70 S50 F60, 0 science points, Mission Control 0 of 3, all crew Ready, 2 jobs left (clean restart PASS). END Run 3
+[15:43:29] Run 4 | START | viewport 844x390 on the fresh Mars Easy game: stage scale 0.4875, no page scroll (844x390). 38 of 42 visible text items render under 14 px (min 5.4 px); buttons under 44 px: Turn left/right 33x33, science 50x33, Mission Control 136x33, Upgrades 73x33, Mute 30x33
+[15:43:29] Run 4 | Sol 1 | Maya -> Oxygen maker | timer 26 s (16x1.35x1.2). Hint box (x374-554,y7-54) covers end of title 'Remember the valve o..' (title x136-412,y25-51). Missed the peek -> LOSE (timeout). Oxygen 70->88 (+18, no bonus)
+[15:43:29] Run 4 | Sol 2 | 844x390 base view, HUD and forecast fit, text small. P62 O81 S45 F53
+[15:43:29] Run 4 | Sol 3 | Event 'Dust storm!' -> 'Leave them dusty': no change shown at once; at End sol P59->38 (-3 normal -18) and F46->31 (-7 normal -8) - penalty applied at end of sol
+[15:43:29] Run 4 | Sol 4 reached | END. Viewport reset to desktop. CONSOLE at end: 3x the same flyToMeter TypeError (one per Crater job: Run 1 sol 2, Run 1 sol 4, Run 2 sol 2). Server log: 77 GETs, only non-200/304 = 2x GET /favicon.ico 404
+[15:43:29] SIMS | node tests/sim.js -> BALANCE OK (exit 0); node tests/sim_recent.js -> RECENT DATA BALANCE OK
