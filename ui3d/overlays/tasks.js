@@ -12,7 +12,7 @@ const LOADERS = {
 
 const WHO = { maya: ["Maya", "#F79A6B"], leo: ["Leo", "#8ED16C"], zuri: ["Zuri", "#B99AF5"] };
 const DOING = {
-  rest: "is resting at the solar tower", oxygen_gen: "is making oxygen", reinforce_shield: "is piling dirt on the roof",
+  rest: "is aiming the solar panel", oxygen_gen: "is making oxygen", reinforce_shield: "is piling dirt on the roof",
   grow_food: "is tending the veggie garden", science: "is hunting in the crater",
 };
 function meta(id, mars, crewId) {
@@ -27,7 +27,7 @@ function meta(id, mars, crewId) {
 function baseMeta(id, mars) {
   switch (id) {
     case "rest":
-      return { color: "#B99AF5", kicker: "Zuri is resting at the solar tower", title: "Follow the Sun", secs: 12,
+      return { color: "#B99AF5", kicker: "Zuri is aiming the solar panel", title: "Follow the Sun", secs: 12,
         fact: "The International Space Station's giant solar wings turn to follow the Sun. Pointing straight at the Sun makes the most power." };
     case "oxygen_gen":
       return { color: "#F79A6B", kicker: "Maya is making oxygen", title: "Remember the valve order", secs: 16,

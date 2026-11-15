@@ -4,6 +4,14 @@
 
 The live game is in ui3d/.
 
+### What's in the game
+
+- **Rocket landing intro:** after the briefing, the crew lift off from Earth, cruise through space and touch down on the Moon or Mars, then hop out of the rocket (skippable).
+- **A 3D base you can turn:** a round, rocky chunk of Moon or Mars with buildings, a rover, craters and hills. Drag it, use the arrow buttons, or press Q and E.
+- **Hands-on training tour:** on the first game (or from "How to play"), Zuri walks you through the real screen with a spotlight, a demo hand, quick quizzes and a "Nice!" for every step you get right. It works with a keyboard too.
+- **Five mini games:** every job has one (follow the Sun, remember the valve order, scoop in the green, keep the garden alive, spot the hidden ice). The first time, each starts with a practice round that has no clock. Winning adds a small bonus, and Easy mode gives more time.
+- **Real space weather:** the Sun forecast and solar flare events come from saved NASA DONKI flare records (May 2024 storms, or the last 30 days).
+
 > **Disclaimer:** This is a NASA Space Apps Challenge 2026 project and is not endorsed by NASA.
 
 ---
@@ -63,12 +71,13 @@ delta-v-26/
 ├── ui3d/            # Live 3D isometric spacecraft console interface
 │   ├── base.css     # Base stage layout & responsive scaling
 │   ├── ctx.js       # Shared application context & audio mute system
-│   ├── game3d.css   # 3D isometric base, lighting, and HUD styling
+│   ├── game3d.css   # 3D isometric base, lighting, HUD, tour and mini game styling
+│   ├── landing.css  # Rocket landing intro animation
 │   ├── main.js      # Main router and entry point
 │   ├── motion.css   # Animation keyframes
 │   ├── parts.js     # Color palette, icons, crew and site constants
-│   ├── overlays/    # Modal overlays (missions, upgrades, minigames, events)
-│   └── screens/     # Screen modules (title, choose, briefing, game, win, lose)
+│   ├── overlays/    # Overlays: missions, upgrades, events, mini games (tasks/), training tour (coach.js)
+│   └── screens/     # Screens: title, choose, briefing, landing (rocket intro), game, win, lose
 ├── ui/              # Legacy 2D frontend interface
 └── index.html       # Entry point loading ./ui3d/main.js
 ```

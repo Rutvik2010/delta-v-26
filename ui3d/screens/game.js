@@ -215,7 +215,7 @@ export function mount(root, ctx) {
     ${CREW.map((c, i) => `<div class="bb walker" id="w-${c.id}" style="${bbAt(HOME[c.id])}; --i: ${i}"><span class="tag" style="border-color: ${c.color}">${c.name}</span>${astro(c.color)}<span class="kick" aria-hidden="true"><i></i><i></i><i></i></span><span class="zz" hidden>zz</span></div>`).join("")}
   </div></div>
 </div>
-<div class="nighttag">Moon night: dark for 14 sols</div>
+${mars ? "" : `<div class="nighttag">Moon night: dark for 14 sols</div>`}
 <button type="button" class="key turn l" id="t-l" aria-label="Turn the base left"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E2430" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 7 4 12l5 5M4 12h11a5 5 0 0 0 5-5"/></svg></button>
 <button type="button" class="key turn r" id="t-r" aria-label="Turn the base right"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E2430" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 7 5 5-5 5M20 12H9a5 5 0 0 1-5-5"/></svg></button>
 <div class="hint">Drag to turn the base, or press Q and E</div>
@@ -410,7 +410,7 @@ ${CREW.map((c) => {
     if (w) return ["Going to: " + JOBS[w.id].short, "busy active"];
     if (inside.has(c.id)) return ["Resting inside", "home"];
     if (m.job) return ["Done: " + JOBS[m.job].short, "home"];
-    if (m.tired) return ["Tired, worked yesterday", "tired"];
+    if (m.tired) return ["Tired today", "tired"];
     return ["Ready", ""];
   }
 

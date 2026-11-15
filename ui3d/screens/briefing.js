@@ -8,17 +8,18 @@ const DATA_LINE = {
 // Mars sols are real; on the Moon a real day lasts about a month, so the game counts one Earth day as a sol.
 const SOL_LINE = {
   mars: "Space crews call a day a <b>sol</b>. A sol on Mars is about 40 minutes longer than a day on Earth.",
-  moon: "Space crews call a day a <b>sol</b>. Here, one sol is one Earth day. A full day on the Moon lasts about a month!",
+  moon: "A <b>sol</b> is really a day on Mars. In this game we count days on the Moon in sols too: one sol is one Earth day. (A full Moon day lasts about a month!)",
 };
 const BEST = {
   maya: "Best at <b>making oxygen</b> and <b>fixing the shield</b>.",
   leo: "Best at <b>growing food</b>. He gets hungry first!",
   zuri: "Best at <b>exploring the crater</b> and finding ice.",
+  zuriMars: "Best at <b>exploring the crater</b> and finding water rocks.",
 };
 const SWING = ["dv-swing dv-d2", "dv-swing dv-d4", "dv-swing dv-d6"];
 const KEYBASE = "font-family: inherit; cursor: pointer; border: 3px solid #1E2430; border-radius: 12px; color: #1E2430; font-weight: 800; font-size: 15px; min-height: 48px; padding: 4px 6px; line-height: 1.2;";
 
-function crewCard(c, i) {
+function crewCard(c, i, mars) {
   return `<div class="${SWING[i]}" style="position: relative; border-radius: 18px; background: #F7F8F9; border: 3px solid #1E2430; overflow: hidden; display: flex; flex-direction: column">
 <div style="height: 54px; background: ${c.color}; border-bottom: 3px solid #1E2430; display: flex; justify-content: center; align-items: center"><span aria-hidden="true" style="width: 64px; height: 14px; border-radius: 999px; background: #C9CED6; border: 3px solid #1E2430"></span></div>
 <div style="padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 12px">
@@ -26,7 +27,7 @@ function crewCard(c, i) {
 ${helmet(c.color, 80, c.name + " in " + (c.id === "leo" ? "his" : "her") + " helmet")}
 <div><h2 style="margin: 0; font-weight: 800; font-size: 34px">${esc(c.name)}</h2><p style="margin: 0; font-size: 18px; color: #4A5363">${esc(c.role)}</p></div>
 </div>
-<p style="margin: 0; font-size: 19px; line-height: 1.45">${BEST[c.id] || "Best at <b>" + esc(c.best) + "</b>."}</p>
+<p style="margin: 0; font-size: 19px; line-height: 1.45">${(mars && c.id === "zuri" ? BEST.zuriMars : BEST[c.id]) || "Best at <b>" + esc(c.best) + "</b>."}</p>
 <p style="margin: 0; font-size: 19px; line-height: 1.45; color: #4A5363">"${esc(c.quote)}"</p>
 </div>
 </div>`;
@@ -43,7 +44,7 @@ export function mount(root, ctx) {
 <h1 style="margin: 0; font-weight: 800; font-size: 48px; letter-spacing: -0.02em">Commander, meet your crew</h1>
 </div>
 <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px">
-${CREW.map(crewCard).join("")}
+${CREW.map((c, i) => crewCard(c, i, store.site === "mars")).join("")}
 </div>
 <div style="display: flex; gap: 28px; flex-grow: 1; min-height: 0">
 <div class="dv-rise dv-d7" style="flex-grow: 1; padding: 22px 28px; border-radius: 16px; background: #13211D; box-shadow: inset 0 0 0 5px #2B3833; color: #A8F5C2; display: flex; flex-direction: column; gap: 14px">

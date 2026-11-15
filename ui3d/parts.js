@@ -48,8 +48,8 @@ export const SITES = {
 
 // The five jobs. Ids match the engine's action ids. `res` is the meter the job mainly fills.
 export const JOBS = {
-  rest: { res: "power", short: "Solar tower", where: "Resting", label: () => "Rest and recharge",
-    line: () => "The solar tower is charging the batteries. Time for a snack.",
+  rest: { res: "power", short: "Solar tower", where: "Resting", label: () => "Charge the batteries",
+    line: () => "The panel is catching sunlight. The batteries are charging!",
     real: (m) => m ? "Mars landers run on solar panels, and dust is their enemy." : "At the Moon's south pole, tall solar towers catch the low Sun." },
   oxygen_gen: { res: "oxygen", short: "Oxygen maker", where: "At the oxygen maker", label: (m) => m ? "Make oxygen from air" : "Make oxygen from dirt",
     line: (m) => m ? "The maker is pulling oxygen out of the Mars air!" : "The maker is baking oxygen out of moon dirt!",

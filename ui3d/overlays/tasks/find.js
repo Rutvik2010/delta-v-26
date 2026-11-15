@@ -70,8 +70,6 @@ export function mount(api) {
         `</button>`;
     }).join("");
     // The sparkling rock is announced to screen readers as sparkling, since sparkle is a picture.
-    const t = rocksEl.querySelector('[data-r="' + target + '"]');
-    if (t) t.setAttribute("aria-label", "Rock " + (target + 1) + ", sparkling " + thing);
     glint(target, 900);
   }
 
@@ -85,10 +83,14 @@ export function mount(api) {
       const spark = rocksEl.querySelector('[data-r="' + target + '"] [data-spark]');
       if (!body) return;
       body.setAttribute("fill", "#BDEBFF");
+      // screen readers hear "sparkling" only while it glints, like sighted players see it
+      const btn = rocksEl.querySelector('[data-r="' + target + '"]');
+      if (btn) btn.setAttribute("aria-label", "Rock " + (target + 1) + ", sparkling " + thing + "!");
       if (spark) spark.setAttribute("opacity", "1");
       api.sfx("glint");
       api.later(() => {
         body.setAttribute("fill", GREYS[target % 3]);
+        if (btn) btn.setAttribute("aria-label", "Rock " + (target + 1));
         if (spark) spark.setAttribute("opacity", "0");
         if (round <= ROUNDS && target === iceAt[round - 1]) glint(target, 900 + Math.random() * 1300); // only while this rock is still the one
       }, Math.max(260, 520 - round * 80) + (api.easy ? 250 : 0)); // the glint gets shorter each round

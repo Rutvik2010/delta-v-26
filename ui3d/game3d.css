@@ -319,7 +319,7 @@
 #g3 .cchip { width: 164px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 16px; background: var(--key); border: 3px solid transparent; box-shadow: 0 5px 0 #7C8592; transition: border-color 200ms ease, translate 260ms var(--spring); }
 #g3 .cchip span { min-width: 0; }
 #g3 .cchip b { display: block; font-size: 18px; }
-#g3 .cchip em { display: block; font-style: normal; font-size: 13px; font-weight: 700; color: #4A5363; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#g3 .cchip em { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-style: normal; font-size: 14px; line-height: 1.15; font-weight: 700; color: #4A5363; }
 #g3 .cchip.active { border-color: var(--signal); translate: 0 -4px; }
 #g3 .cchip.tired em { color: #8A5A00; } #g3 .cchip.busy em { color: #B3261E; } #g3 .cchip.home em { color: #4A5363; }
 #g3 .say { flex-grow: 1; min-width: 0; padding: 10px 18px; border-radius: 18px; background: var(--key); border: 3px solid var(--ink); display: flex; flex-direction: column; justify-content: center; gap: 2px; }

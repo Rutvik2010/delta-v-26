@@ -2,6 +2,10 @@
 html, body { margin: 0; height: 100%; background: #0E1424; overflow: hidden; }
 #app { height: 100%; }
 #viewport { position: fixed; inset: 0; overflow: hidden; }
+/* phones held sideways, menu screens: fit the width and scroll (main.js fit) */
+#viewport.scroll { overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#sizer { width: 1px; }
+#stage.top { top: 0; transform-origin: top center; }
 #stage {
   position: absolute; left: 50%; top: 50%; width: 1280px; height: 800px; transform-origin: center center;
   overflow: hidden; background: #C9CED6; color: #1E2430; font-family: Lexend, system-ui, sans-serif;
