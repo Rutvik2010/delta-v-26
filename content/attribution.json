@@ -23,5 +23,15 @@
     "name": "Sound effects",
     "used_for": "Synthesized with Web Audio API in ui/audio.js; no third-party sound files",
     "url": ""
+  },
+  {
+    "name": "AI tools",
+    "used_for": "Claude (Anthropic), Gemini (Google), and Carbon in Antigravity for coding/UI; GPT-based assistant for content, tests, and docs; AI-made README",
+    "url": ""
+  },
+  {
+    "name": "Mission patch and logo",
+    "used_for": "AI-generated artwork",
+    "url": ""
   }
 ]

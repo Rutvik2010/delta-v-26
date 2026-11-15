@@ -8,6 +8,17 @@ The live game is in ui3d/.
 
 ---
 
+## AI use
+
+AI tools helped write the code, text, mission patch and logo; the team tested the game and made the decisions.
+
+- **Coding and UI:** Claude (Anthropic), Gemini (Google), and Carbon, the coding agent in Google Antigravity.
+- **Content, tests, and docs:** A teammate on team Delta V used a GPT-based assistant; this README was also AI-made.
+- **Artwork and audio:** The Delta V mission patch and logo were AI-made. Sound effects are synthesized in code using the Web Audio API (not sound files).
+- **Data and NASA disclaimer:** Only the two DONKI solar flare files are real NASA data; `data/space_weather_fallback.json` is made-up sample data for offline use only. No NASA logo, flag, or mission identifier is used, and the game is not endorsed by NASA.
+
+---
+
 ## How to Run
 
 Because Delta-V 26 uses standard browser ES modules (`type="module"`), it must be served via a local HTTP server:
@@ -78,7 +89,7 @@ delta-v-26/
 ## Data Credits
 
 - **NASA CCMC DONKI (Space Weather Database Of Notifications, Knowledge, Information):** Solar flare (FLR) records replayed from saved snapshots: historic May 2024 solar storms and a 30-day snapshot to 13 Nov 2026. A made-up offline fallback is used only if data files fail to load.
-- **NASA Space Apps 2026 Challenge:** Mission scenario concepts for lunar south pole exploration (Artemis program) and Mars Jezero crater exploration (Perseverance rover).
+- Moon and Mars setting: Shackleton Crater and Jezero Crater. The in-game facts are written by the team and reference NASA's Moon and Mars web pages (science.nasa.gov/moon and mars.nasa.gov).
 
 ---
 
