@@ -102,12 +102,13 @@ export function mount(api) {
   function peek(ms, after) {
     showing = true;
     render();
+    if (api.practice) return; // in practice the order stays on screen
     api.later(() => { showing = false; render(); say(after); }, ms);
   }
 
   function press(i) {
     if (api.done) return;
-    if (showing) { say("Wait for it... remember the order first!"); return; }
+    if (showing && !api.practice) { say("Wait for it... remember the order first!"); return; }
     const k = row[i];
     const idx = order.indexOf(k);
     if (idx < done) return; // already open
@@ -115,6 +116,7 @@ export function mount(api) {
       done += 1;
       wrong = -1;
       api.sfx("squeak");
+      api.good();
       if (done >= 4) { say("All open! Oxygen is flowing."); render(); api.win(); return; }
       say(done + " of 4 open. Which shape comes next?");
       render();

@@ -576,5 +576,13 @@ ${CREW.map((c) => {
   });
 
   draw();
-  return () => { alive = false; document.removeEventListener("keydown", onKey); timers.forEach(clearTimeout); if (stageEl) stageEl.classList.remove("bleed"); window.removeEventListener("resize", placeSun); };
+  // first game ever (or "How to play" on the title): the interactive tour starts after the intro
+  let stopTour = null;
+  import("../overlays/coach.js").then(({ startTour, tourDone }) => {
+    if (!alive || (!store.tutorial && tourDone())) return;
+    later(() => {
+      if (alive) stopTour = startTour(ctx, g3, { state: S, yaw: () => yaw, cardOpen: () => openJob, busy: () => busy });
+    }, reduced ? 300 : 2600);
+  });
+  return () => { if (stopTour) stopTour(); alive = false; document.removeEventListener("keydown", onKey); timers.forEach(clearTimeout); if (stageEl) stageEl.classList.remove("bleed"); window.removeEventListener("resize", placeSun); };
 }

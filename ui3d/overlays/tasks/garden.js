@@ -17,7 +17,7 @@ export function mount(api) {
   const idxs = [0, 1, 2, 3, 4, 5].sort(() => Math.random() - 0.5);
   const level = SP.map(() => 60 + Math.random() * 40);
   idxs.slice(0, 2).forEach((i) => { level[i] = 30 + Math.random() * 8; });
-  const drain = SP.map(() => (7.5 + Math.random() * 6) * (api.easy ? 0.75 : 1));
+  const drain = SP.map(() => (7.5 + Math.random() * 6) * (api.easy ? 0.75 : 1) * (api.practice ? 0.5 : 1));
   let drinks = 0;
 
   const plantHtml = (i, entrance) => {
@@ -95,6 +95,7 @@ export function mount(api) {
     level[i] = 100;
     drinks += 1;
     api.sfx("splash");
+    api.good();
     wasDry[i] = false;
     repaint(i);
     counters();
@@ -111,7 +112,7 @@ export function mount(api) {
       level[i] = Math.max(0, level[i] - drain[i] * (1 + t * 0.05) * dt); // drying speeds up a little
       if (level[i] <= 0) { say("Oh no, the " + SP[i].name.toLowerCase() + " wilted!"); repaint(i); api.fail(); return; }
       const dry = level[i] < DRY;
-      if (dry !== wasDry[i]) { wasDry[i] = dry; repaint(i); counters(); if (dry) say(SP[i].name + " is thirsty!"); }
+      if (dry !== wasDry[i]) { wasDry[i] = dry; repaint(i); counters(); if (dry) { say(SP[i].name + " is thirsty!"); api.point($('[data-p="' + i + '"]')); } }
       else {
         const bar = $('[data-p="' + i + '"] .dv-fillbar');
         if (bar) bar.style.width = Math.round(level[i]) + "%";

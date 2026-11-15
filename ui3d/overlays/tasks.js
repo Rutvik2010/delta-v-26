@@ -45,6 +45,19 @@ function baseMeta(id, mars) {
   }
 }
 
+// What the practice coach says for each game, where the demo hand points, and how many good moves
+// finish the practice round. Practice has no clock and can't be lost.
+const PRACTICE = {
+  rest: { how: "The Sun moves across the sky. Tap the tilt buttons (or slide) to point the gold panel at the Sun until the bar passes the dashed line.", hand: "#sl-right", goal: 1, done: "That's it! In the real round, keep the panel on the Sun until the battery is full." },
+  oxygen_gen: { how: "Look at the order at the top, then open the valves in that order. In the real round the order hides after a few seconds, so remember it!", hand: "#vl-seq", goal: 2, more: "Good! Now the next one.", done: "Great memory! In the real round a wrong valve shuts them all." },
+  reinforce_shield: { how: "Watch the black arrow slide. Tap Dig when it is inside the green zone. Try two good scoops!", hand: "#sh-dig", goal: 2, more: "Nice scoop! One more.", done: "Perfect timing! In the real round the arrow gets faster." },
+  grow_food: { how: "Plants with an orange border are thirsty. Tap them to water. Don't water happy plants!", hand: "[data-p][aria-label*='thirsty']", goal: 2, more: "Good! Find another thirsty one.", done: "Nice gardening! In the real round, don't let any plant wilt.", retry: "That plant wilted. Let's try again!" },
+  science: { how: "Watch the rocks closely. One of them glints blue for a moment. Tap that one!", hand: "#fd-rocks", goal: 1, done: "Sharp eyes! In the real round you need to find it three times." },
+};
+const PKEY = "dv26-practiced-";
+const practiced = (id) => { try { return localStorage.getItem(PKEY + id) === "1"; } catch (e) { return false; } };
+const markPracticed = (id) => { try { localStorage.setItem(PKEY + id, "1"); } catch (e) { /* private mode */ } };
+
 export function runTask(ctx, actionId, crewId) {
   const load = LOADERS[actionId];
   if (!load) return Promise.resolve(false);
@@ -76,6 +89,17 @@ export function runTask(ctx, actionId, crewId) {
       const root = layer.querySelector("[data-root]");
       const q = (s) => layer.querySelector(s);
       const timerEl = q("[data-timer]"), tnum = q("[data-tnum]"), tbar = q("[data-tbar]");
+
+      const body = q("[data-body]"), foot = q("[data-foot]"), hx = q("[data-hx]");
+      const coach = document.createElement("div");
+      coach.className = "tk-coach";
+      coach.hidden = true;
+      root.appendChild(coach);
+      const hand = document.createElement("div");
+      hand.className = "tk-hand";
+      hand.setAttribute("aria-hidden", "true");
+      hand.innerHTML = `<svg width="64" height="72" viewBox="0 0 32 36"><path d="M12 34c-3-2-7-7-8-10-1-2 1-4 3-3l3 3V6c0-2 1-3 2.5-3S15 4 15 6v8c0-1.5 1-2.5 2.5-2.5S20 12.5 20 14v1c0-1.5 1-2.5 2.5-2.5S25 13.5 25 15v1c.2-1.3 1.2-2 2.3-2 1.4 0 2.2 1 2.2 2.6V24c0 5-3 10-8 10z" fill="#F7F8F9" stroke="#1E2430" stroke-width="2" stroke-linejoin="round"/></svg>`;
+      root.appendChild(hand);
 
       const closeAll = (value) => {
         done = true;
@@ -109,22 +133,23 @@ export function runTask(ctx, actionId, crewId) {
         timeouts.add(setTimeout(() => closeAll(win), win ? 1400 : 1000));
       };
 
-      // Countdown: whole seconds as a number plus a shrinking bar.
-      const start = performance.now();
-      let lost = 0; // seconds taken away by mistakes
-      let lastShown = m.secs;
-      tickId = setInterval(() => {
-        if (done) return;
-        const left = m.secs - lost - (performance.now() - start) / 1000;
-        tbar.style.transform = "scaleX(" + Math.max(0, left / m.secs).toFixed(3) + ")";
-        const n = Math.max(0, Math.ceil(left));
-        if (n !== lastShown) {
-          lastShown = n;
-          tnum.textContent = n + " s";
-          timerEl.setAttribute("aria-label", n + " second" + (n === 1 ? "" : "s") + " left");
-        }
-        if (left <= 0) finish(false);
-      }, 100);
+      // ---- the countdown clock (runs only in the real round) ----
+      let start = 0, lost = 0, lastShown = m.secs;
+      const setClock = (txt, label) => { tnum.textContent = txt; timerEl.setAttribute("aria-label", label); };
+      const startClock = () => {
+        start = performance.now(); lost = 0; lastShown = m.secs;
+        tbar.style.transform = "scaleX(1)";
+        setClock(m.secs + " s", m.secs + " seconds left");
+        clearInterval(tickId);
+        tickId = setInterval(() => {
+          if (done) return;
+          const left = m.secs - lost - (performance.now() - start) / 1000;
+          tbar.style.transform = "scaleX(" + Math.max(0, left / m.secs).toFixed(3) + ")";
+          const n = Math.max(0, Math.ceil(left));
+          if (n !== lastShown) { lastShown = n; setClock(n + " s", n + " second" + (n === 1 ? "" : "s") + " left"); }
+          if (left <= 0) finish(false);
+        }, 100);
+      };
 
       const onKey = (e) => {
         if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); return; } // every job plays its task
@@ -144,33 +169,111 @@ export function runTask(ctx, actionId, crewId) {
       };
       document.addEventListener("keydown", onKey, true);
 
-      const api = {
-        ctx, mars, secs: m.secs, easy, early,
-        body: q("[data-body]"), foot: q("[data-foot]"), hx: q("[data-hx]"), root,
-        get done() { return done; },
-        win: () => finish(true),
-        fail: () => finish(false),
-        // a mistake costs time: the clock jumps down and flashes red
-        penalty: (sec) => {
-          if (done) return;
-          lost += sec;
-          timerEl.style.background = "#5A1A14";
-          const t = setTimeout(() => { timeouts.delete(t); timerEl.style.background = "#13211D"; }, 350);
-          timeouts.add(t);
-        },
-        sfx: (n) => ctx.sfx(n),
-        onKey: (fn) => { keyFn = fn; },
-        later: (fn, ms) => { const t = setTimeout(() => { timeouts.delete(t); if (!done) fn(); }, ms); timeouts.add(t); return t; },
-        focus: (el) => { try { (el || root).focus(); } catch (err) { /* ignore */ } },
-        swap: (el, a, b) => { // restart a one-shot animation by swapping the -a / -b classes
-          const was = el.classList.contains(a);
-          el.classList.remove(a, b);
-          void el.getBoundingClientRect();
-          el.classList.add(was ? b : a);
-        },
+      // ---- the demo hand: floats to a target and taps it ----
+      const pointAt = (el) => {
+        if (!el) { hand.classList.remove("on"); return; }
+        const rr = root.getBoundingClientRect(), k = rr.width / root.offsetWidth || 1, r = el.getBoundingClientRect();
+        hand.style.translate = `${Math.round((r.left - rr.left) / k + r.width / 2 - 14)}px ${Math.round((r.top - rr.top) / k + r.height / 2 - 6)}px`;
+        hand.classList.add("on");
       };
-      try { mod.mount(api); } catch (err) { console.error(err); }
-      if (!root.contains(document.activeElement) || document.activeElement === root) root.focus();
+
+      // ---- rounds: a practice round (no clock, can't be lost), then the real one ----
+      const P = PRACTICE[actionId];
+      let round = null; // the api of the round running now
+      function newRound(practice) {
+        if (round) round.dead = true;
+        timeouts.forEach(clearTimeout); timeouts.clear();
+        clearInterval(tickId);
+        keyFn = null;
+        body.innerHTML = ""; foot.innerHTML = ""; hx.innerHTML = "";
+        hx.style.cssText = "margin-left: auto; display: flex; align-items: center; gap: 8px";
+        q("[data-result]").innerHTML = "";
+        root.classList.toggle("practicing", practice);
+        coach.hidden = !practice;
+        hand.classList.remove("on");
+        let goods = 0;
+        const me = {
+          dead: false,
+          ctx, mars, secs: m.secs, easy, early, practice,
+          body, foot, hx, root,
+          get done() { return done || me.dead; },
+          win: () => { if (me.dead) return; if (practice) practiceDone(); else finish(true); },
+          fail: () => {
+            if (me.dead) return;
+            if (!practice) return finish(false);
+            me.dead = true;
+            say(P.retry || "Oops! Let's try that again.");
+            timeouts.add(setTimeout(() => { if (!done) newRound(true); }, 1300));
+          },
+          good: () => { if (me.dead || !practice) return; goods += 1; if (goods >= (P.goal || 1)) practiceDone(); else say(P.more || "Nice! Once more."); },
+          penalty: (sec) => {
+            if (me.dead || practice || done) return;
+            lost += sec;
+            timerEl.style.background = "#5A1A14";
+            const t = setTimeout(() => { timeouts.delete(t); timerEl.style.background = "#13211D"; }, 350);
+            timeouts.add(t);
+          },
+          point: (el) => { if (practice && !me.dead) pointAt(el); },
+          sfx: (n) => ctx.sfx(n),
+          onKey: (fn) => { keyFn = fn; },
+          later: (fn, ms) => { const t = setTimeout(() => { timeouts.delete(t); if (!me.done) fn(); }, ms); timeouts.add(t); return t; },
+          focus: (el) => { try { (el || root).focus(); } catch (err) { /* ignore */ } },
+          swap: (el, a, b) => { // restart a one-shot animation by swapping the -a / -b classes
+            const was = el.classList.contains(a);
+            el.classList.remove(a, b);
+            void el.getBoundingClientRect();
+            el.classList.add(was ? b : a);
+          },
+        };
+        round = me;
+        try { mod.mount(me); } catch (err) { console.error(err); }
+        if (practice) {
+          setClock("Try", "Practice: no timer");
+          tbar.style.transform = "scaleX(1)";
+          say(P.how);
+          // point at the main control once the game has drawn it
+          timeouts.add(setTimeout(() => { if (round === me && P.hand && !me.dead) pointAt(body.querySelector(P.hand)); }, 450));
+        } else startClock();
+        if (!root.contains(document.activeElement) || document.activeElement === root) root.focus();
+      }
+      function say(text, btn) {
+        coach.innerHTML = `<div class="tk-coach-who">${helmet("#B99AF5", 44)}</div><p class="tk-coach-text"><b>Practice:</b> ${esc(text)}</p>` +
+          (btn ? `<button type="button" class="tk-coach-go dv-key">${esc(btn)}</button>` : `<button type="button" class="tk-coach-skip">Skip practice</button>`);
+        const b = coach.querySelector("button");
+        b.addEventListener("click", countdown);
+        if (btn) b.focus({ preventScroll: true });
+      }
+      function practiceDone() {
+        if (!round || round.dead) return;
+        round.dead = true;
+        hand.classList.remove("on");
+        ctx.sfx("good");
+        markPracticed(actionId);
+        say(P.done || "You've got it! Now the real one, with the clock running.", "I'm ready!");
+      }
+      function countdown() {
+        if (done) return;
+        if (round) round.dead = true;
+        coach.hidden = true; hand.classList.remove("on");
+        markPracticed(actionId);
+        const c = document.createElement("div");
+        c.className = "tk-count";
+        c.setAttribute("role", "status");
+        root.appendChild(c);
+        const steps = ["3", "2", "1", "Go!"];
+        steps.forEach((t, n) => timeouts.add(setTimeout(() => { c.textContent = t; c.classList.remove("tick"); void c.offsetWidth; c.classList.add("tick"); ctx.sfx(n === 3 ? "charge" : "click"); }, n * 550)));
+        timeouts.add(setTimeout(() => { c.remove(); newRound(false); }, steps.length * 550));
+      }
+      // a "?" button in the header replays the practice round any time
+      const helpBtn = document.createElement("button");
+      helpBtn.type = "button";
+      helpBtn.className = "tk-help dv-key";
+      helpBtn.setAttribute("aria-label", "How to play this game");
+      helpBtn.textContent = "?";
+      helpBtn.addEventListener("click", () => { if (!done) { ctx.sfx("click"); newRound(true); } });
+      timerEl.parentElement.insertBefore(helpBtn, timerEl);
+
+      newRound(!!(ctx.store.tutorial || !practiced(actionId)));
     }, { noEscape: true });
   }));
 }

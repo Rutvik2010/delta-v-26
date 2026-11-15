@@ -123,6 +123,7 @@ export function mount(api) {
     }
     count += 1;
     api.sfx("scoop");
+    api.good();
     speed += api.easy ? 8 : 14;
     zw = Math.max(13, zw - 1.8);
     placeZone();

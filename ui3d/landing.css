@@ -1,0 +1,128 @@
+/* Landing intro (ui3d/screens/landing.js). One timeline, in seconds from the start:
+   0–3.4 liftoff from Earth · 3.0–6.6 cruise through space · 6.4–11.5 landing and the crew hop out.
+   Final states are the element defaults; animations play *from* earlier states (fill: backwards/both),
+   so with reduced motion (.still) we simply switch animations off and see the last frame. */
+#la { position: absolute; inset: calc(var(--ey, 0px) * -1) calc(var(--ex, 0px) * -1); overflow: clip; background: #070B18; color: #F3F4F6; font-family: Lexend, system-ui, sans-serif;
+  --ink: #1E2430; --ease-out: cubic-bezier(.22, 1, .36, 1); --spring: linear(0, .029 2.5%, .104 5%, .205 7.5%, .55 15%, .654 17.5%, .746 20%, .824 22.5%, .888 25%, .939 27.5%, .978 30%, 1.006 32.5%, 1.038 37.5%, 1.045 45%, 1); }
+#la .la-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+#la .la-scene { position: absolute; inset: 0; overflow: hidden; }
+#la svg { display: block; overflow: visible; }
+
+/* ---------- shared rocket ---------- */
+#la .la-rocket { position: absolute; left: 50%; width: 150px; height: 330px; margin-left: -75px; }
+#la .la-rocket .la-rocket-svg { position: relative; z-index: 1; }
+#la .la-flame { position: absolute; left: 30px; top: 298px; transform-origin: 50% 0; animation: la-flicker .12s steps(2) infinite alternate; }
+@keyframes la-flicker { from { scale: 1 1; } to { scale: .88 1.12; } }
+
+/* ---------- scene A: liftoff ---------- */
+#la .la-a { animation: la-out .4s ease-out 3s both, la-shake .09s linear 1.2s 12; }
+@keyframes la-out { to { opacity: 0; } }
+#la .la-sky-a { position: absolute; inset: -70% 0 0; background: linear-gradient(#070B18 0%, #0E1424 40%, #1B2A5A 66%, #3A5BA8 86%, #7FA8E0 100%); animation: la-sky-up 1.6s ease-in 1.8s both; }
+@keyframes la-sky-up { to { translate: 0 30%; filter: brightness(.4); } }
+#la .la-clouds { position: absolute; inset: 0; }
+#la .la-clouds i { position: absolute; height: 46px; border-radius: 999px; background: #F3F6FB; box-shadow: 0 0 0 4px var(--ink); opacity: .95; animation: la-camera 1.6s ease-in 1.8s both; }
+#la .la-clouds i:nth-child(1) { left: 12%; bottom: 46%; width: 220px; }
+#la .la-clouds i:nth-child(2) { left: 64%; bottom: 58%; width: 160px; animation-duration: 1.4s; }
+#la .la-clouds i:nth-child(3) { left: 30%; bottom: 72%; width: 120px; animation-duration: 1.2s; }
+@keyframes la-camera { to { translate: 0 900px; } }
+#la .la-ground-a { position: absolute; left: -10%; right: -10%; bottom: 0; height: 150px; border-radius: 50% 50% 0 0 / 40px 40px 0 0; background: linear-gradient(#5CBF5A, #2F7A2C); box-shadow: inset 0 6px 0 #8ED16C, 0 -4px 0 var(--ink); animation: la-camera 1.6s ease-in 1.8s both; }
+#la .la-tower { position: absolute; left: calc(50% + 60px); bottom: 140px; animation: la-camera 1.6s ease-in 1.8s both; }
+#la .la-rocket-a { bottom: 140px; animation: la-liftoff 2s cubic-bezier(.55, 0, .85, .35) 1.3s both; }
+@keyframes la-liftoff { to { translate: 0 -1250px; } }
+#la .la-rocket-a .fa { scale: 0; animation: la-ignite .4s var(--ease-out) .9s both, la-flicker .12s steps(2) 1.3s infinite alternate; }
+@keyframes la-ignite { from { scale: .1 .1; } to { scale: 1 1; } }
+#la .la-smoke { position: absolute; left: 50%; bottom: 120px; width: 0; height: 0; }
+#la .la-smoke i { position: absolute; left: -40px; top: -40px; width: 80px; height: 80px; border-radius: 50%; background: #E8EBF0; box-shadow: 0 0 0 4px var(--ink); opacity: 0;
+  animation: la-puff 2.2s var(--ease-out) calc(.9s + var(--i) * .08s) both; }
+@keyframes la-puff { 0% { opacity: 0; translate: 0 0; scale: .3; } 15% { opacity: 1; } 100% { opacity: 0; translate: calc(var(--s) * (160px + var(--i) * 34px)) calc(-20px - var(--i) * 6px); scale: calc(1.4 + var(--i) * .12); } }
+#la .la-count { position: absolute; left: 0; right: 0; top: 18%; text-align: center; font-weight: 800; font-size: 120px; letter-spacing: -.02em; color: #FFF; text-shadow: 0 6px 0 var(--ink); }
+#la .la-count span { position: absolute; left: 0; right: 0; opacity: 0; animation: la-tick .4s var(--ease-out) both; }
+#la .la-count span:nth-child(1) { animation-delay: 0s; } #la .la-count span:nth-child(2) { animation-delay: .4s; } #la .la-count span:nth-child(3) { animation-delay: .8s; }
+#la .la-count span.go { color: #F5C518; animation: la-go 1.3s var(--ease-out) 1.2s both; }
+@keyframes la-tick { 0% { opacity: 0; scale: 1.6; } 30% { opacity: 1; scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; scale: .9; } }
+@keyframes la-go { 0% { opacity: 0; scale: .6; } 20% { opacity: 1; scale: 1.08; } 30% { scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; translate: 0 -40px; } }
+@keyframes la-shake { 0%, 100% { translate: 0 0; } 25% { translate: -4px 2px; } 75% { translate: 4px -2px; } }
+
+/* ---------- scene B: cruise through space ---------- */
+#la .la-b { opacity: 0; animation: la-scene-b 3.6s linear 3s both; background: radial-gradient(80% 70% at 50% 50%, #141C3C, #070B18 80%); }
+@keyframes la-scene-b { 0% { opacity: 0; } 11% { opacity: 1; } 89% { opacity: 1; } 100% { opacity: 0; } }
+#la .la-stars { position: absolute; top: 0; bottom: 0; left: 0; width: 200%; }
+#la .la-stars.s1 { background: radial-gradient(circle at 165px 77px, #fff 0 1.4px, transparent 2.0999999999999996px), radial-gradient(circle at 24px 37px, #fff 0 1.7px, transparent 2.4px), radial-gradient(circle at 48px 187px, #fff 0 1.5px, transparent 2.2px), radial-gradient(circle at 259px 109px, #fff 0 1.1px, transparent 1.8px), radial-gradient(circle at 222px 214px, #fff 0 1.1px, transparent 1.8px), radial-gradient(circle at 46px 217px, #fff 0 1.1px, transparent 1.8px), radial-gradient(circle at 289px 63px, #fff 0 1.8px, transparent 2.5px), radial-gradient(circle at 322px 31px, #fff 0 1.5px, transparent 2.2px), radial-gradient(circle at 203px 25px, #fff 0 1.8px, transparent 2.5px) 0 0 / 340px 260px; animation: la-warp 1.1s linear infinite; opacity: .9; }
+#la .la-stars.s2 { background: radial-gradient(circle at 23px 142px, #fff 0 1.1px, transparent 1.8px), radial-gradient(circle at 148px 107px, #fff 0 0.8px, transparent 1.5px), radial-gradient(circle at 60px 146px, #fff 0 0.9px, transparent 1.6px), radial-gradient(circle at 92px 26px, #fff 0 1.0px, transparent 1.7px), radial-gradient(circle at 96px 95px, #fff 0 0.8px, transparent 1.5px), radial-gradient(circle at 32px 144px, #fff 0 0.7px, transparent 1.4px), radial-gradient(circle at 105px 127px, #fff 0 1.0px, transparent 1.7px), radial-gradient(circle at 218px 198px, #fff 0 0.9px, transparent 1.6px), radial-gradient(circle at 299px 236px, #fff 0 0.9px, transparent 1.6px), radial-gradient(circle at 153px 63px, #fff 0 1.1px, transparent 1.8px), radial-gradient(circle at 124px 20px, #fff 0 1.0px, transparent 1.7px), radial-gradient(circle at 268px 126px, #fff 0 1.1px, transparent 1.8px) 0 0 / 300px 240px; animation: la-warp .7s linear infinite; opacity: .6; }
+#la .la-stars.s3 { background: radial-gradient(ellipse 18px 1.3px at 373px 229px, #fff 0 55%, transparent 100%), radial-gradient(ellipse 18px 1.3px at 147px 37px, #fff 0 55%, transparent 100%), radial-gradient(ellipse 18px 1.3px at 60px 262px, #fff 0 55%, transparent 100%), radial-gradient(ellipse 18px 1.3px at 214px 84px, #fff 0 55%, transparent 100%), radial-gradient(ellipse 18px 1.3px at 387px 175px, #fff 0 55%, transparent 100%) 0 0 / 420px 300px; animation: la-warp .35s linear infinite; opacity: .5; }
+@keyframes la-warp { to { translate: -50% 0; } }
+#la .la-earth-b { position: absolute; left: 8%; top: 50%; margin-top: -150px; animation: la-shrink 3.6s cubic-bezier(.3, .6, .4, 1) 3s both; }
+@keyframes la-shrink { from { scale: 1.2; translate: 0 0; } to { scale: .2; translate: -200px 60px; } }
+#la .la-dest-b { position: absolute; right: 6%; top: 50%; margin-top: -150px; animation: la-grow 3.6s cubic-bezier(.6, 0, .9, .5) 3s both; }
+@keyframes la-grow { from { scale: .12; translate: 120px -40px; } to { scale: 1.9; translate: -40px 0; } }
+#la .la-rocket-b { top: 50%; margin-top: -165px; rotate: 90deg; animation: la-cruise-in 1.1s var(--ease-out) 3.2s both, la-bob 1.2s ease-in-out 4.3s infinite alternate; }
+@keyframes la-cruise-in { from { translate: -1000px 0; } }
+@keyframes la-bob { to { translate: 0 -14px; } }
+#la .la-rocket-b .fb { scale: 1 1.5; }
+#la .la-cap { position: absolute; left: 0; right: 0; margin: 0; text-align: center; font-weight: 800; letter-spacing: -.01em; text-shadow: 0 5px 0 var(--ink); }
+#la .la-cap-b { bottom: 14%; font-size: 52px; animation: la-cap 2.4s var(--ease-out) 3.7s both; }
+@keyframes la-cap { 0% { opacity: 0; translate: 0 20px; } 15% { opacity: 1; translate: 0 0; } 85% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ---------- scene C: landing ---------- */
+#la .la-c { background: linear-gradient(#070B18, #141C3C 70%); }
+#la.mars .la-c { background: linear-gradient(#3A1B1E, #8A4A36 75%, #C27447); }
+@keyframes la-in { from { opacity: 0; } }
+#la .la-stars.still { width: 100%; background: radial-gradient(circle at 77px 250px, #fff 0 1.2px, transparent 1.9px), radial-gradient(circle at 342px 39px, #fff 0 1.4px, transparent 2.0999999999999996px), radial-gradient(circle at 293px 160px, #fff 0 1.1px, transparent 1.8px), radial-gradient(circle at 179px 254px, #fff 0 1.2px, transparent 1.9px), radial-gradient(circle at 233px 35px, #fff 0 1.4px, transparent 2.0999999999999996px), radial-gradient(circle at 138px 242px, #fff 0 1.3px, transparent 2.0px), radial-gradient(circle at 33px 31px, #fff 0 1.3px, transparent 2.0px), radial-gradient(circle at 158px 228px, #fff 0 1.1px, transparent 1.8px), radial-gradient(circle at 197px 177px, #fff 0 0.9px, transparent 1.6px), radial-gradient(circle at 236px 181px, #fff 0 1.0px, transparent 1.7px), radial-gradient(circle at 59px 252px, #fff 0 0.9px, transparent 1.6px), radial-gradient(circle at 147px 66px, #fff 0 1.3px, transparent 2.0px), radial-gradient(circle at 203px 200px, #fff 0 1.5px, transparent 2.2px), radial-gradient(circle at 254px 41px, #fff 0 1.0px, transparent 1.7px) 0 0 / 380px 280px; opacity: .55; }
+#la.mars .la-stars.still { opacity: .15; }
+#la .la-earth-c { position: absolute; right: 9%; top: 27%; scale: .3; transform-origin: 100% 0; }
+#la .la-sun-c { position: absolute; right: 12%; top: 29%; width: 70px; height: 70px; border-radius: 50%; background: #FFE9B8; box-shadow: 0 0 40px 14px rgba(255, 220, 160, .35); }
+#la .la-ground-c { position: absolute; left: 0; bottom: 0; width: 100%; height: 45%; }
+#la .la-ground-c .g1 { fill: #A9AEBC; stroke: #1E2430; stroke-width: 5; vector-effect: non-scaling-stroke; }
+#la .la-ground-c .g2 { fill: #C4C8D2; }
+#la .la-ground-c .pit { fill: #959AA9; }
+#la.mars .la-ground-c .g1 { fill: #B06A40; } #la.mars .la-ground-c .g2 { fill: #D08458; } #la.mars .la-ground-c .pit { fill: #9B5734; }
+#la .la-pad-c { position: absolute; left: 50%; bottom: 22%; width: 260px; height: 40px; margin-left: -130px; border-radius: 50%; background: rgba(5, 8, 20, .28); animation: la-shadow 2.6s cubic-bezier(.2, .7, .3, 1) 6.4s backwards; }
+@keyframes la-shadow { from { scale: .2; opacity: 0; } }
+#la .la-rocket-c { bottom: calc(22% + 6px); animation: la-descend 2.6s cubic-bezier(.2, .7, .3, 1) 6.4s backwards; }
+@keyframes la-descend { 0% { translate: 0 -1100px; rotate: -7deg; } 70% { rotate: 2deg; } 100% { translate: 0 0; rotate: 0deg; } }
+#la .la-rocket-c .la-rocket-svg { transform-origin: 50% 100%; animation: la-squash .5s var(--spring) 9s backwards; }
+@keyframes la-squash { 0% { scale: 1.06 .9; } 100% { scale: 1 1; } }
+#la .la-rocket-c .fc { scale: 0; animation: la-retro 2.9s linear 6.3s backwards, la-flicker .12s steps(2) 6.3s 22 alternate; }
+@keyframes la-retro { 0% { scale: 1 1.6; } 70% { scale: 1 1.1; } 90% { scale: .8 .6; } 100% { scale: 0 0; } }
+#la .la-hatch { transform-box: fill-box; transform-origin: 0 50%; }
+#la .la-c .la-hatch { scale: .12 1; animation: la-hatch .4s var(--ease-out) 9.6s backwards; }
+@keyframes la-hatch { from { scale: 1 1; } }
+#la .la-ladder { position: absolute; left: calc(50% - 8px); bottom: 22%; width: 16px; height: 86px; background: repeating-linear-gradient(#1E2430 0 4px, transparent 4px 18px); border-left: 4px solid #1E2430; border-right: 4px solid #1E2430; transform-origin: 50% 0; animation: la-ladder .4s var(--ease-out) 9.8s backwards; }
+@keyframes la-ladder { from { scale: 1 0; } }
+#la .la-dust { position: absolute; left: 50%; bottom: 22%; width: 0; height: 0; }
+#la .la-dust i { position: absolute; left: -45px; top: -50px; width: 90px; height: 70px; border-radius: 50%; background: #D6D9E0; box-shadow: 0 0 0 4px var(--ink); opacity: 0; animation: la-dust 1.8s var(--ease-out) calc(8.4s + var(--i) * .05s) both; }
+#la.mars .la-dust i { background: #E3A27A; }
+@keyframes la-dust { 0% { opacity: 0; translate: 0 0; scale: .3; } 20% { opacity: 1; } 100% { opacity: 0; translate: calc(var(--s) * (220px + var(--i) * 30px)) calc(-10px - var(--i) * 4px); scale: calc(1.2 + var(--i) * .1); } }
+#la .la-c { animation: la-in .5s ease-out 6.3s backwards, la-shake .09s linear 9s 5; }
+/* the crew hop out in low gravity, one after another */
+#la .la-crew { position: absolute; left: calc(50% + var(--x)); bottom: calc(22% - 6px); width: 46px; margin-left: -23px; text-align: center; animation: la-hop 1.5s linear calc(10s + var(--i) * .45s) backwards; }
+#la .la-crew svg { width: 64px; height: 95px; margin-left: -9px; }
+#la .la-crew span { position: absolute; left: 50%; bottom: 100%; translate: -50% -4px; padding: 1px 9px; border-radius: 999px; background: #F7F8F9; color: var(--ink); border: 2px solid var(--ink); font-size: 13px; font-weight: 800; }
+@keyframes la-hop {
+  0% { translate: calc(var(--x) * -1) -86px; scale: .6; opacity: 0; }
+  8% { opacity: 1; }
+  30% { translate: calc(var(--x) * -1 * .55) -12px; scale: 1; animation-timing-function: cubic-bezier(.3, 0, .7, 1); }
+  48% { translate: calc(var(--x) * -1 * .35) -70px; animation-timing-function: cubic-bezier(.3, 0, .7, 1); }
+  66% { translate: calc(var(--x) * -1 * .15) 0; }
+  82% { translate: calc(var(--x) * -1 * .05) -30px; }
+  100% { translate: 0 0; } }
+#la .la-flag { position: absolute; left: calc(50% + 230px); bottom: calc(22% - 4px); transform-origin: 8px 100%; animation: la-flag .6s var(--spring) 11.2s backwards; }
+@keyframes la-flag { from { scale: 1 0; } }
+#la .la-cap-c { top: 13%; font-size: 54px; animation: la-touch .6s var(--ease-out) 9.2s backwards; }
+@keyframes la-touch { from { opacity: 0; scale: .8; } }
+
+/* ---------- buttons ---------- */
+#la .la-skip, #la .la-go { position: absolute; z-index: 5; font-family: inherit; color: var(--ink); cursor: pointer; border: 3px solid var(--ink); }
+#la .la-skip { right: calc(var(--ex, 0px) + 28px); top: calc(var(--ey, 0px) + 24px); min-height: 48px; padding: 0 22px; border-radius: 14px; background: #F7F8F9; box-shadow: 0 5px 0 #7C8592; font-weight: 700; font-size: 18px; animation: la-out .3s ease-out 11.2s both; }
+#la .la-go { left: 50%; bottom: calc(var(--ey, 0px) + 40px); translate: -50% 0; padding: 18px 44px; border-radius: 18px; background: #F26A1B; box-shadow: 0 7px 0 #8E3A0B; font-weight: 800; font-size: 30px; animation: la-pop .5s var(--spring) 11.3s backwards; }
+@keyframes la-pop { from { opacity: 0; scale: .6; visibility: hidden; } }
+#la .la-skip:active, #la .la-go:active { translate: 0 3px; box-shadow: none; }
+#la .la-go:active { translate: -50% 3px; }
+
+/* reduced motion: the last frame, still */
+#la.still *, #la.still { animation: none !important; }
+#la.still .la-a, #la.still .la-b, #la.still .la-skip { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  #la *, #la { animation: none !important; }
+  #la .la-a, #la .la-b, #la .la-skip { display: none; }
+}

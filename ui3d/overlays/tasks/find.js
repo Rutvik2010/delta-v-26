@@ -100,6 +100,7 @@ export function mount(api) {
     api.sfx("click");
     const btn = rocksEl.querySelector('[data-r="' + i + '"]');
     if (i === iceAt[round - 1]) {
+      api.good();
       round += 1;
       miss = false;
       pips();

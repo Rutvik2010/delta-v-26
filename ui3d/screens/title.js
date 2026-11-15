@@ -126,23 +126,11 @@ export function mount(root, ctx) {
 </div>`;
 
   root.querySelector("#t-start").addEventListener("click", () => { ctx.sfx("click"); ctx.go("choose"); });
-  root.querySelector("#t-how").addEventListener("click", () => {
+  // "How to play" starts a real practice mission on the Moon with the interactive tour switched on.
+  root.querySelector("#t-how").addEventListener("click", async () => {
     ctx.sfx("click");
-    ctx.openOverlay((layer, close) => {
-      layer.innerHTML = `<div style="position: absolute; inset: 0; background: rgba(14,20,36,0.7); display: flex; align-items: center; justify-content: center; font-family: Lexend, system-ui, sans-serif; color: #1E2430">
-<div role="dialog" aria-modal="true" aria-labelledby="hp-title" class="dv-dialog" style="position: relative; width: 600px; box-sizing: border-box; padding: 32px 36px; border-radius: 18px; background: #EEF0F2; border: 3px solid #1E2430; box-shadow: 0 8px 0 #7C8592; display: flex; flex-direction: column; gap: 18px">
-<h2 id="hp-title" style="margin: 0; font-weight: 800; font-size: 36px; letter-spacing: -0.02em">How to play</h2>
-<ol style="margin: 0; padding-left: 28px; display: flex; flex-direction: column; gap: 10px; font-size: 20px; line-height: 1.4">
-<li>Each sol (day) you get 2 jobs.</li>
-<li>Pick a station, then pick a crew member to do the job.</li>
-<li>Keep Power, Oxygen, Shield and Food above zero.</li>
-<li>The supply ship lands on sol 30. Hold on until then!</li>
-</ol>
-<button type="button" id="hp-close" class="dv-key" style="${KEY} align-self: flex-end; padding: 14px 32px; min-height: 48px; background: #F26A1B; box-shadow: 0 6px 0 #8E3A0B; font-weight: 800; font-size: 22px">Close</button>
-</div></div>`;
-      const b = layer.querySelector("#hp-close");
-      b.addEventListener("click", () => close());
-      b.focus();
-    });
+    ctx.store.tutorial = true;
+    await ctx.startGame("moon", "recent");
+    ctx.go("game");
   });
 }

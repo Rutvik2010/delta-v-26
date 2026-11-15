@@ -122,7 +122,7 @@ export function mount(api) {
     [sx, sy] = sunXY();
     $("sl-sun").setAttribute("transform", "translate(" + sx + " " + sy + ")");
     const on = calc() >= 80;
-    if (on && !wasOn) api.sfx("charge");
+    if (on && !wasOn) { api.sfx("charge"); api.good(); }
     wasOn = on;
     charge = on ? Math.min(100, charge + dt * (api.easy ? 45 : 34)) : Math.max(0, charge - dt * (api.easy ? 8 : 12));
     update();
