@@ -83,6 +83,7 @@ export function createCtx({ stage, go }) {
     // Open a full-stage layer above the screen. build(layer, close) fills it; close(value) removes it and
     // resolves the returned promise with value. Escape closes it too, unless opts.noEscape.
     openOverlay(build, opts = {}) {
+      if (stage && stage.querySelector(".dv-overlay")) return Promise.resolve();
       return new Promise((resolve) => {
         const layer = document.createElement("div");
         layer.className = "dv-overlay";
