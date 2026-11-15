@@ -25,7 +25,7 @@ export function startTour(ctx, g3, probe) {
   // click (a quiz: return true for right, a hint string for wrong).
   const steps = [
     { say: `Welcome to ${mars ? "Jezero" : "Shackleton"} Base, Commander! I'm <b>Zuri</b>. Let's do a quick training mission together.`, next: "Let's go", skip: "I know how to play", dim: true },
-    { target: "#meters", say: "These 4 bars keep us alive. If one hits <b>zero</b>, the mission is over. Quick quiz: <b>tap the lowest bar!</b>",
+    { target: "#meters", keys: ".meter", say: "These 4 bars keep us alive. If one hits <b>zero</b>, the mission is over. Quick quiz: <b>tap the lowest bar!</b>",
       click: (e) => { const m = e.target.closest(".meter"); if (!m) return null; return m.id === "m-" + low() ? true : "Not that one. Look for the smallest number."; } },
     { corner: true, hand: { sel: ".board", mode: "swipe" }, say: "This is our base. <b>Drag it</b> to spin it around, or tap the arrow buttons. Give it a spin!",
       start: () => { mark.yaw = probe.yaw(); }, until: () => Math.abs(probe.yaw() - mark.yaw) > 20 },
@@ -36,7 +36,7 @@ export function startTour(ctx, g3, probe) {
       start: () => { mark.left = probe.state().actionsLeft; }, until: () => probe.state().actionsLeft < mark.left || probe.busy() },
     { wait: () => probe.busy() || overlayOpen(), target: "#m-food", say: "Look, <b>Food went up!</b> But jobs cost something too. Power went down a little.", next: "Got it" },
     { target: ".jobs", say: "You get <b>2 jobs</b> every sol (that's a day). You have 1 left. Whoever doesn't work gets to rest.", next: "Next" },
-    { target: "#fc", say: busyDays().length ? "This is the <b>Sun forecast</b>, with real NASA data. Yellow or red means flares that hurt the Shield. <b>Tap a busy Sun day.</b>" : "This is the <b>Sun forecast</b>, with real NASA data. Yellow or red days have flares that hurt the Shield.",
+    { target: "#fc", keys: "#fc .fday", say: busyDays().length ? "This is the <b>Sun forecast</b>, with real NASA data. Yellow or red means flares that hurt the Shield. <b>Tap a busy Sun day.</b>" : "This is the <b>Sun forecast</b>, with real NASA data. Yellow or red days have flares that hurt the Shield.",
       click: busyDays().length ? (e) => { const d = e.target.closest(".fday"); if (!d) return null; return d.querySelector(".wx-active, .wx-storm") ? true : "That day is calm. Find a yellow or red one."; } : null,
       next: busyDays().length ? null : "Next" },
     { target: "#b-tasks", hand: { sel: "#b-tasks", mode: "tap" }, say: "Earth sends us bonus goals. <b>Tap Mission Control</b> to see them.", until: missionsOpen },
@@ -66,6 +66,8 @@ export function startTour(ctx, g3, probe) {
   const $t = q(".co-text"), $hint = q(".co-hint"), $next = q(".co-next"), $skip = q(".co-skip"), dots = [...layer.querySelectorAll(".co-dots i")];
   let i = -1, raf = 0, tick = 0, stopped = false, hintTimer = 0, cheering = false;
 
+  const last = new WeakMap(); // element -> { prop: value } last written, so unchanged values aren't rewritten
+  const put = (el, prop, val) => { let m = last.get(el); if (!m) last.set(el, (m = {})); if (m[prop] === val) return; m[prop] = val; el.style[prop] = val; };
   const find = (sel) => !sel ? null : typeof sel === "function" ? sel() : g3.querySelector(sel);
   function place() {
     if (stopped) return;
@@ -87,34 +89,46 @@ export function startTour(ctx, g3, probe) {
     if (h && !cheering) {
       const b = local(h);
       handEl.className = "co-hand on " + st.hand.mode;
-      handEl.style.translate = `${Math.round(b.x + b.w / 2 - 18)}px ${Math.round(b.y + b.h / 2 - 8)}px`;
+      put(handEl, "translate", `${Math.round(b.x + b.w / 2 - 18)}px ${Math.round(b.y + b.h / 2 - 8)}px`);
     } else handEl.className = "co-hand";
     if (!el) {
-      spot.style.opacity = "0";
+      put(spot, "opacity", "0");
       // corner steps park the bubble top-left, under the meters, so the base and arrows stay clear
-      if (st.corner) bubble.style.translate = `24px 190px`;
-      else bubble.style.translate = `${Math.round((W - bw) / 2)}px ${Math.round(st.quiet ? H - bh - 24 : (H - bh) / 2)}px`;
+      if (st.corner) put(bubble, "translate", "24px 190px");
+      else put(bubble, "translate", `${Math.round((W - bw) / 2)}px ${Math.round(st.quiet ? H - bh - 24 : (H - bh) / 2)}px`);
       return;
     }
     const r = local(el), pad = 10;
-    spot.style.opacity = "1";
-    spot.style.translate = `${Math.round(r.x - pad)}px ${Math.round(r.y - pad)}px`;
-    spot.style.width = Math.round(r.w + pad * 2) + "px";
-    spot.style.height = Math.round(r.h + pad * 2) + "px";
+    put(spot, "opacity", "1");
+    put(spot, "translate", `${Math.round(r.x - pad)}px ${Math.round(r.y - pad)}px`);
+    put(spot, "width", Math.round(r.w + pad * 2) + "px");
+    put(spot, "height", Math.round(r.h + pad * 2) + "px");
     // bubble: below the target if there's room, else above, else beside it; always on screen
     let bx = r.x + r.w / 2 - bw / 2, by = r.y + r.h + pad + 22;
     if (by + bh > H - 16) by = r.y - pad - 22 - bh;
     if (by < 16) { by = Math.max(16, Math.min(H - bh - 16, r.y + r.h / 2 - bh / 2)); bx = r.x + r.w + pad + 22; if (bx + bw > W - 16) bx = r.x - pad - 22 - bw; }
     bx = Math.max(16, Math.min(W - bw - 16, bx));
-    bubble.style.translate = `${Math.round(bx)}px ${Math.round(by)}px`;
+    put(bubble, "translate", `${Math.round(bx)}px ${Math.round(by)}px`);
   }
 
+  // quiz steps: make the things you can tap reachable by keyboard (Tab, then Enter or Space)
+  let keyEls = [];
+  const onKeyEl = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick({ target: e.currentTarget }); } };
+  function clearKeys() {
+    keyEls.forEach((el) => { el.removeAttribute("tabindex"); el.removeAttribute("data-co-role"); el.removeEventListener("keydown", onKeyEl); if (el.getAttribute("role") === "button") el.setAttribute("role", el.dataset.coOldRole || ""); });
+    keyEls = [];
+  }
   function show(n) {
+    clearKeys();
     i = n;
     clearTimeout(hintTimer);
     const st = steps[i];
     if (!st) return finish();
     if (st.start) st.start();
+    if (st.keys && st.click) {
+      keyEls = [...g3.querySelectorAll(st.keys)];
+      keyEls.forEach((el, n) => { el.dataset.coOldRole = el.getAttribute("role") || ""; el.setAttribute("role", "button"); el.tabIndex = 0; el.addEventListener("keydown", onKeyEl); if (n === 0) setTimeout(() => el.focus({ preventScroll: true }), 80); });
+    }
     dots.forEach((d, j) => { d.className = j < i - 1 ? "done" : j === i - 1 ? "now" : ""; });
     $t.innerHTML = st.say;
     $hint.textContent = "";
@@ -157,6 +171,7 @@ export function startTour(ctx, g3, probe) {
     if (stopped) return;
     stopped = true;
     cancelAnimationFrame(raf); clearInterval(tick); clearTimeout(hintTimer);
+    clearKeys();
     document.removeEventListener("click", onClick, true);
     layer.remove();
     ctx.store.tutorial = false;
@@ -165,7 +180,7 @@ export function startTour(ctx, g3, probe) {
   // quiz taps on the real screen
   function onClick(e) {
     const st = steps[i];
-    if (!st || !st.click || cheering || layer.contains(e.target)) return;
+    if (!st || !st.click || cheering || (e.target && layer.contains(e.target))) return;
     const r = st.click(e);
     if (r === true) cheer();
     else if (typeof r === "string") { $hint.textContent = r; ctx.sfx("miss"); bubble.classList.remove("nudge"); void bubble.offsetWidth; bubble.classList.add("nudge"); }

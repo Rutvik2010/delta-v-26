@@ -10,8 +10,8 @@ const H = 340; // half the slab size in px
 
 // Where things stand on the slab (px from the centre). With the default 45° turn,
 // screen-front is (x + y) > 0 and screen-right is (x − y) > 0.
-const POS = { rest: [-220, 150], oxygen_gen: [10, 238], reinforce_shield: [-30, -30], grow_food: [190, -190], science: [236, 36] };
-const FEET = { rest: [-160, 178], oxygen_gen: [82, 196], reinforce_shield: [70, -64], grow_food: [126, -136], science: [142, 72] };
+const POS = { rest: [-220, 150], oxygen_gen: [10, 238], reinforce_shield: [-30, -30], grow_food: [160, -160], science: [236, 36] };
+const FEET = { rest: [-160, 178], oxygen_gen: [82, 196], reinforce_shield: [70, -64], grow_food: [104, -112], science: [142, 72] };
 const HOME = { maya: [70, 150], leo: [118, 118], zuri: [150, 70] };
 const DOOR = { maya: [58, 72], leo: [65, 65], zuri: [72, 58] };
 const PAD = [-40, -238];
@@ -119,8 +119,9 @@ function decals() {
   const rock = ([x, y, r]) => `<ellipse cx="${x + 4}" cy="${y + 5}" rx="${r}" ry="${r * 0.8}" fill="#050814" opacity=".25"/><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.8}" fill="url(#dc-rock)" stroke="#1E2430" stroke-width="2"/>`
     + `<ellipse cx="${x + r + 8}" cy="${y + 4}" rx="${Math.max(3.5, r / 2)}" ry="${Math.max(2.5, r * 0.35)}" fill="url(#dc-rock)" stroke="#1E2430" stroke-width="2"/>`;
   const shadow = (id) => `<ellipse cx="${H + POS[id][0] + 14}" cy="${H + POS[id][1] - 14}" rx="65" ry="35" fill="url(#dc-shadow)"/>`;
-  return defs + CRATERS.map(crat).join("") + BOULDERS.map(rock).join("") + JOB_ORDER.map(shadow).join("")
-    + `<rect x="${H + ROVER[0] - 10}" y="${H + ROVER[1] - 110}" width="120" height="120" rx="14" fill="none" stroke="rgba(30,36,48,.16)" stroke-width="6" stroke-dasharray="1 10" stroke-linecap="round"/>`;
+  // clipped to the round ground outline, so nothing can hang over the edge into space
+  return defs.replace("</defs>", `<clipPath id="dc-clip"><path d="${TOP_D}"/></clipPath></defs>`) + `<g clip-path="url(#dc-clip)">` + CRATERS.map(crat).join("") + BOULDERS.map(rock).join("") + JOB_ORDER.map(shadow).join("")
+    + `<rect x="${H + ROVER[0] - 10}" y="${H + ROVER[1] - 110}" width="120" height="120" rx="14" fill="none" stroke="rgba(30,36,48,.16)" stroke-width="6" stroke-dasharray="1 10" stroke-linecap="round"/></g>`;
 }
 
 // ---- flat sprites (toy style: 3px ink outlines, flat fills); only the crater flag is still one ----
