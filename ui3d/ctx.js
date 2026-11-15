@@ -4,6 +4,14 @@ import { loadRealWeather } from "../engine/donki.js";
 import { playSfx } from "../ui/audio.js";
 import { esc } from "./parts.js";
 
+function getInitialMuted() {
+  try {
+    return localStorage.getItem("dv_muted") === "true";
+  } catch (e) {
+    return false;
+  }
+}
+
 // One shared session. Screens read and write this.
 export const store = {
   site: "moon",          // "moon" | "mars"
@@ -14,15 +22,43 @@ export const store = {
   minigames: true,       // kept for old callers; every job now always plays its task
   difficulty: "normal",  // "easy" | "normal": mini game timers and goals (set on the briefing screen)
   streak: 0,             // mini games won in a row
+  muted: getInitialMuted(),
 };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export function createCtx({ stage, go }) {
+  const muteListeners = new Set();
   const ctx = {
     stage, store, engine, go, esc, sleep, loadRealWeather,
     root: null, // set by the router to the current screen's container
-    sfx(name) { try { playSfx(name); } catch (e) { /* sound is optional */ } },
+    get muted() {
+      return store.muted;
+    },
+    set muted(val) {
+      store.muted = !!val;
+      try {
+        localStorage.setItem("dv_muted", String(store.muted));
+      } catch (e) { /* ignore */ }
+      muteListeners.forEach((fn) => {
+        try { fn(store.muted); } catch (e) { /* listener error */ }
+      });
+    },
+    isMuted() {
+      return store.muted;
+    },
+    toggleMute() {
+      ctx.muted = !store.muted;
+      return store.muted;
+    },
+    onMuteChange(fn) {
+      muteListeners.add(fn);
+      return () => muteListeners.delete(fn);
+    },
+    sfx(name) {
+      if (store.muted) return;
+      try { playSfx(name); } catch (e) { /* sound is optional */ }
+    },
 
     // Start a new mission with the chosen site and data mode. Returns the engine state.
     async startGame(site = store.site, mode = store.planMode) {

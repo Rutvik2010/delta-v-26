@@ -1,67 +1,27 @@
 [
   {
+    "name": "NASA CCMC DONKI solar flare records",
+    "used_for": "Real solar flare records for the two data modes: May 2024 storm days and the last 30 days (15 Oct to 13 Nov 2026)",
+    "url": "https://ccmc.gsfc.nasa.gov/tools/DONKI/"
+  },
+  {
     "name": "NASA Solar System Exploration: Moon",
-    "url": "https://science.nasa.gov/moon/",
-    "live": true
+    "used_for": "Reference for facts in the in-game text",
+    "url": "https://science.nasa.gov/moon/"
   },
   {
     "name": "NASA Mars Exploration Program",
-    "url": "https://mars.nasa.gov/",
-    "live": true
+    "used_for": "Reference for facts in the in-game text",
+    "url": "https://mars.nasa.gov/"
   },
   {
-    "name": "NASA Artemis Mission Architecture",
-    "url": "https://www.nasa.gov/humans-in-space/artemis/",
-    "live": true
+    "name": "Lexend font",
+    "used_for": "Primary game font (SIL Open Font License, loaded via Google Fonts in index.html)",
+    "url": "https://fonts.google.com/specimen/Lexend"
   },
   {
-    "name": "NASA Space Radiation Analysis Group (SRAG)",
-    "url": "https://www.nasa.gov/johnson/space-radiation-analysis-group/",
-    "live": true
-  },
-  {
-    "name": "NASA JPL Deep Space Network (DSN)",
-    "url": "https://www.jpl.nasa.gov/missions/deep-space-network-dsn",
-    "live": true
-  },
-  {
-    "name": "ESA Human and Robotic Exploration Archive",
-    "url": "https://www.esa.int/Science_Exploration/Human_and_Robotic_Exploration",
-    "live": false
-  },
-  {
-    "name": "NASA CCMC DONKI solar flare records: May 2024 and a 30-day snapshot to 13 Nov 2026",
-    "url": "https://ccmc.gsfc.nasa.gov/tools/DONKI/",
-    "live": true
-  },
-  {
-    "name": "Fredoka font (SIL Open Font License)",
-    "url": "https://github.com/google/fonts/blob/main/ofl/fredoka/OFL.txt",
-    "live": true
-  },
-  {
-    "name": "Nunito font (SIL Open Font License)",
-    "url": "https://github.com/google/fonts/blob/main/ofl/nunito/OFL.txt",
-    "live": true
-  },
-  {
-    "name": "Archivo font (planned; SIL Open Font License)",
-    "url": "https://github.com/google/fonts/blob/main/ofl/archivo/OFL.txt",
-    "live": false
-  },
-  {
-    "name": "IBM Plex Mono font (planned; SIL Open Font License)",
-    "url": "https://github.com/google/fonts/blob/main/ofl/ibmplexmono/OFL.txt",
-    "live": false
-  },
-  {
-    "name": "Mars background assets/bg-mars.png \u2014 source and license unverified",
-    "url": "",
-    "live": false
-  },
-  {
-    "name": "Sound effects \u2014 synthesized in ui/audio.js; no third-party sound files",
-    "url": "",
-    "live": false
+    "name": "Sound effects",
+    "used_for": "Synthesized with Web Audio API in ui/audio.js; no third-party sound files",
+    "url": ""
   }
 ]
