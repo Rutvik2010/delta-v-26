@@ -38,7 +38,7 @@ function cyl(r, h, o = {}) {
   let sides = "";
   for (let i = 0; i < n; i++) {
     const a = (i * 360) / n, lit = 0.72 + 0.28 * Math.max(0, Math.cos(((a - 200) * Math.PI) / 180));
-    sides += `<i class="f s" style="width: ${s}px; height: ${h}px; left: ${r - s / 2}px; top: ${r - h / 2}px; filter: brightness(${lit.toFixed(2)}); transform: translateZ(${h / 2}px) rotateZ(${a}deg) rotateX(-90deg) translateZ(${ap}px)"></i>`;
+    sides += `<i class="f s" style="width: ${s}px; height: ${h}px; left: ${r - s / 2}px; top: ${r - h / 2}px; --sh: ${(1 - lit).toFixed(2)}; transform: translateZ(${h / 2}px) rotateZ(${a}deg) rotateX(-90deg) translateZ(${ap}px)"></i>`;
   }
   return `<div class="cyl ${cls}" style="width: ${2 * r}px; height: ${2 * r}px; left: ${x}px; top: ${y}px; transform: translate(-50%, -50%) translateZ(${z}px)">${sides}<i class="f t" style="width: ${2 * r}px; height: ${2 * r}px; transform: translateZ(${h}px)">${t}</i></div>`;
 }
@@ -51,21 +51,36 @@ ${box(12, 12, 124, { cls: "white" })}
 ${cyl(10, 40, { x: 18, y: -12, z: 62, n: 10, cls: "white" })}
 ${cyl(20, 92, { x: -38, y: 62, n: 14, cls: "tank", t: `<b class="shine"></b>` })}`,
   // the habitat buried under rings of piled-up dirt (a stepped dome), with an airlock poking out
-  reinforce_shield: () => `${cyl(94, 12, { n: 22, cls: "plinth" })}
-${[[86, 22, 12], [77, 18, 34], [65, 16, 52], [50, 14, 68], [32, 11, 82]].map(([r, h, z], i) => cyl(r, h, { z, n: 22, cls: "dirt" + (i % 2 ? " d2" : ""), t: `<b class="clods"></b>` })).join("")}
-${cyl(17, 8, { z: 93, n: 12, cls: "white", t: `<b class="hatch"></b>` })}
-${box(4, 4, 30, { x: 6, y: -6, z: 101, cls: "white" })}${box(10, 10, 4, { x: 6, y: -6, z: 131, cls: "beacon" })}
+  reinforce_shield: () => `${cyl(94, 12, { n: 14, cls: "plinth" })}
+${[[86, 26, 12], [72, 22, 38], [54, 18, 60], [33, 14, 78]].map(([r, h, z], i) => cyl(r, h, { z, n: 14, cls: "dirt" + (i % 2 ? " d2" : ""), t: `<b class="clods"></b>` })).join("")}
+${cyl(17, 8, { z: 92, n: 8, cls: "white", t: `<b class="hatch"></b>` })}
+${box(4, 4, 30, { x: 6, y: -6, z: 100, cls: "white" })}${box(10, 10, 4, { x: 6, y: -6, z: 130, cls: "beacon" })}
 ${box(44, 46, 50, { x: 70, y: 70, z: 12, cls: "white airlock", py: `<b class="door"></b>`, px: `<b class="door"></b>`, t: `<b class="vent"></b>` })}
 ${box(18, 18, 10, { x: -58, y: 52, z: 12, cls: "white", px: `<b class="lamp"></b>` })}`,
   grow_food: () => `${box(128, 100, 70, { cls: "glass", t: `<b class="roof"></b>`, py: `<b class="frame"></b>`, px: `<b class="frame"></b>`, ny: `<b class="frame"></b>`, nx: `<b class="frame"></b>` })}
 ${box(128, 10, 10, { z: 70, cls: "ridge" })}`,
 };
 
-// ---- terrain: craters with raised rims and chunky boulders ----
-// crater: a sunken bowl inside a low rim wall. The big one (main) is the science crater.
-const crater = (r, main = false) => `<div class="flat bowl${main ? " main" : ""}" style="width: ${2 * r}px; height: ${2 * r}px"></div>${cyl(r + 5, main ? 10 : Math.max(4, Math.round(r / 5)), { n: main ? 22 : 14, cls: "rimwall" })}`;
-// boulder: a squat seven-sided rock with a smaller cap, plus a pebble beside it
-const boulder = (r) => `${cyl(r, Math.round(r * 0.7), { n: 7, cls: "rockc" })}${cyl(Math.round(r * 0.62), Math.round(r * 0.45), { z: Math.round(r * 0.7), n: 7, cls: "rockc r2" })}${cyl(Math.max(3, Math.round(r * 0.35)), 4, { x: r + 6, y: 4, n: 6, cls: "rockc" })}`;
+// ---- ground decorations: craters, boulders, building shadows and rover tracks ----
+// All painted into ONE flat SVG on the ground (shared with the walking paths). Every separate 3D layer
+// costs frame time, because the whole scene is recomposited whenever anything on screen moves.
+// Coordinates are slab pixels (0..680); craters fake a raised rim with a lit edge and a shadowed edge.
+const CRATERS = [[POS.science[0] + H, POS.science[1] + H, 76], [82, 164, 26], [551, 562, 30], [110, 600, 20], [420, 84, 22], [640, 250, 18], [230, 640, 14], [560, 500, 12]];
+const BOULDERS = [[47, 351, 12], [650, 120, 9], [420, 650, 11], [230, 430, 8], [620, 215, 10], [330, 500, 6], [640, 600, 9]];
+function decals() {
+  const v = (n) => `style="fill: var(${n})"`;
+  const defs = `<defs><radialGradient id="dc-pit" cx="44%" cy="42%" r="60%"><stop offset="0" style="stop-color: var(--pit2)"/><stop offset="1" style="stop-color: var(--pit1)"/></radialGradient>
+<radialGradient id="dc-rock" cx="34%" cy="30%" r="70%"><stop offset="0" style="stop-color: var(--rock2)"/><stop offset="1" style="stop-color: var(--rock)"/></radialGradient>
+<radialGradient id="dc-shadow"><stop offset=".6" stop-color="#050814" stop-opacity=".3"/><stop offset="1" stop-color="#050814" stop-opacity="0"/></radialGradient></defs>`;
+  const crat = ([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r + 7}" ${v("--rim")} stroke="rgba(30,36,48,.35)" stroke-width="${r > 50 ? 3 : 2}"/>`
+    + `<circle cx="${x - 2}" cy="${y - 2}" r="${r + 5}" fill="#fff" opacity=".28"/><circle cx="${x + 2}" cy="${y + 2}" r="${r + 1}" fill="#000" opacity=".16"/>`
+    + `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#dc-pit)"/><circle cx="${x + r * 0.22}" cy="${y + r * 0.26}" r="${r * 0.36}" fill="#fff" opacity=".2"/>`;
+  const rock = ([x, y, r]) => `<ellipse cx="${x + 4}" cy="${y + 5}" rx="${r}" ry="${r * 0.8}" fill="#050814" opacity=".25"/><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.8}" fill="url(#dc-rock)" stroke="#1E2430" stroke-width="2"/>`
+    + `<ellipse cx="${x + r + 8}" cy="${y + 4}" rx="${Math.max(3.5, r / 2)}" ry="${Math.max(2.5, r * 0.35)}" fill="url(#dc-rock)" stroke="#1E2430" stroke-width="2"/>`;
+  const shadow = (id) => `<ellipse cx="${H + POS[id][0] + 14}" cy="${H + POS[id][1] - 14}" rx="65" ry="35" fill="url(#dc-shadow)"/>`;
+  return defs + CRATERS.map(crat).join("") + BOULDERS.map(rock).join("") + JOB_ORDER.map(shadow).join("")
+    + `<rect x="${H + ROVER[0] - 10}" y="${H + ROVER[1] - 110}" width="120" height="120" rx="14" fill="none" stroke="rgba(30,36,48,.16)" stroke-width="6" stroke-dasharray="1 10" stroke-linecap="round"/>`;
+}
 
 // ---- flat sprites (toy style: 3px ink outlines, flat fills); only the crater flag is still one ----
 const SPR = {
@@ -76,7 +91,7 @@ const SPR = {
 <path class="sparkle" d="M100 94l2-7 2 7 7 2-7 2-2 7-2-7-7-2z" fill="#fff"/><path class="sparkle s2" d="M66 108l1.5-5 1.5 5 5 1.5-5 1.5-1.5 5-1.5-5-5-1.5z" fill="#fff"/></svg>`,
 };
 // the rover is a little 3D model too: a body, a cab, a mast and four wheels standing on their edges
-const wheel = (x, y) => `<div class="wheel" style="left: ${x}px; top: ${y}px">${cyl(9, 7, { n: 12, cls: "tyre", t: `<b class="hub"></b>` })}</div>`;
+const wheel = (x, y) => `<div class="wheel" style="left: ${x}px; top: ${y}px"><i class="disc"></i></div>`;
 const rover = () => `<div class="rv">${wheel(-17, -21)}${wheel(17, -21)}${wheel(-17, 14)}${wheel(17, 14)}
 ${box(58, 34, 14, { z: 9, cls: "white", px: `<b class="hl"></b>`, py: `<b class="stripe"></b>`, ny: `<b class="stripe"></b>` })}
 ${box(24, 30, 15, { x: 10, z: 23, cls: "white", px: `<b class="cabwin"></b>`, py: `<b class="sidewin"></b>`, ny: `<b class="sidewin"></b>` })}
@@ -87,24 +102,34 @@ ${box(3, 3, 22, { x: 18, y: -12, z: 38, cls: "white" })}${box(8, 8, 4, { x: 18, 
 const DOME = () => `<svg width="270" height="230" viewBox="0 0 270 230" aria-hidden="true">
 <ellipse class="dome" cx="135" cy="138" rx="128" ry="124" fill="#9B7BF7" fill-opacity=".12" stroke="#9B7BF7" stroke-width="4" stroke-dasharray="10 8" style="opacity: var(--shield-op, .8)"/>
 <path class="dome" d="M40 120 a96 96 0 0 1 64 -80" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".5" style="opacity: calc(var(--shield-op, .8) * .6)"/></svg>`;
-const plant = (i) => `<svg width="34" height="44" viewBox="0 0 34 44" aria-hidden="true"><g class="sway" style="animation-delay: ${-i * 0.6}s"><path d="M17 44V22" stroke="#2F7A2C" stroke-width="4" stroke-linecap="round"/><circle cx="17" cy="16" r="12" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/>${i % 2 ? `<circle cx="13" cy="13" r="3" fill="#FF7AD9"/>` : ""}</g></svg>`;
+const plant = (i) => `<svg width="34" height="44" viewBox="0 0 34 44" aria-hidden="true" style="animation-delay: ${-i * 0.6}s"><g><path d="M17 44V22" stroke="#2F7A2C" stroke-width="4" stroke-linecap="round"/><circle cx="17" cy="16" r="12" fill="#5CBF5A" stroke="#1E2430" stroke-width="2.5"/>${i % 2 ? `<circle cx="13" cy="13" r="3" fill="#FF7AD9"/>` : ""}</g></svg>`;
 const shipFlag = () => `<svg width="56" height="90" viewBox="0 0 56 90" aria-hidden="true"><path d="M10 88V10" stroke="#1E2430" stroke-width="4" stroke-linecap="round"/><rect x="12" y="6" width="40" height="28" rx="4" fill="#F5C518" stroke="#1E2430" stroke-width="3"/><text id="shipn" x="32" y="27" text-anchor="middle" font-family="Lexend, sans-serif" font-weight="800" font-size="17" fill="#1E2430"></text></svg>`;
 const astro = (color) => `<svg class="fig" width="50" height="74" viewBox="0 0 44 70" aria-hidden="true"><rect x="9" y="17" width="26" height="28" rx="5" fill="#c9cedb" stroke="#1E2430" stroke-width="2"/><rect x="4" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="31" y="24" width="9" height="21" rx="4.5" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="13" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="22.5" y="43" width="8.5" height="21" rx="3" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="12" y="21" width="20" height="26" rx="7" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="12" y="34" width="20" height="5" fill="${color}"/><circle cx="22" cy="12" r="11" fill="#f2f4fa" stroke="#1E2430" stroke-width="2"/><rect x="14" y="6" width="16" height="11" rx="5.5" fill="#E9B44C" stroke="#1E2430" stroke-width="1.5"/><path d="M17 9h5" stroke="#FFF3C4" stroke-width="2" stroke-linecap="round"/></svg>`;
 
+// The sky: one still SVG (stars, flare rays) plus small moving pieces placed on top of it.
+// Moving pieces are kept SMALL on purpose: the browser redraws only the area that changed, so a
+// full-screen layer that moves would redraw the whole 3D base every frame (that was the lag).
+// --ox / --oy / --k (set in mount) map the sky's 1280x800 picture onto the screen ("slice" fit),
+// so at(x, y) puts an element exactly on a point of the picture.
+const at = (x, y, w, h) => `left: calc(var(--ox) + var(--k) * ${x - w / 2}px); top: calc(var(--oy) + var(--k) * ${y - h / 2}px); width: calc(var(--k) * ${w}px); height: calc(var(--k) * ${h}px)`;
 function skySvg(mars) {
   const stars = [];
   for (let i = 0; i < 70; i++) stars.push([(i * 397) % 1280, (i * 211 + 40) % 800, 0.8 + (i % 3) * 0.6]);
-  return `<svg class="sky" viewBox="0 0 1280 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-${stars.map(([x, y, r], i) => `<circle class="twinkle ${"abc"[i % 3]}" cx="${x}" cy="${y}" r="${r}" fill="${mars ? "#F6D9C4" : "#F3F4F6"}"/>`).join("")}
-<line class="shoot" x1="980" y1="180" x2="620" y2="320" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-<line class="shoot s2" x1="420" y1="160" x2="120" y2="300" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-${mars ? `<g fill="#E8A878" opacity=".22"><rect class="dust" x="-200" y="420" width="1700" height="34" rx="17"/><rect class="dust d2" x="-200" y="500" width="1700" height="22" rx="11"/></g>`
-    : `<g class="earth"><g transform="translate(520 180)"><circle r="20" fill="#3D7BD9" stroke="#1E2430" stroke-width="3"/><path d="M-14 -6 C-8 -13 0 -11 1 -5 C2 1 -4 2 -5 7 C-6 12 -12 9 -14 5Z" fill="#5CBF5A"/><path d="M2 -20 A20 20 0 0 1 2 20 A15 20 0 0 0 2 -20Z" fill="#0B1020" opacity=".4"/></g></g>`}
-<g class="sun"><g transform="translate(108 250)"><circle r="${mars ? 40 : 56}" fill="#FFE07A" opacity=".18"/>
-<g class="rays" stroke="#F5C518" stroke-width="6" stroke-linecap="round">${Array.from({ length: 8 }, (_, i) => { const a = i * Math.PI / 4, r1 = mars ? 32 : 46, r2 = mars ? 42 : 60; return `<line x1="${(Math.cos(a) * r1).toFixed(1)}" y1="${(Math.sin(a) * r1).toFixed(1)}" x2="${(Math.cos(a) * r2).toFixed(1)}" y2="${(Math.sin(a) * r2).toFixed(1)}"/>`; }).join("")}</g>
-<circle r="${mars ? 24 : 36}" fill="#F5C518" stroke="#1E2430" stroke-width="3"/></g></g>
-<g class="streaks s-active" stroke="#F5C518" stroke-width="3" stroke-linecap="round"><line x1="108" y1="250" x2="560" y2="420"/><line x1="108" y1="250" x2="640" y2="330"/><line x1="108" y1="250" x2="480" y2="520"/></g>
-<g class="streaks s-storm" stroke="#FF6A3D" stroke-width="5" stroke-linecap="round"><line x1="108" y1="250" x2="640" y2="440"/><line x1="108" y1="250" x2="700" y2="320"/><line x1="108" y1="250" x2="540" y2="560"/></g></svg>`;
+  const fill = mars ? "#F6D9C4" : "#F3F4F6";
+  const tw = (i, y) => i % 4 === 0 && y < 200; // a few stars high in the sky twinkle (each its own tiny element, away from the base)
+  const r1 = mars ? 32 : 46, r2 = mars ? 42 : 60;
+  const layer = (cls, body) => `<svg class="sky ${cls}" viewBox="0 0 1280 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${body}</svg>`;
+  return layer("base", stars.map(([x, y, r], i) => tw(i, y) ? "" : `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" opacity="${[0.5, 0.8, 0.65][i % 3]}"/>`).join(""))
+    + layer("streaks s-active", `<g stroke="#F5C518" stroke-width="3" stroke-linecap="round"><line x1="108" y1="250" x2="560" y2="420"/><line x1="108" y1="250" x2="640" y2="330"/><line x1="108" y1="250" x2="480" y2="520"/></g>`)
+    + layer("streaks s-storm", `<g stroke="#FF6A3D" stroke-width="5" stroke-linecap="round"><line x1="108" y1="250" x2="640" y2="440"/><line x1="108" y1="250" x2="700" y2="320"/><line x1="108" y1="250" x2="540" y2="560"/></g>`)
+    + `<div class="skybits" aria-hidden="true">`
+    + stars.map(([x, y, r], i) => tw(i, y) ? `<i class="star ${"abc"[(i / 4) % 3]}" style="${at(x, y, r * 2, r * 2)}; background: ${fill}"></i>` : "").join("")
+    + `<i class="shoot" style="${at(940, 195, 90, 3)}"></i><i class="shoot s2" style="${at(385, 176, 76, 2)}"></i>`
+    + (mars ? `<i class="dust" style="${at(640, 437, 1700, 34)}"></i><i class="dust d2" style="${at(640, 511, 1700, 22)}"></i>`
+      : `<svg class="earth" viewBox="-26 -26 52 52" style="${at(520, 180, 52, 52)}"><circle r="20" fill="#3D7BD9" stroke="#1E2430" stroke-width="3"/><path d="M-14 -6 C-8 -13 0 -11 1 -5 C2 1 -4 2 -5 7 C-6 12 -12 9 -14 5Z" fill="#5CBF5A"/><path d="M2 -20 A20 20 0 0 1 2 20 A15 20 0 0 0 2 -20Z" fill="#0B1020" opacity=".4"/></svg>`)
+    + `<div class="sun" style="${at(108, 250, 140, 140)}"><svg class="rays" viewBox="-70 -70 140 140"><circle r="${mars ? 40 : 56}" fill="#FFE07A" opacity=".18"/><g stroke="#F5C518" stroke-width="6" stroke-linecap="round">${Array.from({ length: 8 }, (_, i) => { const an = i * Math.PI / 4; return `<line x1="${(Math.cos(an) * r1).toFixed(1)}" y1="${(Math.sin(an) * r1).toFixed(1)}" x2="${(Math.cos(an) * r2).toFixed(1)}" y2="${(Math.sin(an) * r2).toFixed(1)}"/>`; }).join("")}</g></svg>`
+    + `<svg class="disc" viewBox="-70 -70 140 140"><circle r="${mars ? 24 : 36}" fill="#F5C518" stroke="#1E2430" stroke-width="3"/></svg></div>`
+    + `</div>`;
 }
 
 export function mount(root, ctx) {
@@ -121,7 +146,7 @@ export function mount(root, ctx) {
   const wait = (ms) => new Promise((r) => later(r, ms));
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  const slabs = Array.from({ length: 12 }, (_, i) => `<div class="slab${i % 4 === 2 ? " band" : ""}${i === 11 ? " base" : ""}" style="transform: translateZ(${-(i + 1) * 4}px)"></div>`).join("");
+  const slabs = Array.from({ length: 6 }, (_, i) => `<div class="slab${i % 2 === 1 ? " band" : ""}${i === 5 ? " base" : ""}" style="transform: translateZ(${-(i + 1) * 8}px)"></div>`).join("");
   const pt = (p) => `${H + p[0]} ${H + p[1]}`;
   const paths = [...JOB_ORDER.map((id) => FEET[id]), [PAD[0] + 40, PAD[1] + 40]].map((f, i) => `<path id="pa-${JOB_ORDER[i] || "pad"}" d="M${pt(DOOR_C)} L${pt(f)}"/>`).join("");
   const bbAt = (p) => `--x: ${p[0]}; --y: ${p[1]}; --yaw: ${yaw}deg`;
@@ -131,15 +156,10 @@ export function mount(root, ctx) {
   ${skySvg(mars)}
   <div class="stage3d"><div class="board" id="board" style="--yaw: ${yaw}deg">
     ${slabs}<div class="top"></div>
-    <div class="model terrain" style="left: ${H + POS.science[0]}px; top: ${H + POS.science[1]}px">${crater(76, true)}</div>
-    ${[[82, 164, 26], [551, 562, 30], [110, 600, 20], [420, 84, 22], [640, 250, 18], [230, 640, 14], [560, 500, 12]].map(([x, y, r]) => `<div class="model terrain" style="left: ${x}px; top: ${y}px">${crater(r)}</div>`).join("")}
-    ${[[47, 351, 12, 20], [650, 120, 9, 70], [420, 650, 11, 10], [230, 430, 8, 45], [620, 215, 10, 30], [330, 500, 6, 15], [640, 600, 9, 50]].map(([x, y, r, a]) => `<div class="model terrain" style="left: ${x}px; top: ${y}px; rotate: z ${a}deg">${boulder(r)}</div>`).join("")}
-    <div class="flat tracks" style="left: ${H + ROVER[0] + 50}px; top: ${H + ROVER[1] - 50}px"></div>
-    <div class="model padm" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px">${cyl(76, 10, { n: 20, cls: "plinth" })}</div>
+    <div class="model padm" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px">${cyl(76, 10, { n: 12, cls: "plinth" })}</div>
     <div class="flat pad" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px; transform: translate(-50%, -50%) translateZ(11px)"></div>
-    <svg class="paths" viewBox="0 0 ${H * 2} ${H * 2}" aria-hidden="true">${paths}</svg>
+    <svg class="paths" viewBox="0 0 ${H * 2} ${H * 2}" aria-hidden="true">${decals()}${paths}</svg>
     <div class="flat flood" style="left: ${H + POS.reinforce_shield[0]}px; top: ${H + POS.reinforce_shield[1]}px"></div><div class="flat flood" style="left: ${H + POS.grow_food[0]}px; top: ${H + POS.grow_food[1]}px"></div>
-    ${JOB_ORDER.map((id) => `<div class="flat shadow" style="left: ${H + POS[id][0] + 14}px; top: ${H + POS[id][1] - 14}px"></div>`).join("")}
     ${JOB_ORDER.map((id) => `<div class="flat ring" id="ring-${id}" style="left: ${H + POS[id][0]}px; top: ${H + POS[id][1]}px"></div>`).join("")}
     <div class="shade"></div>
     <div class="bb" style="${bbAt([PAD[0] + 55, PAD[1] - 10])}" aria-hidden="true">${shipFlag()}</div>
@@ -184,6 +204,17 @@ export function mount(root, ctx) {
   // let the game bleed into the letterbox so it fills the whole window
   const stageEl = document.getElementById("stage");
   if (stageEl) stageEl.classList.add("bleed");
+  // map the sky picture (1280x800, "slice" fit) onto the screen for the small sky pieces
+  const placeSun = () => {
+    const W = g3.offsetWidth, Hh = g3.offsetHeight;
+    if (!W || !Hh) return;
+    const k = Math.max(W / 1280, Hh / 800);
+    g3.style.setProperty("--k", k.toFixed(4));
+    g3.style.setProperty("--ox", (W / 2 - 640 * k).toFixed(1) + "px");
+    g3.style.setProperty("--oy", (Hh / 2 - 400 * k).toFixed(1) + "px");
+  };
+  placeSun();
+  window.addEventListener("resize", placeSun);
   root.style.overflow = "visible";
 
   // ---------- turning the base ----------
@@ -544,5 +575,5 @@ ${CREW.map((c) => {
   });
 
   draw();
-  return () => { alive = false; document.removeEventListener("keydown", onKey); timers.forEach(clearTimeout); if (stageEl) stageEl.classList.remove("bleed"); };
+  return () => { alive = false; document.removeEventListener("keydown", onKey); timers.forEach(clearTimeout); if (stageEl) stageEl.classList.remove("bleed"); window.removeEventListener("resize", placeSun); };
 }

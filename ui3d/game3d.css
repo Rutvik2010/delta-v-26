@@ -55,14 +55,17 @@
 #g3 .flat { position: absolute; transform: translate(-50%, -50%) translateZ(1px); pointer-events: none; }
 /* terrain models: sunken bowls inside raised rims, and boulders */
 #g3 .terrain { pointer-events: none; }
-#g3 .bowl { border-radius: 50%; background: radial-gradient(circle at 58% 60%, rgba(255, 255, 255, .22) 0 18%, transparent 46%), radial-gradient(circle at 42% 40%, var(--pit2) 0 35%, var(--pit1) 72%, var(--ground2) 100%); box-shadow: inset 6px 8px 0 rgba(0, 0, 0, .18); }
-#g3 .bowl.main { background: radial-gradient(circle at 60% 62%, rgba(255, 255, 255, .28) 0 14%, transparent 40%), radial-gradient(circle at 42% 40%, var(--pit2) 0 40%, var(--pit1) 75%, var(--ground2) 100%); box-shadow: inset 10px 14px 0 rgba(0, 0, 0, .22); }
-#g3 .rimwall { --fc: var(--rim); }
-#g3 .rimwall .f.t { display: none; }
-#g3 .rockc { --fc: var(--rock); }
-#g3 .rockc.r2 { --fc: var(--rock2); }
+/* craters: lit rim on the far side, shadowed rim near the Sun, dark sunken bowl, bright inner wall */
+#g3 .crat { border-radius: 50%;
+  background: radial-gradient(circle at 56% 58%, rgba(255, 255, 255, .26) 0 14%, transparent 34%),
+    radial-gradient(circle at 44% 42%, var(--pit2) 0 38%, var(--pit1) 60%, transparent 61%),
+    radial-gradient(circle, var(--rim) 0 66%, var(--ground2) 72%, transparent 73%);
+  box-shadow: inset -5px -6px 0 rgba(255, 255, 255, .35), inset 5px 6px 0 rgba(0, 0, 0, .18), 0 0 0 2px rgba(30, 36, 48, .35); }
+#g3 .crat.main { box-shadow: inset -8px -9px 0 rgba(255, 255, 255, .35), inset 9px 10px 0 rgba(0, 0, 0, .2), 0 0 0 3px rgba(30, 36, 48, .4); }
+#g3 .bould { border-radius: 46% 54% 40% 60% / 60% 55% 45% 40%; background: radial-gradient(circle at 34% 30%, var(--rock2) 0 30%, var(--rock) 62%); box-shadow: 0 0 0 2px var(--ink), 4px 5px 0 rgba(5, 8, 20, .25); }
+#g3 .bould.peb { box-shadow: 0 0 0 2px var(--ink); }
 #g3 .tracks { width: 120px; height: 120px; border: 6px dotted rgba(30, 36, 48, .16); border-radius: 14px; }
-#g3 .shadow { width: 130px; height: 70px; border-radius: 50%; background: rgba(5, 8, 20, .28); filter: blur(3px); }
+#g3 .shadow { width: 130px; height: 70px; border-radius: 50%; background: radial-gradient(closest-side, rgba(5, 8, 20, .3) 70%, transparent); }
 #g3 .pad { width: 150px; height: 150px; border-radius: 50%; background: #8E94A4; box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 16px #B4B9C6, inset 0 0 0 19px var(--ink); }
 #g3 .pad::after { content: ""; position: absolute; inset: 34px; border-radius: 50%; border: 4px dashed #F5C518; animation: g3-spin 14s linear infinite; }
 #g3 .flood { width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 222, 140, .55), transparent 70%); translate: 0 0; transform: translate(-50%, -50%) translateZ(2px); opacity: 0; transition: opacity 1.4s ease; }
@@ -82,12 +85,13 @@
   transition: transform 700ms var(--spring); }
 #g3 .station { padding: 0; border: 0; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; font-family: inherit; }
 #g3 .station .art { display: block; transform-origin: 50% 100%; }
-#g3 .station svg { display: block; overflow: visible; filter: drop-shadow(0 7px 0 rgba(5, 8, 20, .3)); transition: translate 260ms var(--spring); }
+#g3 .station svg { display: block; overflow: visible; transition: translate 260ms var(--spring); }
 #g3 .station .lbl { position: relative; z-index: 1; margin-bottom: -34px; display: inline-flex; align-items: center; gap: 8px; padding: 5px 16px 5px 5px; border-radius: 999px; background: #252C3A; border: 3px solid var(--ink);
   box-shadow: 0 4px 0 rgba(0,0,0,.45); font-weight: 700; font-size: 17px; white-space: nowrap; color: #F7F8F9; transition: background 200ms ease, scale 260ms var(--spring); }
 #g3 .station .lbl i { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--c); box-shadow: inset 0 0 0 2px var(--ink); }
-#g3 .station.ready .lbl { animation: g3-ready 2s ease-in-out infinite; }
-@keyframes g3-ready { 0%, 100% { box-shadow: 0 4px 0 rgba(0,0,0,.45), 0 0 0 0 rgba(242, 106, 27, 0); } 50% { box-shadow: 0 4px 0 rgba(0,0,0,.45), 0 0 0 7px rgba(242, 106, 27, .45); } }
+/* "ready" glow: a ring that fades in and out (opacity only, so it never repaints the label) */
+#g3 .station.ready .lbl::after { content: ""; position: absolute; inset: -3px; border-radius: 999px; box-shadow: 0 0 0 7px rgba(242, 106, 27, .45); opacity: 0; animation: g3-ready 2s ease-in-out infinite; pointer-events: none; }
+@keyframes g3-ready { 50% { opacity: 1; } }
 #g3 .station.open .lbl { background: var(--signal); color: var(--ink); scale: 1.08; }
 #g3 .station.bounce .art { animation: g3-squash 520ms var(--bouncy); }
 @keyframes g3-squash { 0% { scale: 1 1; } 25% { scale: 1.12 .86; } 55% { scale: .94 1.08; } 100% { scale: 1 1; } }
@@ -138,14 +142,13 @@
   71% { translate: 0 -100px; rotate: z -180deg; } 75% { translate: 0 -100px; rotate: z -270deg; }
   96% { translate: 0 0; rotate: z -270deg; } 100% { translate: 0 0; rotate: z -360deg; } }
 #g3 .rv .wheel { position: absolute; width: 0; height: 0; transform-style: preserve-3d; transform: translateZ(9px) rotateX(90deg); }
-#g3 .tyre { --fc: #4A5363; }
-#g3 .tyre .hub { inset: 28%; border-radius: 50%; background: #C9CED6; border: 2px solid var(--ink); }
+#g3 .rv .disc { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; border-radius: 50%; box-sizing: border-box; background: radial-gradient(circle, #C9CED6 0 26%, #4A5363 30%); border: 3px solid var(--ink); }
 #g3 .rv .hl { right: 8%; top: 20%; width: 26%; height: 44%; background: #FFF3C4; border: 2px solid var(--ink); }
 #g3 .rv .stripe { left: 0; right: 0; top: 30%; height: 28%; background: var(--signal); }
 #g3 .rv .cabwin { inset: 18% 14% 30%; background: #4BA3F0; border: 2px solid var(--ink); }
 #g3 .rv .sidewin { left: 14%; right: 14%; top: 18%; bottom: 34%; background: #4BA3F0; border: 2px solid var(--ink); }
 #g3 .beacon { --fc: var(--signal); }
-#g3 .beacon .f { animation: g3-blink 1.6s steps(1) infinite; }
+#g3 .beacon .f.t { animation: g3-blink 1.6s steps(1) infinite; }
 #g3 .rvbeam { position: absolute; left: 30px; top: -14px; width: 70px; height: 28px; transform: translateZ(14px); background: linear-gradient(90deg, rgba(255, 243, 196, .55), transparent); clip-path: polygon(0 35%, 100% 0, 100% 100%, 0 65%); animation: g3-beam 3s ease-in-out infinite; }
 #g3:not(.night) .rvbeam { opacity: .35; animation: none; }
 /* the dirt shield: rings of piled dirt over the habitat */
@@ -165,7 +168,7 @@
 @keyframes g3-puff { 0% { opacity: .85; translate: 0 0; scale: .6; } 100% { opacity: 0; translate: 0 -40px; scale: 1.9; } }
 #g3 .grow { animation: g3-grow 2.6s ease-in-out infinite; } #g3 .grow.g2 { animation-delay: -.9s; }
 @keyframes g3-grow { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
-#g3 .sway { animation: g3-sway 3s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+#g3 .plant svg { animation: g3-sway 3s ease-in-out infinite; transform-origin: 50% 100%; } /* the whole sprite sways: no repaint */
 @keyframes g3-sway { 0%, 100% { rotate: -4deg; } 50% { rotate: 4deg; } }
 #g3 .blink { animation: g3-blink 1.6s steps(1) infinite; }
 @keyframes g3-blink { 0%, 100% { opacity: 1; } 50% { opacity: .15; } }
@@ -184,23 +187,26 @@
 @keyframes g3-flag { 0%, 100% { scale: 1 1; } 50% { scale: .9 1.05; } }
 
 /* sky */
-#g3 .twinkle { animation: g3-tw 3.4s ease-in-out infinite; } #g3 .twinkle.b { animation-duration: 4.6s; animation-delay: -1.2s; } #g3 .twinkle.c { animation-duration: 5.8s; animation-delay: -2.4s; }
+#g3 .skybits { position: absolute; inset: 0; pointer-events: none; }
+#g3 .skybits > * { position: absolute; display: block; }
+#g3 .star { border-radius: 50%; animation: g3-tw 3.4s ease-in-out infinite; } #g3 .star.b { animation-duration: 4.6s; animation-delay: -1.2s; } #g3 .star.c { animation-duration: 5.8s; animation-delay: -2.4s; }
 @keyframes g3-tw { 0%, 100% { opacity: .2; } 50% { opacity: 1; } }
-#g3 .shoot { stroke-dasharray: 90 1400; stroke-dashoffset: 1490; animation: g3-shoot 11s linear infinite; }
-#g3 .shoot.s2 { animation-duration: 17s; animation-delay: -7s; }
-@keyframes g3-shoot { 0%, 88% { stroke-dashoffset: 1490; opacity: 0; } 89% { opacity: 1; } 96% { stroke-dashoffset: 0; opacity: 1; } 97%, 100% { opacity: 0; } }
+#g3 .shoot { border-radius: 2px; background: linear-gradient(90deg, #fff, rgba(255, 255, 255, 0)); rotate: -21deg; opacity: 0; animation: g3-shoot 11s linear infinite; }
+#g3 .shoot.s2 { rotate: -25deg; animation-duration: 17s; animation-delay: -7s; }
+@keyframes g3-shoot { 0%, 88% { translate: 0 0; opacity: 0; } 89% { opacity: 1; } 96% { translate: -330px 128px; opacity: 1; } 97%, 100% { translate: -340px 132px; opacity: 0; } }
 #g3 .sun { transition: opacity 1.4s ease, translate 1.4s var(--ease); }
 #g3.night .sun { opacity: 0; translate: 0 60px; }
-#g3 .rays { animation: g3-spin 40s linear infinite; transform-box: fill-box; transform-origin: center; }
-#g3.wx-storm .rays { animation-duration: 6s; }
-#g3 .earth { animation: g3-bob 9s ease-in-out infinite; }
+#g3 .sun svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+#g3.wx-active .sun .rays { animation: g3-spin 30s linear infinite; } /* the Sun only churns on flare days */
+#g3.wx-storm .sun .rays { animation: g3-spin 6s linear infinite; }
 @keyframes g3-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
 #g3 .streaks { opacity: 0; transition: opacity 800ms ease; }
 #g3.wx-active .streaks.s-active, #g3.wx-storm .streaks.s-storm { opacity: 1; }
-#g3 .streaks line { stroke-dasharray: 80 520; animation: g3-streak 1.4s linear infinite; }
+#g3 .streaks line { stroke-dasharray: 80 520; }
+#g3.wx-active .streaks.s-active line, #g3.wx-storm .streaks.s-storm line { animation: g3-streak 1.4s linear infinite; } /* only animate the rays that show */
 #g3 .streaks line:nth-child(2) { animation-delay: -.45s; } #g3 .streaks line:nth-child(3) { animation-delay: -.9s; }
 @keyframes g3-streak { from { stroke-dashoffset: 600; } to { stroke-dashoffset: 0; } }
-#g3 .dust { animation: g3-dust 16s linear infinite; } #g3 .dust.d2 { animation-duration: 24s; animation-direction: reverse; }
+#g3 .dust { border-radius: 999px; background: #E8A878; opacity: .22; animation: g3-dust 16s linear infinite; } #g3 .dust.d2 { animation-duration: 24s; animation-direction: reverse; }
 @keyframes g3-dust { from { translate: -700px 0; } to { translate: 700px 0; } }
 
 /* ---------- HUD: floats over space ---------- */
@@ -339,22 +345,25 @@
 
 @media (prefers-reduced-motion: reduce) {
   #g3 *, #g3 *::before, #g3 *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  #g3 .rv, #g3 .beacon .f { animation: none; }
+  #g3 .rv, #g3 .beacon .f.t { animation: none; }
 }
 
 /* ---------- CSS 3D buildings ---------- */
 #g3 .model { position: absolute; width: 0; height: 0; transform-style: preserve-3d; transform: translateZ(1px); }
 #g3 .model.bld { cursor: pointer; }
 #g3 .cube, #g3 .cyl { position: absolute; transform-style: preserve-3d; }
-#g3 .cube .f, #g3 .cyl .f { position: absolute; left: 0; top: 0; display: block; box-sizing: border-box; background: var(--fc, #F7F8F9); }
+#g3 .cube .f, #g3 .cyl .f { position: absolute; left: 0; top: 0; display: block; box-sizing: border-box; backface-visibility: hidden; /* skip faces turned away from the camera */
+  background: linear-gradient(rgba(5, 8, 21, var(--nt)) 0 0), linear-gradient(rgba(0, 0, 0, var(--sh, 0)) 0 0), var(--fc, #F7F8F9); }
 #g3 .cube .f { border: 3px solid var(--ink); }
-#g3 .cube .f.py { filter: brightness(.8); } #g3 .cube .f.px { filter: brightness(.93); }
-#g3 .cube .f.ny { filter: brightness(.7); } #g3 .cube .f.nx { filter: brightness(.75); }
+#g3 .cube .f.py { --sh: .2; } #g3 .cube .f.px { --sh: .07; }
+#g3 .cube .f.ny { --sh: .3; } #g3 .cube .f.nx { --sh: .25; }
 #g3 .cyl .f.s { border-top: 3px solid var(--ink); border-bottom: 3px solid var(--ink); }
 #g3 .cyl .f.t { border-radius: 50%; border: 3px solid var(--ink); }
 /* night: every face dims, windows stay lit */
-#g3 .cube .f::after, #g3 .cyl .f::after { content: ""; position: absolute; inset: -3px; border-radius: inherit; background: #050815; opacity: 0; transition: opacity 1.4s ease; pointer-events: none; }
-#g3.night .cube .f::after, #g3.night .cyl .f::after { opacity: .45; }
+/* night: one animatable variable darkens every face (registered so it can transition) */
+@property --nt { syntax: "<number>"; inherits: true; initial-value: 0; }
+#g3 { --nt: 0; transition: --nt 1.4s ease; }
+#g3.night { --nt: .45; }
 #g3 .f > b { position: absolute; display: block; z-index: 1; }
 
 #g3 .white { --fc: #F7F8F9; }
@@ -411,3 +420,20 @@
   #g3 .jobpanel { zoom: 1.05; top: 196px; }
   #g3 .hint { display: none; }
 }
+
+/* mini game win: confetti bursting out from the "Perfect!" card */
+.tk-confetti { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
+.tk-confetti i { position: absolute; left: -6px; top: -4px; width: 12px; height: 8px; border-radius: 2px; border: 1.5px solid #1E2430; animation: tk-burst 1300ms cubic-bezier(.15, .7, .3, 1) both; }
+.tk-confetti i:nth-child(3n) { width: 8px; height: 8px; border-radius: 50%; }
+@keyframes tk-burst { 0% { translate: 0 0; rotate: 0deg; opacity: 1; } 70% { opacity: 1; } 100% { translate: var(--dx) calc(var(--dy) + 260px); rotate: var(--r); opacity: 0; } }
+
+/* phones held sideways: the mini game card uses the spare width from the full-screen game to
+   draw ~12% bigger (same 1280px layout inside, 714px tall) */
+@media (max-height: 520px) and (orientation: landscape) and (min-aspect-ratio: 9/5) {
+  #stage.bleed > .dv-overlay > [data-root] { zoom: 1.12; left: -77px !important; height: 714px !important; }
+  /* the fact strip goes; the hint box moves up into the empty middle of the header */
+  #stage.bleed > .dv-overlay > [data-root] .tk-fact { display: none !important; }
+  #stage.bleed > .dv-overlay > [data-root] .tk-row { position: absolute; top: 12px; left: 560px; width: 330px; z-index: 2; }
+  #stage.bleed > .dv-overlay > [data-root] .tk-row > div { width: 100% !important; box-sizing: border-box; padding: 6px 12px !important; }
+}
+#g3 .endsol { white-space: nowrap; }

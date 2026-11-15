@@ -105,7 +105,7 @@ export function mount(api) {
   };
 
   // the Sun drifts, speeds up and turns around; the battery fills only while you stay lined up
-  let last = performance.now(), turnIn = 1 + Math.random() * 1.2;
+  let last = performance.now(), turnIn = 1 + Math.random() * 1.2, wasOn = false;
   const loop = (now) => {
     if (api.done) { stopHold(); clearInterval(loopId); return; }
     const dt = Math.min(0.12, (now - last) / 1000);
@@ -113,7 +113,7 @@ export function mount(api) {
     turnIn -= dt;
     if (turnIn <= 0) {
       turnIn = 0.9 + Math.random() * 1.4;
-      const speed = 12 + Math.random() * 22 + charge * 0.12; // a little faster as the battery fills
+      const speed = (12 + Math.random() * 22 + charge * 0.12) * (api.easy ? 0.7 : 1); // a little faster as the battery fills
       vel = (Math.random() < 0.6 ? -Math.sign(vel) : Math.sign(vel)) * speed;
     }
     sun += vel * dt;
@@ -121,7 +121,10 @@ export function mount(api) {
     if (sun > 158) { sun = 158; vel = -Math.abs(vel); }
     [sx, sy] = sunXY();
     $("sl-sun").setAttribute("transform", "translate(" + sx + " " + sy + ")");
-    charge = calc() >= 80 ? Math.min(100, charge + dt * 34) : Math.max(0, charge - dt * 12);
+    const on = calc() >= 80;
+    if (on && !wasOn) api.sfx("charge");
+    wasOn = on;
+    charge = on ? Math.min(100, charge + dt * (api.easy ? 45 : 34)) : Math.max(0, charge - dt * (api.easy ? 8 : 12));
     update();
     if (charge >= 100) { api.win(); return; }
   };

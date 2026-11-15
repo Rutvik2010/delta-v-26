@@ -1,8 +1,9 @@
 // Task: a marker sweeps across a meter; dig when it is in the green zone. A miss spills a scoop.
 // The marker speeds up and the zone shrinks with every good scoop.
-const GOAL = 8;
+let GOAL = 8; // set per game in mount (Easy: 6)
 
 export function mount(api) {
+  GOAL = api.easy ? 6 : 8;
   let count = 0;
   // Real shield numbers when the engine can tell us; otherwise the line is left out.
   let shieldNow = null, shieldGain = 0;
@@ -91,7 +92,7 @@ export function mount(api) {
 
   // the sweeping marker
   let pos = 0, dir = 1, speed = 70; // percent of the track per second
-  let zw = 26, zx = 40;             // green zone width and left edge, in percent
+  let zw = api.easy ? 32 : 26, zx = 40; // green zone width and left edge, in percent
   const placeZone = () => {
     zx = 4 + Math.random() * (92 - zw);
     const z = $("sh-zone");
@@ -111,17 +112,18 @@ export function mount(api) {
   function scoop() {
     if (api.done || count >= GOAL) return;
     const hit = pos >= zx - 1 && pos <= zx + zw + 1;
-    api.sfx("click");
     if (!hit) {
       count = Math.max(0, count - 1);
       api.swap($("sh-track"), "dv-shake-a", "dv-shake-b");
       $("sh-sub").textContent = "Spilled! Wait for the green.";
       api.penalty(0.5);
+      api.sfx("miss");
       update();
       return;
     }
     count += 1;
-    speed += 14;
+    api.sfx("scoop");
+    speed += api.easy ? 8 : 14;
     zw = Math.max(13, zw - 1.8);
     placeZone();
     $("sh-sub").textContent = count >= GOAL ? "Roof full!" : "Good scoop!";

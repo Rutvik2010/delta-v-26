@@ -111,10 +111,10 @@ export function mount(api) {
     const k = row[i];
     const idx = order.indexOf(k);
     if (idx < done) return; // already open
-    api.sfx("click");
     if (idx === done) {
       done += 1;
       wrong = -1;
+      api.sfx("squeak");
       if (done >= 4) { say("All open! Oxygen is flowing."); render(); api.win(); return; }
       say(done + " of 4 open. Which shape comes next?");
       render();
@@ -124,7 +124,7 @@ export function mount(api) {
       api.penalty(1);
       api.sfx("warning");
       say("Wrong valve! They all shut. Look again, quick!");
-      peek(1300, "Go! Open them from memory.");
+      peek(api.easy ? 2000 : 1300, "Go! Open them from memory.");
     }
   }
   $("#vl-valves").addEventListener("click", (e) => {
@@ -137,6 +137,6 @@ export function mount(api) {
   });
 
   say("Remember the order on the screen. It will hide soon!");
-  peek(3000, "Go! Open them from memory.");
+  peek(api.easy ? 4500 : 3000, "Go! Open them from memory.");
   api.focus($('[data-v="0"]'));
 }

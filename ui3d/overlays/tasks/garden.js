@@ -1,6 +1,6 @@
 // Task: keep the garden alive. Plants dry out at different speeds; water each one when it turns
 // thirsty (below 40%), before it wilts. Watering a happy plant wastes time. Plants are buttons; keys 1-6 work too.
-const GOAL = 8; // drinks to win
+let GOAL = 8; // drinks to win (Easy: 6), set in mount
 const DRY = 40;
 const SP = [
   { name: "Lettuce", lvl: 80, leaf: "M60 82c-26-2-36-20-30-34 12 2 22 12 30 24-2-20 4-36 0-50-6 14-2 30 0 50 8-12 18-22 30-24 6 14-4 32-30 34z", fruit: "", ff: "none" },
@@ -12,11 +12,12 @@ const SP = [
 ];
 
 export function mount(api) {
+  GOAL = api.easy ? 6 : 8;
   // two random plants start out thirsty; every plant drains at its own speed
   const idxs = [0, 1, 2, 3, 4, 5].sort(() => Math.random() - 0.5);
   const level = SP.map(() => 60 + Math.random() * 40);
   idxs.slice(0, 2).forEach((i) => { level[i] = 30 + Math.random() * 8; });
-  const drain = SP.map(() => 7.5 + Math.random() * 6);
+  const drain = SP.map(() => (7.5 + Math.random() * 6) * (api.easy ? 0.75 : 1));
   let drinks = 0;
 
   const plantHtml = (i, entrance) => {
@@ -84,15 +85,16 @@ export function mount(api) {
 
   function water(i) {
     if (api.done) return;
-    api.sfx("click");
     if (level[i] >= DRY) {
       api.penalty(0.5);
+      api.sfx("miss");
       api.swap($('[data-p="' + i + '"]'), "dv-shake-a", "dv-shake-b");
       say(SP[i].name + " is not thirsty yet. Too much water drowns the roots!");
       return;
     }
     level[i] = 100;
     drinks += 1;
+    api.sfx("splash");
     wasDry[i] = false;
     repaint(i);
     counters();

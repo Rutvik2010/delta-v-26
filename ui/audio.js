@@ -126,6 +126,31 @@ export function playSfx(name) {
       playNoise(0.6, 280, { gain: 0.15 });
       break;
 
+    // ---- mini game sounds ----
+    case "squeak": // a valve wheel turning
+      playTone(620, 0.12, "triangle", { sweep: [520, 880], gain: 0.07 });
+      break;
+    case "scoop": // a shovel of dirt landing
+      playNoise(0.14, 900, { gain: 0.1 });
+      playTone(180, 0.1, "sine", { gain: 0.08 });
+      break;
+    case "splash": // water pouring
+      playNoise(0.22, 2400, { gain: 0.07 });
+      playTone(760, 0.12, "sine", { sweep: [900, 520], gain: 0.05 });
+      break;
+    case "miss": // a soft "nope" buzz
+      playTone(150, 0.16, "sawtooth", { sweep: [190, 120], gain: 0.06 });
+      break;
+    case "charge": // battery starts charging
+      playTone(440, 0.1, "sine", { sweep: [440, 880], gain: 0.06 });
+      break;
+    case "glint": // a tiny sparkle
+      playTone(1760, 0.08, "sine", { gain: 0.03 });
+      break;
+    case "fanfare": // won a mini game
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => setTimeout(() => playTone(f, 0.16, "triangle", { gain: 0.09 }), i * 90));
+      break;
+
     default:
       console.log(`[SFX] ${name}`);
       break;

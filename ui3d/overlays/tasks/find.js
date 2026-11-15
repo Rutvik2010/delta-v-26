@@ -86,11 +86,12 @@ export function mount(api) {
       if (!body) return;
       body.setAttribute("fill", "#BDEBFF");
       if (spark) spark.setAttribute("opacity", "1");
+      api.sfx("glint");
       api.later(() => {
         body.setAttribute("fill", GREYS[target % 3]);
         if (spark) spark.setAttribute("opacity", "0");
         if (round <= ROUNDS && target === iceAt[round - 1]) glint(target, 900 + Math.random() * 1300); // only while this rock is still the one
-      }, Math.max(260, 520 - round * 80)); // the glint gets shorter each round
+      }, Math.max(260, 520 - round * 80) + (api.easy ? 250 : 0)); // the glint gets shorter each round
     }, wait);
   }
 
@@ -110,6 +111,7 @@ export function mount(api) {
     } else {
       miss = true;
       api.penalty(1.5);
+      api.sfx("miss");
       say("Just plain rock! That cost you time. Watch for the glint.");
       if (btn) api.swap(btn, "dv-shake-a", "dv-shake-b");
     }

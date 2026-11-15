@@ -12,6 +12,8 @@ export const store = {
   state: null,           // the engine state for the mission in progress
   facts: 0,              // how many real facts the player has seen (events)
   minigames: true,       // kept for old callers; every job now always plays its task
+  difficulty: "normal",  // "easy" | "normal": mini game timers and goals (set on the briefing screen)
+  streak: 0,             // mini games won in a row
 };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -28,7 +30,7 @@ export function createCtx({ stage, go }) {
       store.plan = await loadRealWeather(mode); // null if the file cannot load
       let s = engine.newGame(site);
       if (store.plan) s = engine.withRealWeather(s, store.plan);
-      store.state = s; store.facts = 0;
+      store.state = s; store.facts = 0; store.streak = 0;
       return s;
     },
 

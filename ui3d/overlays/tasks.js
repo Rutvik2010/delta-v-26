@@ -50,6 +50,11 @@ export function runTask(ctx, actionId, crewId) {
   if (!load) return Promise.resolve(false);
   const mars = !!(ctx.store && ctx.store.site === "mars");
   const m = meta(actionId, mars, crewId);
+  // Difficulty: Easy gives more time and smaller goals; the first five sols are gentler for everyone.
+  const easy = !!(ctx.store && ctx.store.difficulty === "easy");
+  const sol = (ctx.store && ctx.store.state && ctx.store.state.sol) || 1;
+  const early = sol <= 5;
+  m.secs = Math.round(m.secs * (easy ? 1.35 : 1) * (early ? 1.2 : 1));
   return load().then((mod) => new Promise((resolve) => {
     // noEscape: Escape is handled here so timers are always cleaned up.
     ctx.openOverlay((layer, close) => {
@@ -65,7 +70,7 @@ export function runTask(ctx, actionId, crewId) {
         `<div role="timer" data-timer aria-label="${m.secs} seconds left" style="position: relative; overflow: hidden; width: 96px; height: 64px; border-radius: 14px; background: #13211D; box-shadow: inset 0 0 0 4px #2B3833; color: #E4FFEC; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 32px; font-variant-numeric: tabular-nums"><span data-tnum style="margin-top: -6px">${m.secs} s</span><span aria-hidden="true" style="position: absolute; left: 8px; right: 8px; bottom: 7px; height: 7px; border-radius: 4px; background: #2B3833; overflow: hidden"><span data-tbar style="display: block; height: 100%; background: #A8F5C2; transform-origin: left center; transform: scaleX(1)"></span></span></div>` +
         `</div>` +
         `<div data-body style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px"></div>` +
-        `<div style="display: flex; gap: 20px; align-items: stretch"><div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center">${factBox(m.fact)}</div><div data-foot style="display: contents"></div></div>` +
+        `<div class="tk-row" style="display: flex; gap: 20px; align-items: stretch"><div class="tk-fact" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center">${factBox(m.fact)}</div><div data-foot style="display: contents"></div></div>` +
         `<div data-result></div>` +
         `</div>`;
       const root = layer.querySelector("[data-root]");
@@ -85,15 +90,23 @@ export function runTask(ctx, actionId, crewId) {
         if (done) return;
         done = true;
         clearInterval(tickId);
-        if (win) ctx.sfx("good");
+        if (win) { ctx.sfx("fanfare"); ctx.store.streak = (ctx.store.streak || 0) + 1; } else ctx.store.streak = 0;
+        const streak = ctx.store.streak || 0;
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        // confetti: little paper bits that burst out and fall (skipped for reduced motion)
+        const COLORS = ["#F26A1B", "#F5C518", "#5CBF5A", "#4BA3F0", "#B99AF5", "#FF7AD9"];
+        const confetti = win && !reduced ? `<div aria-hidden="true" class="tk-confetti">${Array.from({ length: 36 }, (_, i) => {
+          const a = (i / 36) * Math.PI * 2 + Math.random() * 0.3, d = 220 + Math.random() * 260;
+          return `<i style="--dx: ${Math.round(Math.cos(a) * d)}px; --dy: ${Math.round(Math.sin(a) * d * 0.7 - 120)}px; --r: ${Math.round(Math.random() * 720 - 360)}deg; background: ${COLORS[i % 6]}; animation-delay: ${Math.round(Math.random() * 120)}ms"></i>`;
+        }).join("")}</div>` : "";
         q("[data-result]").innerHTML =
           `<div role="status" style="position: absolute; left: 0; top: 0; width: 1280px; height: 800px; background: rgba(30,36,48,0.55); display: flex; align-items: center; justify-content: center">` +
           `<div class="dv-pop" style="padding: 36px 56px; border-radius: 28px; background: #F7F8F9; border: 5px solid #1E2430; box-shadow: 0 10px 0 #7C8592; text-align: center; max-width: 760px">` +
           (win
-            ? `<p style="margin: 0; font-size: 72px; font-weight: 800; letter-spacing: -0.02em; color: #1F7A35">Perfect!</p><p style="margin: 6px 0 0; font-size: 24px; font-weight: 600">Bonus earned. Nice work, Commander!</p>`
+            ? `<p style="margin: 0; font-size: 72px; font-weight: 800; letter-spacing: -0.02em; color: #1F7A35">Perfect!</p><p style="margin: 6px 0 0; font-size: 24px; font-weight: 600">Bonus earned. Nice work, Commander!</p>${streak >= 2 ? `<p class="dv-pop" style="margin: 12px auto 0; display: inline-block; padding: 6px 16px; border-radius: 999px; background: #F5C518; border: 3px solid #1E2430; font-size: 22px; font-weight: 800">${streak} perfects in a row!</p>` : ""}`
             : `<p style="margin: 0; font-size: 44px; font-weight: 800; letter-spacing: -0.02em">Good enough! The job still gets done.</p><p style="margin: 8px 0 0; font-size: 22px; font-weight: 600; color: #4A5363">No bonus this time, and that is okay.</p>`) +
-          `</div></div>`;
-        timeouts.add(setTimeout(() => closeAll(win), 900));
+          `</div>${confetti}</div>`;
+        timeouts.add(setTimeout(() => closeAll(win), win ? 1400 : 1000));
       };
 
       // Countdown: whole seconds as a number plus a shrinking bar.
@@ -132,7 +145,7 @@ export function runTask(ctx, actionId, crewId) {
       document.addEventListener("keydown", onKey, true);
 
       const api = {
-        ctx, mars, secs: m.secs,
+        ctx, mars, secs: m.secs, easy, early,
         body: q("[data-body]"), foot: q("[data-foot]"), hx: q("[data-hx]"), root,
         get done() { return done; },
         win: () => finish(true),

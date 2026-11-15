@@ -53,9 +53,13 @@ ${CREW.map(crewCard).join("")}
 <li>Each day you get 2 jobs. Someone always gets to rest.</li>
 <li>The supply ship lands on day 30. Hold on until then!</li>
 </ol>
+<p style="margin: auto 0 0; font-size: 17px; line-height: 1.4; color: #7FA894">${SOL_LINE[store.site] || SOL_LINE.moon}</p>
 </div>
 <div class="dv-rise dv-d8" style="width: 320px; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px">
-<p style="margin: 0; font-size: 16px; line-height: 1.4; color: #4A5363">${SOL_LINE[store.site] || SOL_LINE.moon}</p>
+<div role="group" aria-label="Mini game level" style="display: flex; gap: 8px; align-items: center"><span style="font-size: 15px; font-weight: 700; min-width: 86px">Mini games</span>
+<button type="button" id="b-easy" class="dv-key" style="${KEYBASE} flex: 1; background: #F7F8F9; box-shadow: 0 4px 0 #7C8592;">Easy</button>
+<button type="button" id="b-normal" class="dv-key" style="${KEYBASE} flex: 1; background: #F7F8F9; box-shadow: 0 4px 0 #7C8592;">Normal</button>
+</div>
 <div role="group" aria-label="Sun data" style="display: flex; gap: 8px">
 <button type="button" id="b-recent" class="dv-key" style="${KEYBASE} flex: 1; background: #F7F8F9; box-shadow: 0 4px 0 #7C8592;">Last 30 days</button>
 <button type="button" id="b-may" class="dv-key" style="${KEYBASE} flex: 1; background: #F7F8F9; box-shadow: 0 4px 0 #7C8592;">May 2024 storms</button>
@@ -67,6 +71,17 @@ ${CREW.map(crewCard).join("")}
 </div>`;
 
   const btns = { recent: root.querySelector("#b-recent"), may2024: root.querySelector("#b-may") };
+  const lvl = { easy: root.querySelector("#b-easy"), normal: root.querySelector("#b-normal") };
+  if (store.difficulty !== "easy") store.difficulty = "normal";
+  const pressed = (b, on) => {
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+    b.style.background = on ? "#F3D23A" : "#F7F8F9";
+    b.style.boxShadow = on ? "0 1px 0 #7C8592" : "0 4px 0 #7C8592";
+    b.style.translate = on ? "0 3px" : "";
+  };
+  const paintLvl = () => { for (const k of Object.keys(lvl)) pressed(lvl[k], k === store.difficulty); };
+  for (const k of Object.keys(lvl)) lvl[k].addEventListener("click", () => { ctx.sfx("click"); store.difficulty = k; paintLvl(); });
+  paintLvl();
   const line = root.querySelector("#b-line");
   const start = root.querySelector("#b-start");
 
