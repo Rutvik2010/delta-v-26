@@ -151,8 +151,6 @@
 #g3 .dirt .clods { inset: 10%; border-radius: 50%; background: radial-gradient(circle at 30% 40%, rgba(30, 36, 48, .28) 0 4px, transparent 5px), radial-gradient(circle at 68% 30%, rgba(30, 36, 48, .22) 0 3px, transparent 4px), radial-gradient(circle at 58% 72%, rgba(30, 36, 48, .25) 0 5px, transparent 6px), radial-gradient(circle at 22% 70%, rgba(255, 255, 255, .25) 0 3px, transparent 4px); }
 #g3 .hatch { inset: 22%; border-radius: 50%; background: #9AA3AF; border: 2px solid var(--ink); }
 #g3 .airlock .vent { inset: 26%; background: repeating-linear-gradient(90deg, #9AA3AF 0 4px, transparent 4px 8px); }
-#g3 .lamp { left: 30%; top: 25%; width: 40%; height: 50%; border-radius: 50%; background: #9FD8FF; border: 2px solid var(--ink); transition: background 1.4s ease; }
-#g3.night .lamp { background: #FFE18A; box-shadow: 0 0 12px 4px rgba(255, 225, 138, .6); }
 #g3 .beam { animation: g3-beam 3s ease-in-out infinite; transform-box: fill-box; transform-origin: 0 50%; }
 @keyframes g3-beam { 0%, 100% { opacity: .35; } 50% { opacity: .8; } }
 

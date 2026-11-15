@@ -55,8 +55,7 @@ ${cyl(20, 92, { x: -38, y: 62, n: 14, cls: "tank", t: `<b class="shine"></b>` })
 ${[[86, 26, 12], [72, 22, 38], [54, 18, 60], [33, 14, 78]].map(([r, h, z], i) => cyl(r, h, { z, n: 14, cls: "dirt" + (i % 2 ? " d2" : ""), t: `<b class="clods"></b>` })).join("")}
 ${cyl(17, 8, { z: 92, n: 8, cls: "white", t: `<b class="hatch"></b>` })}
 ${box(4, 4, 30, { x: 6, y: -6, z: 100, cls: "white" })}${box(10, 10, 4, { x: 6, y: -6, z: 130, cls: "beacon" })}
-${box(44, 46, 50, { x: 70, y: 70, z: 12, cls: "white airlock", py: `<b class="door"></b>`, px: `<b class="door"></b>`, t: `<b class="vent"></b>` })}
-${box(18, 18, 10, { x: -58, y: 52, z: 12, cls: "white", px: `<b class="lamp"></b>` })}`,
+${box(44, 46, 50, { x: 70, y: 70, z: 12, cls: "white airlock", py: `<b class="door"></b>`, px: `<b class="door"></b>`, t: `<b class="vent"></b>` })}`,
   grow_food: () => `${box(128, 100, 70, { cls: "glass", t: `<b class="roof"></b>`, py: `<b class="frame"></b>`, px: `<b class="frame"></b>`, ny: `<b class="frame"></b>`, nx: `<b class="frame"></b>` })}
 ${box(128, 10, 10, { z: 70, cls: "ridge" })}`,
 };
