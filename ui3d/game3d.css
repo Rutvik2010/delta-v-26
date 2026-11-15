@@ -50,7 +50,6 @@
 /* terrain models: sunken bowls inside raised rims, and boulders */
 #g3 .terrain { pointer-events: none; }
 /* craters: lit rim on the far side, shadowed rim near the Sun, dark sunken bowl, bright inner wall */
-#g3 .crater-3d { filter: drop-shadow(2px 3px 4px rgba(5, 8, 20, .35)); }
 #g3 .crat { border-radius: 50%;
   background: radial-gradient(circle at 56% 58%, rgba(255, 255, 255, .26) 0 14%, transparent 34%),
     radial-gradient(circle at 44% 42%, var(--pit2) 0 38%, var(--pit1) 60%, transparent 61%),

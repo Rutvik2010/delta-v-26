@@ -121,7 +121,6 @@ const slabSvg = (i) => { const [sc, z] = LAYERS[i]; return `<svg class="slab${i 
 // ---- 3D ground features (real CSS 3D, kept low-poly so the frame rate holds) ----
 // positions are from the centre of the base; chosen to stay clear of buildings, paths and the rover loop
 const HILLS3D = [[-190, 50, 40], [-130, 220, 46]];
-const RIMS3D = [[POS.science[0], POS.science[1], 81, 9, 12], [180, 190, 35, 6, 10], [-190, -200, 31, 6, 10]];
 const ROCKS3D = [[-293, 11, 16, 20], [130, 270, 15, 64], [-110, 90, 12, 35], [250, -110, 14, 80]];
 function terrain3d() {
   const at = (x, y, inner, rot = 0) => `<div class="model terrain" style="left: ${H + x}px; top: ${H + y}px${rot ? `; rotate: z ${rot}deg` : ""}">${inner}</div>`;
@@ -130,87 +129,54 @@ function terrain3d() {
   // rocks: a squat, wide base with a smaller cap set off to one side
   const rock = (r) => cyl(r, Math.round(r * 0.5), { n: 5, cls: "rockc" }) + cyl(Math.round(r * 0.66), Math.round(r * 0.42), { z: Math.round(r * 0.5), x: -3, y: 2, n: 4, cls: "rockc", t: `<b class="rocktop"></b>` });
   return HILLS3D.map(([x, y, r]) => at(x, y, hill(r))).join("")
-    + RIMS3D.map(([x, y, r, h, n]) => at(x, y, cyl(r, h, { n, cls: "rimwall" }))).join("")
     + ROCKS3D.map(([x, y, r, rot]) => at(x, y, rock(r), rot)).join("");
 }
 const CRATERS = [
   [POS.science[0] + H, POS.science[1] + H, 76],
   [150, 140, 26], [520, 530, 30], [150, 560, 20], [420, 84, 22], [610, 270, 18], [250, 610, 14], [560, 470, 12],
-  [85, 270, 16], [380, 580, 15], [580, 150, 14], [200, 390, 11], [490, 360, 13], [110, 460, 10], [305, 115, 11], [535, 215, 9]
+  [85, 270, 16], [380, 580, 15], [580, 150, 14], [200, 390, 11], [490, 360, 13]
 ];
-const BOULDERS = [[47, 351, 12], [470, 610, 11], [230, 430, 8], [590, 230, 10], [330, 500, 6], [165, 175, 7], [435, 120, 9], [530, 490, 8], [270, 580, 6]];
+const BOULDERS = [[47, 351, 12], [470, 610, 11], [230, 430, 8], [590, 230, 10], [330, 500, 6], [165, 175, 7], [435, 120, 9]];
 function decals() {
   const v = (n) => `style="fill: var(${n})"`;
   const defs = `<defs>
-<radialGradient id="dc-pit" cx="38%" cy="36%" r="68%">
-  <stop offset="0" style="stop-color: #0b0f1a"/>
-  <stop offset="45%" style="stop-color: var(--pit2)"/>
-  <stop offset="85%" style="stop-color: var(--pit1)"/>
-  <stop offset="100%" style="stop-color: #121826"/>
+<radialGradient id="dc-pit" cx="42%" cy="40%" r="62%">
+  <stop offset="0" stop-color="#0a0e18"/>
+  <stop offset="65%" style="stop-color: var(--pit2)"/>
+  <stop offset="100%" style="stop-color: var(--pit1)"/>
 </radialGradient>
-<radialGradient id="dc-floor" cx="50%" cy="50%" r="50%">
-  <stop offset="0" stop-color="#0e1320"/>
-  <stop offset="75%" stop-color="#182030"/>
-  <stop offset="100%" stop-color="#222b3c"/>
-</radialGradient>
-<linearGradient id="dc-rim-hl" x1="20%" y1="20%" x2="80%" y2="80%">
-  <stop offset="0" stop-color="#ffffff" stop-opacity=".75"/>
-  <stop offset="50%" stop-color="var(--rim)" stop-opacity=".9"/>
-  <stop offset="100%" stop-color="#0a0e18" stop-opacity=".6"/>
+<linearGradient id="dc-rim-grad" x1="25%" y1="20%" x2="75%" y2="80%">
+  <stop offset="0" stop-color="#ffffff" stop-opacity=".45"/>
+  <stop offset="50%" style="stop-color: var(--rim)" stop-opacity=".7"/>
+  <stop offset="100%" stop-color="#080c16" stop-opacity=".3"/>
 </linearGradient>
-<linearGradient id="dc-wall-sh" x1="15%" y1="15%" x2="75%" y2="75%">
-  <stop offset="0" stop-color="#050812" stop-opacity=".95"/>
-  <stop offset="50%" stop-color="#090e1c" stop-opacity=".75"/>
+<linearGradient id="dc-crescent-sh" x1="20%" y1="20%" x2="80%" y2="80%">
+  <stop offset="0" stop-color="#060912" stop-opacity=".85"/>
+  <stop offset="55%" stop-color="#080d1a" stop-opacity=".6"/>
   <stop offset="100%" stop-color="#000" stop-opacity="0"/>
 </linearGradient>
-<linearGradient id="dc-wall-hl" x1="25%" y1="25%" x2="85%" y2="85%">
+<linearGradient id="dc-crescent-hl" x1="20%" y1="20%" x2="80%" y2="80%">
   <stop offset="0" stop-color="#fff" stop-opacity="0"/>
-  <stop offset="55%" stop-color="#fff" stop-opacity=".25"/>
-  <stop offset="100%" stop-color="#fff" stop-opacity=".75"/>
+  <stop offset="60%" stop-color="#fff" stop-opacity=".15"/>
+  <stop offset="100%" stop-color="#fff" stop-opacity=".55"/>
 </linearGradient>
 <radialGradient id="dc-rock" cx="34%" cy="30%" r="70%"><stop offset="0" style="stop-color: var(--rock2)"/><stop offset="1" style="stop-color: var(--rock)"/></radialGradient>
 <radialGradient id="dc-shadow"><stop offset=".6" stop-color="#050814" stop-opacity=".3"/><stop offset="1" stop-color="#050814" stop-opacity="0"/></radialGradient></defs>`;
 
   const crat = ([x, y, r]) => {
-    const isBig = r > 45;
-    // Radial ejecta ray streaks for the prominent craters
-    let rays = "";
-    if (isBig) {
-      for (let a = 0; a < 14; a++) {
-        const ang = (a / 14) * Math.PI * 2 + 0.15;
-        const x1 = x + Math.cos(ang) * (r + 7), y1 = y + Math.sin(ang) * (r + 7);
-        const len = r + 22 + ((a * 7) % 24);
-        const x2 = x + Math.cos(ang) * len, y2 = y + Math.sin(ang) * len;
-        rays += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#ffffff" stroke-opacity=".2" stroke-width="${3 + (a % 3)}" stroke-linecap="round"/>`;
-      }
-    }
-    // 3D raised rim: sunlight highlight on northwest lip, cast shadow on southeast outer base
-    const rim = `<ellipse cx="${x}" cy="${y}" rx="${r + (isBig ? 12 : 6)}" ry="${(r + (isBig ? 12 : 6)) * 0.96}" fill="none" stroke="url(#dc-rim-hl)" stroke-width="${isBig ? 7 : 3.5}"/>`
-      + `<ellipse cx="${x - (isBig ? 2.5 : 1.2)}" cy="${y - (isBig ? 2.5 : 1.2)}" rx="${r + (isBig ? 8 : 4)}" ry="${(r + (isBig ? 8 : 4)) * 0.95}" fill="none" stroke="#ffffff" stroke-opacity=".45" stroke-width="${isBig ? 3.5 : 2}"/>`
-      + `<ellipse cx="${x + (isBig ? 3.5 : 1.8)}" cy="${y + (isBig ? 3.5 : 1.8)}" rx="${r + (isBig ? 8 : 4)}" ry="${(r + (isBig ? 8 : 4)) * 0.95}" fill="none" stroke="#050814" stroke-opacity=".4" stroke-width="${isBig ? 4 : 2}"/>`;
-
-    // Deep bowl: outer pit + deep shadow crescent on the sunward wall + illuminated far rim crest + sunken floor
-    const pit = `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.94}" fill="url(#dc-pit)"/>`
-      + `<ellipse cx="${x - r * 0.12}" cy="${y - r * 0.14}" rx="${r * 0.9}" ry="${r * 0.82}" fill="url(#dc-wall-sh)"/>`
-      + `<ellipse cx="${x + r * 0.1}" cy="${y + r * 0.12}" rx="${r * 0.88}" ry="${r * 0.8}" fill="none" stroke="url(#dc-wall-hl)" stroke-width="${isBig ? 9 : 4.5}"/>`
-      + `<ellipse cx="${x + r * 0.04}" cy="${y + r * 0.05}" rx="${r * 0.62}" ry="${r * 0.56}" fill="url(#dc-floor)"/>`
-      + `<path d="M${(x - r * 0.55).toFixed(1)} ${y.toFixed(1)} A${(r * 0.58).toFixed(1)} ${(r * 0.5).toFixed(1)} 0 0 1 ${(x + r * 0.3).toFixed(1)} ${(y - r * 0.42).toFixed(1)} A${(r * 0.5).toFixed(1)} ${(r * 0.45).toFixed(1)} 0 0 0 ${(x - r * 0.55).toFixed(1)} ${y.toFixed(1)}Z" fill="#040710" fill-opacity=".8"/>`;
-
-    // Realistic central peak for the Shackleton science crater + water ice crystal highlights in the shadow
-    let peak = "";
-    if (isBig) {
-      const px = x + 3, py = y + 2;
-      peak = `<ellipse cx="${px + 5}" cy="${py + 6}" rx="15" ry="10" fill="#03050c" fill-opacity=".75"/>`
-        + `<ellipse cx="${px}" cy="${py}" rx="12" ry="9" fill="url(#dc-rock)" stroke="#1E2430" stroke-width="1.5"/>`
-        + `<polygon points="${px - 8},${py + 3} ${px - 1},${py - 7} ${px + 2},${py + 5}" fill="#ffffff" fill-opacity=".6"/>`
-        + `<polygon points="${px - 1},${py - 7} ${px + 9},${py + 2} ${px + 2},${py + 5}" fill="#080c16" fill-opacity=".85"/>`
-        // Permanently shadowed water ice glints (Shackleton crater ice deposits)
-        + `<circle cx="${x - 22}" cy="${y - 8}" r="2.2" fill="#BFE9FF" fill-opacity=".9"/>`
-        + `<circle cx="${x - 14}" cy="${y - 20}" r="1.6" fill="#BFE9FF" fill-opacity=".8"/>`
-        + `<circle cx="${x - 30}" cy="${y + 12}" r="1.8" fill="#BFE9FF" fill-opacity=".85"/>`
-        + `<polygon points="${x - 22},${y - 12} ${x - 20},${y - 8} ${x - 22},${y - 4} ${x - 24},${y - 8}" fill="#ffffff" fill-opacity=".7"/>`;
-    }
-    return `<g class="crater-3d">${rays}${rim}${pit}${peak}</g>`;
+    // Natural sunken lunar impact crater
+    return `<g class="crat-bowl">`
+      // Subtle raised rim outer lip
+      + `<ellipse cx="${x}" cy="${y}" rx="${r + 4}" ry="${(r + 4) * 0.94}" fill="url(#dc-rim-grad)"/>`
+      // Dark crater interior bowl
+      + `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.94}" fill="url(#dc-pit)"/>`
+      // Sun-cast shadow on inner sunward wall
+      + `<ellipse cx="${x - r * 0.1}" cy="${y - r * 0.12}" rx="${r * 0.88}" ry="${r * 0.82}" fill="url(#dc-crescent-sh)"/>`
+      // Soft sunlight catch on opposing inner wall
+      + `<ellipse cx="${x + r * 0.08}" cy="${y + r * 0.1}" rx="${r * 0.86}" ry="${r * 0.8}" fill="none" stroke="url(#dc-crescent-hl)" stroke-width="${Math.max(2, r * 0.12)}"/>`
+      // Sunken flat floor
+      + `<ellipse cx="${x + r * 0.03}" cy="${y + r * 0.04}" rx="${r * 0.48}" ry="${r * 0.44}" style="fill: var(--pit2)"/>`
+      + `</g>`;
   };
   const rock = ([x, y, r]) => `<ellipse cx="${x + 4}" cy="${y + 5}" rx="${r}" ry="${r * 0.8}" fill="#050814" opacity=".25"/><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.8}" fill="url(#dc-rock)" stroke="#1E2430" stroke-width="2"/>`
     + `<ellipse cx="${x + r + 8}" cy="${y + 4}" rx="${Math.max(3.5, r / 2)}" ry="${Math.max(2.5, r * 0.35)}" fill="url(#dc-rock)" stroke="#1E2430" stroke-width="2"/>`;
