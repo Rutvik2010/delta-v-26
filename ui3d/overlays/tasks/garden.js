@@ -98,6 +98,7 @@ export function mount(api) {
     api.good();
     wasDry[i] = false;
     repaint(i);
+    api.swap($('[data-p="' + i + '"]'), "dv-bump-a", "dv-bump-b");
     counters();
     if (drinks >= GOAL) { say("The whole garden is happy. Great job!"); api.win(); return; }
     say(drinks + " of " + GOAL + " drinks given. Watch for orange plants!");

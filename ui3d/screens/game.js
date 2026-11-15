@@ -225,15 +225,29 @@ function skySvg(mars) {
   const tw = (i, y) => i % 4 === 0 && y < 200; // a few stars high in the sky twinkle (each its own tiny element, away from the base)
   const r1 = mars ? 32 : 46, r2 = mars ? 42 : 60;
   const layer = (cls, body) => `<svg class="sky ${cls}" viewBox="0 0 1280 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${body}</svg>`;
-  return layer("base", stars.map(([x, y, r], i) => tw(i, y) ? "" : `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" opacity="${[0.5, 0.8, 0.65][i % 3]}"/>`).join(""))
+  const nebulaDefs = `<defs>
+    <radialGradient id="nebula1" cx="32%" cy="28%" r="58%">
+      <stop offset="0%" stop-color="#223366" stop-opacity="0.28"/>
+      <stop offset="60%" stop-color="#141a34" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#0b1020" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="nebula2" cx="76%" cy="22%" r="48%">
+      <stop offset="0%" stop-color="#3c2254" stop-opacity="0.22"/>
+      <stop offset="65%" stop-color="#17122b" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#0b1020" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="800" fill="url(#nebula1)"/>
+  <rect width="1280" height="800" fill="url(#nebula2)"/>`;
+  return layer("base", nebulaDefs + stars.map(([x, y, r], i) => tw(i, y) ? "" : `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" opacity="${[0.5, 0.8, 0.65][i % 3]}"/>`).join(""))
     + layer("streaks s-active", `<g stroke="#F5C518" stroke-width="3" stroke-linecap="round"><line x1="108" y1="250" x2="560" y2="420"/><line x1="108" y1="250" x2="640" y2="330"/><line x1="108" y1="250" x2="480" y2="520"/></g>`)
     + layer("streaks s-storm", `<g stroke="#FF6A3D" stroke-width="5" stroke-linecap="round"><line x1="108" y1="250" x2="640" y2="440"/><line x1="108" y1="250" x2="700" y2="320"/><line x1="108" y1="250" x2="540" y2="560"/></g>`)
     + `<div class="skybits" aria-hidden="true">`
     + stars.map(([x, y, r], i) => tw(i, y) ? `<i class="star ${"abc"[(i / 4) % 3]}" style="${at(x, y, r * 2, r * 2)}; background: ${fill}"></i>` : "").join("")
     + `<i class="shoot" style="${at(940, 195, 90, 3)}"></i><i class="shoot s2" style="${at(385, 176, 76, 2)}"></i>`
     + (mars ? `<i class="dust" style="${at(640, 437, 1700, 34)}"></i><i class="dust d2" style="${at(640, 511, 1700, 22)}"></i>`
-      : `<svg class="earth" viewBox="-26 -26 52 52" style="${at(520, 180, 52, 52)}"><circle r="20" fill="#3D7BD9" stroke="#1E2430" stroke-width="3"/><path d="M-14 -6 C-8 -13 0 -11 1 -5 C2 1 -4 2 -5 7 C-6 12 -12 9 -14 5Z" fill="#5CBF5A"/><path d="M2 -20 A20 20 0 0 1 2 20 A15 20 0 0 0 2 -20Z" fill="#0B1020" opacity=".4"/></svg>`)
-    + `<div class="sun" style="${at(108, 250, 140, 140)}"><svg class="rays" viewBox="-70 -70 140 140"><circle r="${mars ? 40 : 56}" fill="#FFE07A" opacity=".18"/><g stroke="#F5C518" stroke-width="6" stroke-linecap="round">${Array.from({ length: 8 }, (_, i) => { const an = i * Math.PI / 4; return `<line x1="${(Math.cos(an) * r1).toFixed(1)}" y1="${(Math.sin(an) * r1).toFixed(1)}" x2="${(Math.cos(an) * r2).toFixed(1)}" y2="${(Math.sin(an) * r2).toFixed(1)}"/>`; }).join("")}</g></svg>`
+      : `<svg class="earth" viewBox="-30 -30 60 60" style="${at(520, 180, 60, 60)}"><defs><radialGradient id="earth-glow" cx="45%" cy="45%" r="55%"><stop offset="70%" stop-color="#64B5F6" stop-opacity="0"/><stop offset="90%" stop-color="#64B5F6" stop-opacity="0.38"/><stop offset="100%" stop-color="#64B5F6" stop-opacity="0"/></radialGradient></defs><circle r="27" fill="url(#earth-glow)"/><circle r="20" fill="#3D7BD9" stroke="#1E2430" stroke-width="3"/><path d="M-14 -6 C-8 -13 0 -11 1 -5 C2 1 -4 2 -5 7 C-6 12 -12 9 -14 5Z" fill="#5CBF5A"/><path d="M2 -20 A20 20 0 0 1 2 20 A15 20 0 0 0 2 -20Z" fill="#0B1020" opacity=".4"/><path d="M-18 -5 A18 18 0 0 1 -5 -18" stroke="#E3F2FD" stroke-width="2.5" stroke-linecap="round" fill="none" opacity=".6"/></svg>`)
+    + `<div class="sun" style="${at(108, 250, 140, 140)}"><svg class="rays" viewBox="-70 -70 140 140"><circle r="${mars ? 48 : 64}" fill="#FFE07A" opacity=".12"/><circle r="${mars ? 40 : 54}" fill="#FFE07A" opacity=".18"/><g stroke="#F5C518" stroke-width="6" stroke-linecap="round">${Array.from({ length: 8 }, (_, i) => { const an = i * Math.PI / 4; return `<line x1="${(Math.cos(an) * r1).toFixed(1)}" y1="${(Math.sin(an) * r1).toFixed(1)}" x2="${(Math.cos(an) * r2).toFixed(1)}" y2="${(Math.sin(an) * r2).toFixed(1)}"/>`; }).join("")}</g></svg>`
     + `<svg class="disc" viewBox="-70 -70 140 140"><circle r="${mars ? 24 : 36}" fill="#F5C518" stroke="#1E2430" stroke-width="3"/></svg></div>`
     + `</div>`;
 }
@@ -326,11 +340,17 @@ ${mars ? "" : `<div class="nighttag">Moon night: dark for 14 sols</div>`}
   root.style.overflow = "visible";
 
   // ---------- turning the base ----------
+  let lastTurnSoundTime = 0;
   function setYaw(v, instant) {
     yaw = v;
     world.classList.toggle("dragging", !!instant);
     board.style.setProperty("--yaw", yaw + "deg");
     board.querySelectorAll(".bb").forEach((el) => el.style.setProperty("--yaw", yaw + "deg"));
+    const now = performance.now();
+    if (now - lastTurnSoundTime > 140) {
+      lastTurnSoundTime = now;
+      ctx.sfx("turn");
+    }
   }
   let drag = null;
   world.addEventListener("pointerdown", (e) => {
@@ -602,7 +622,8 @@ ${CREW.map((c) => {
   // ---------- actions ----------
   JOB_ORDER.forEach((id) => $("st-" + id).addEventListener("click", () => {
     if (busy) return;
-    ctx.sfx("click");
+    const opening = openJob !== id;
+    ctx.sfx(opening ? "whoosh" : "click");
     pulse($("md-" + id) || $("st-" + id), "bounce");
     openJob = openJob === id ? null : id;
     preview(null, null);

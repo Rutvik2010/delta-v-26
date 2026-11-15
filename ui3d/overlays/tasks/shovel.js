@@ -180,6 +180,7 @@ export function mount(api) {
     if (!dropping) return;
     dropping = false;
     puff(x, y);
+    api.sfx("thud");
     if (u.seg >= 0 && state[u.seg] === "crack") {
       state[u.seg] = "ok";
       patched += 1;
@@ -201,10 +202,10 @@ export function mount(api) {
   }
   function puff(x, y) {
     const g = svgEl("g", { transform: `translate(${x} ${y})` });
-    g.innerHTML = [-1, 1].map((s) => `<circle cx="${s * 8}" cy="-4" r="9" fill="#D6D9E0" stroke="#1E2430" stroke-width="2.5" style="transition: transform 420ms ease-out, opacity 420ms ease-out"/>`).join("");
+    g.innerHTML = [-1, 1, 0].map((s, idx) => `<circle cx="${s * 9}" cy="${idx === 2 ? -8 : -4}" r="${idx === 2 ? 6 : 9}" fill="#D6D9E0" stroke="#1E2430" stroke-width="2.5" style="transition: transform 440ms ease-out, opacity 440ms ease-out"/>`).join("");
     $("ds-fx").appendChild(g);
-    requestAnimationFrame(() => g.querySelectorAll("circle").forEach((c, i) => { c.style.transform = `translate(${(i ? 22 : -22)}px, -10px) scale(1.4)`; c.style.opacity = "0"; }));
-    api.later(() => g.remove(), 450);
+    requestAnimationFrame(() => g.querySelectorAll("circle").forEach((c, i) => { c.style.transform = `translate(${(i === 0 ? -24 : i === 1 ? 24 : 0)}px, ${i === 2 ? -16 : -10}px) scale(1.4)`; c.style.opacity = "0"; }));
+    api.later(() => g.remove(), 460);
   }
 
   // ---- solar flares ----

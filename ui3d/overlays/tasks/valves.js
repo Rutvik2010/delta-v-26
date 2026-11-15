@@ -117,7 +117,7 @@ export function mount(api) {
       wrong = -1;
       api.sfx("squeak");
       api.good();
-      if (done >= 4) { say("All open! Oxygen is flowing."); render(); api.win(); return; }
+      if (done >= 4) { api.sfx("chime"); say("All open! Oxygen is flowing."); render(); api.win(); return; }
       say(done + " of 4 open. Which shape comes next?");
       render();
     } else {
