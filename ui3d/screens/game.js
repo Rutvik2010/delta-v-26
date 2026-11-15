@@ -10,12 +10,12 @@ const H = 340; // half the slab size in px
 
 // Where things stand on the slab (px from the centre). With the default 45° turn,
 // screen-front is (x + y) > 0 and screen-right is (x − y) > 0.
-const POS = { rest: [-220, 150], oxygen_gen: [10, 238], reinforce_shield: [-30, -30], grow_food: [205, -205], science: [236, 36] };
-const FEET = { rest: [-160, 178], oxygen_gen: [82, 196], reinforce_shield: [70, -64], grow_food: [136, -146], science: [142, 72] };
+const POS = { rest: [-220, 150], oxygen_gen: [10, 238], reinforce_shield: [-30, -30], grow_food: [160, -160], science: [236, 36] };
+const FEET = { rest: [-160, 178], oxygen_gen: [82, 196], reinforce_shield: [70, -64], grow_food: [104, -112], science: [142, 72] };
 const HOME = { maya: [70, 150], leo: [118, 118], zuri: [150, 70] };
 const DOOR = { maya: [58, 72], leo: [65, 65], zuri: [72, 58] };
 const PAD = [-40, -238];
-const ROVER = [-250, -40]; // the rover patrols an empty corner, away from the crew (loop in game3d.css)
+const ROVER = [-235, -30]; // the rover patrols an empty corner, away from the crew (loop in game3d.css)
 const DOOR_C = [65, 65];
 // how tall each model is, so its label floats just above it
 const LIFT = { rest: 150, oxygen_gen: 96, reinforce_shield: 146, grow_food: 92 };
@@ -61,12 +61,53 @@ ${box(18, 18, 10, { x: -58, y: 52, z: 12, cls: "white", px: `<b class="lamp"></b
 ${box(128, 10, 10, { z: 70, cls: "ridge" })}`,
 };
 
+// ---- the ground: a round, lumpy chunk of Moon or Mars floating in space ----
+// The outline wobbles (a few sine waves around a circle) so the edge looks rocky. The layers underneath
+// get smaller as they go down, like the underside of a rock, and each wobbles a little differently.
+function blobPath(R, phase = 0, n = 90) {
+  let d = "";
+  for (let k = 0; k <= n; k++) {
+    const t = (k / n) * Math.PI * 2;
+    const r = R * (1 + 0.03 * Math.sin(5 * t + phase) + 0.018 * Math.sin(9 * t + 2 + phase * 1.7) + 0.01 * Math.sin(15 * t + phase * 0.6));
+    d += (k ? "L" : "M") + (H + r * Math.cos(t)).toFixed(1) + " " + (H + r * Math.sin(t)).toFixed(1);
+  }
+  return d + "Z";
+}
+const TOP_R = 322;
+const TOP_D = blobPath(TOP_R);
+// gentle hills and dips painted on the ground: light on the Sun side, shadow on the other
+const HILLS = [[110, 300, 70], [250, 560, 60], [470, 140, 64], [600, 420, 52], [330, 470, 44], [180, 160, 46], [420, 600, 40]];
+function groundSvg(mars) {
+  const v = (n) => `style="fill: var(${n})"`;
+  const patches = mars
+    ? [0, 1, 2, 3, 4, 5].map((n) => `<path d="M${60 + n * 20} ${150 + n * 80} C${200 + n * 10} ${120 + n * 80} ${360 - n * 6} ${190 + n * 80} ${620 - n * 22} ${140 + n * 82}" fill="none" stroke="#000" stroke-opacity=".07" stroke-width="5" stroke-linecap="round"/>`).join("")
+    : [[230, 250, 95, 0.3], [470, 470, 80, 2.1], [420, 220, 50, 4]].map(([x, y, r, ph]) => {
+      let d = ""; for (let k = 0; k <= 40; k++) { const t = (k / 40) * Math.PI * 2, rr = r * (1 + 0.18 * Math.sin(3 * t + ph) + 0.1 * Math.sin(5 * t + ph * 2)); d += (k ? "L" : "M") + (x + rr * Math.cos(t)).toFixed(1) + " " + (y + rr * 0.8 * Math.sin(t)).toFixed(1); }
+      return `<path d="${d}Z" fill="#1E2430" fill-opacity=".07"/>`; }).join("");
+  return `<svg class="top" viewBox="0 0 ${H * 2} ${H * 2}" aria-hidden="true"><defs>
+<radialGradient id="gr-g" cx="35%" cy="30%" r="80%"><stop offset="0" style="stop-color: var(--ground)"/><stop offset=".6" style="stop-color: var(--ground)"/><stop offset="1" style="stop-color: var(--ground2)"/></radialGradient>
+<radialGradient id="gr-hl" cx="38%" cy="36%" r="60%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<radialGradient id="gr-sh" cx="62%" cy="66%" r="60%"><stop offset=".2" stop-color="#000" stop-opacity=".28"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<pattern id="gr-dots" width="46" height="38" patternUnits="userSpaceOnUse"><circle cx="5" cy="6" r="1.6" fill="#000" fill-opacity=".14"/><circle cx="27" cy="19" r="1.2" fill="#fff" fill-opacity=".3"/><circle cx="38" cy="33" r="2.1" fill="#000" fill-opacity=".09"/><circle cx="14" cy="29" r="1" fill="#fff" fill-opacity=".25"/></pattern>
+<clipPath id="gr-clip"><path d="${TOP_D}"/></clipPath></defs>
+<path d="${TOP_D}" fill="url(#gr-g)"/>
+<g clip-path="url(#gr-clip)">${patches}
+${HILLS.map(([x, y, r]) => `<ellipse cx="${x + r * 0.18}" cy="${y + r * 0.2}" rx="${r}" ry="${r * 0.82}" fill="url(#gr-sh)"/><ellipse cx="${x - r * 0.12}" cy="${y - r * 0.14}" rx="${r * 0.9}" ry="${r * 0.74}" fill="url(#gr-hl)"/>`).join("")}
+<rect width="${H * 2}" height="${H * 2}" fill="url(#gr-dots)"/>
+<path d="${TOP_D}" fill="none" ${v("--rim").replace("fill", "stroke")} stroke-width="26"/>
+<path d="${blobPath(TOP_R - 13)}" fill="none" stroke="#000" stroke-opacity=".12" stroke-width="3"/></g>
+<path d="${TOP_D}" fill="none" stroke="#1E2430" stroke-width="4"/></svg>`;
+}
+// rock layers under the top: a cliff band first (almost full size), then an underside that narrows
+const LAYERS = [[1, 8], [0.99, 16], [0.975, 24], [0.93, 36], [0.85, 50], [0.73, 66], [0.56, 84]];
+const slabSvg = (i) => { const [sc, z] = LAYERS[i]; return `<svg class="slab${i % 2 ? " band" : ""}${i >= 3 ? " under" : ""}" viewBox="0 0 ${H * 2} ${H * 2}" style="transform: translateZ(${-z}px)" aria-hidden="true"><path d="${blobPath(TOP_R * sc, i * 0.9)}" stroke="#1E2430" stroke-width="3"/></svg>`; };
+
 // ---- ground decorations: craters, boulders, building shadows and rover tracks ----
 // All painted into ONE flat SVG on the ground (shared with the walking paths). Every separate 3D layer
 // costs frame time, because the whole scene is recomposited whenever anything on screen moves.
 // Coordinates are slab pixels (0..680); craters fake a raised rim with a lit edge and a shadowed edge.
-const CRATERS = [[POS.science[0] + H, POS.science[1] + H, 76], [82, 164, 26], [551, 562, 30], [110, 600, 20], [420, 84, 22], [640, 250, 18], [230, 640, 14], [560, 500, 12]];
-const BOULDERS = [[47, 351, 12], [650, 120, 9], [420, 650, 11], [230, 430, 8], [620, 215, 10], [330, 500, 6], [640, 600, 9]];
+const CRATERS = [[POS.science[0] + H, POS.science[1] + H, 76], [150, 140, 26], [520, 530, 30], [150, 560, 20], [420, 84, 22], [610, 270, 18], [250, 610, 14], [560, 470, 12]];
+const BOULDERS = [[47, 351, 12], [470, 610, 11], [230, 430, 8], [590, 230, 10], [330, 500, 6]];
 function decals() {
   const v = (n) => `style="fill: var(${n})"`;
   const defs = `<defs><radialGradient id="dc-pit" cx="44%" cy="42%" r="60%"><stop offset="0" style="stop-color: var(--pit2)"/><stop offset="1" style="stop-color: var(--pit1)"/></radialGradient>
@@ -78,8 +119,9 @@ function decals() {
   const rock = ([x, y, r]) => `<ellipse cx="${x + 4}" cy="${y + 5}" rx="${r}" ry="${r * 0.8}" fill="#050814" opacity=".25"/><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.8}" fill="url(#dc-rock)" stroke="#1E2430" stroke-width="2"/>`
     + `<ellipse cx="${x + r + 8}" cy="${y + 4}" rx="${Math.max(3.5, r / 2)}" ry="${Math.max(2.5, r * 0.35)}" fill="url(#dc-rock)" stroke="#1E2430" stroke-width="2"/>`;
   const shadow = (id) => `<ellipse cx="${H + POS[id][0] + 14}" cy="${H + POS[id][1] - 14}" rx="65" ry="35" fill="url(#dc-shadow)"/>`;
-  return defs + CRATERS.map(crat).join("") + BOULDERS.map(rock).join("") + JOB_ORDER.map(shadow).join("")
-    + `<rect x="${H + ROVER[0] - 10}" y="${H + ROVER[1] - 110}" width="120" height="120" rx="14" fill="none" stroke="rgba(30,36,48,.16)" stroke-width="6" stroke-dasharray="1 10" stroke-linecap="round"/>`;
+  // clipped to the round ground outline, so nothing can hang over the edge into space
+  return defs.replace("</defs>", `<clipPath id="dc-clip"><path d="${TOP_D}"/></clipPath></defs>`) + `<g clip-path="url(#dc-clip)">` + CRATERS.map(crat).join("") + BOULDERS.map(rock).join("") + JOB_ORDER.map(shadow).join("")
+    + `<rect x="${H + ROVER[0] - 10}" y="${H + ROVER[1] - 110}" width="120" height="120" rx="14" fill="none" stroke="rgba(30,36,48,.16)" stroke-width="6" stroke-dasharray="1 10" stroke-linecap="round"/></g>`;
 }
 
 // ---- flat sprites (toy style: 3px ink outlines, flat fills); only the crater flag is still one ----
@@ -146,7 +188,7 @@ export function mount(root, ctx) {
   const wait = (ms) => new Promise((r) => later(r, ms));
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  const slabs = Array.from({ length: 6 }, (_, i) => `<div class="slab${i % 2 === 1 ? " band" : ""}${i === 5 ? " base" : ""}" style="transform: translateZ(${-(i + 1) * 8}px)"></div>`).join("");
+  const slabs = Array.from({ length: 7 }, (_, i) => slabSvg(i)).join("");
   const pt = (p) => `${H + p[0]} ${H + p[1]}`;
   const paths = [...JOB_ORDER.map((id) => FEET[id]), [PAD[0] + 40, PAD[1] + 40]].map((f, i) => `<path id="pa-${JOB_ORDER[i] || "pad"}" d="M${pt(DOOR_C)} L${pt(f)}"/>`).join("");
   const bbAt = (p) => `--x: ${p[0]}; --y: ${p[1]}; --yaw: ${yaw}deg`;
@@ -155,13 +197,13 @@ export function mount(root, ctx) {
 <div class="world" id="world">
   ${skySvg(mars)}
   <div class="stage3d"><div class="board" id="board" style="--yaw: ${yaw}deg">
-    ${slabs}<div class="top"></div>
+    ${slabs}${groundSvg(mars)}
     <div class="model padm" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px">${cyl(76, 10, { n: 12, cls: "plinth" })}</div>
     <div class="flat pad" style="left: ${H + PAD[0]}px; top: ${H + PAD[1]}px; transform: translate(-50%, -50%) translateZ(11px)"></div>
     <svg class="paths" viewBox="0 0 ${H * 2} ${H * 2}" aria-hidden="true">${decals()}${paths}</svg>
     <div class="flat flood" style="left: ${H + POS.reinforce_shield[0]}px; top: ${H + POS.reinforce_shield[1]}px"></div><div class="flat flood" style="left: ${H + POS.grow_food[0]}px; top: ${H + POS.grow_food[1]}px"></div>
     ${JOB_ORDER.map((id) => `<div class="flat ring" id="ring-${id}" style="left: ${H + POS[id][0]}px; top: ${H + POS[id][1]}px"></div>`).join("")}
-    <div class="shade"></div>
+    <div class="shade" style="clip-path: path('${TOP_D}')"></div>
     <div class="bb" style="${bbAt([PAD[0] + 55, PAD[1] - 10])}" aria-hidden="true">${shipFlag()}</div>
     <div class="model rover" style="left: ${H + ROVER[0]}px; top: ${H + ROVER[1]}px" aria-hidden="true">${rover()}</div>
     ${JOB_ORDER.filter((id) => MODEL[id]).map((id, i) => `<div class="model bld" id="md-${id}" data-job="${id}" style="left: ${H + POS[id][0]}px; top: ${H + POS[id][1]}px; --i: ${i}" aria-hidden="true">${MODEL[id]()}</div>`).join("")}
@@ -445,9 +487,11 @@ ${CREW.map((c) => {
 
   // a chip carrying the gain flies from the building into its meter
   async function flyToMeter(res, text, fromEl, perfect) {
-    const m = $("m-" + res);
+    // science has no meter: its gains fly to the science counter at the top instead
+    const m = res === "science" ? $("b-sci") : $("m-" + res);
+    if (!m || !fromEl) return;
     const sr = g3.getBoundingClientRect(), scale = sr.width / g3.offsetWidth;
-    const a = fromEl.getBoundingClientRect(), b = m.querySelector(".val").getBoundingClientRect();
+    const a = fromEl.getBoundingClientRect(), b = (m.querySelector(".val") || m).getBoundingClientRect();
     const x0 = (a.left + a.width / 2 - sr.left) / scale, y0 = (a.top - sr.top) / scale;
     const x1 = (b.left + b.width / 2 - sr.left) / scale, y1 = (b.top + b.height / 2 - sr.top) / scale;
     const f = document.createElement("div");
@@ -592,5 +636,13 @@ ${CREW.map((c) => {
   });
 
   draw();
-  return () => { alive = false; unsubMute?.(); document.removeEventListener("keydown", onKey); timers.forEach(clearTimeout); if (stageEl) stageEl.classList.remove("bleed"); window.removeEventListener("resize", placeSun); };
+  // first game ever (or "How to play" on the title): the interactive tour starts after the intro
+  let stopTour = null;
+  import("../overlays/coach.js").then(({ startTour, tourDone }) => {
+    if (!alive || (!store.tutorial && tourDone())) return;
+    later(() => {
+      if (alive) stopTour = startTour(ctx, g3, { state: S, yaw: () => yaw, cardOpen: () => openJob, busy: () => busy });
+    }, reduced ? 300 : 2600);
+  });
+  return () => { if (stopTour) stopTour(); alive = false; unsubMute?.(); document.removeEventListener("keydown", onKey); timers.forEach(clearTimeout); if (stageEl) stageEl.classList.remove("bleed"); window.removeEventListener("resize", placeSun); };
 }

@@ -112,7 +112,7 @@ ${CREW.map(crewCard).join("")}
     ctx.sfx("click");
     try {
       await ctx.startGame(store.site, store.planMode);
-      ctx.go("game");
+      ctx.go("landing"); // the rocket ride, then the base
     } catch (e) {
       starting = false;
       start.disabled = false;

@@ -9,11 +9,12 @@ export function mount(api) {
   let shieldNow = null, shieldGain = 0;
   try {
     const st = api.ctx.store.state;
-    const act = api.ctx.engine.getActions(st).find((x) => x.id === "reinforce_shield");
+    // the real numbers for the crew member doing this job (skill and tiredness count)
+    const act = api.ctx.engine.getActions(st, api.crew).find((x) => x.id === "reinforce_shield");
     shieldNow = st.shielding;
     shieldGain = (act && act.gain && act.gain.shielding) || 0;
   } catch (err) { shieldNow = null; }
-  const bonus = 5;
+  const bonus = (api.ctx.engine.BONUS && api.ctx.engine.BONUS.perfect) || 0; // what a win really adds
 
   api.body.innerHTML =
     `<div style="flex-grow: 1; display: flex; gap: 20px; min-height: 0">` +
@@ -46,7 +47,7 @@ export function mount(api) {
     `<path d="M388 314 h24" stroke="#1E2430" stroke-width="3"></path>` +
     `<rect x="640" y="436" width="40" height="34" fill="#DDE1E6" stroke="#1E2430" stroke-width="4"></rect>` +
     `<path d="M600 470 c20 -40 70 -40 100 -18 c20 6 40 4 50 18z" fill="#A9ADBB" stroke="#1E2430" stroke-width="4"></path>` +
-    `<g transform="translate(730 470)"><circle cx="0" cy="-92" r="15" fill="#F79A6B" stroke="#1E2430" stroke-width="3"></circle><rect x="-10" y="-96" width="20" height="10" rx="5" fill="#1E2430"></rect><rect x="-15" y="-77" width="30" height="42" rx="9" fill="#F79A6B" stroke="#1E2430" stroke-width="3"></rect><rect x="-13" y="-38" width="11" height="38" rx="4" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"></rect><rect x="2" y="-38" width="11" height="38" rx="4" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"></rect><g class="dv-scoop" transform="rotate(-40 -10 -60)"><rect x="-14" y="-140" width="8" height="90" fill="#D9A43A" stroke="#1E2430" stroke-width="3"></rect><path d="M-28 -50 h36 l-6 26 h-24z" fill="#9AA3AF" stroke="#1E2430" stroke-width="4"></path></g></g>` +
+    `<g transform="translate(730 470)"><circle cx="0" cy="-92" r="15" fill="${api.color || "#F79A6B"}" stroke="#1E2430" stroke-width="3"></circle><rect x="-10" y="-96" width="20" height="10" rx="5" fill="#1E2430"></rect><rect x="-15" y="-77" width="30" height="42" rx="9" fill="${api.color || "#F79A6B"}" stroke="#1E2430" stroke-width="3"></rect><rect x="-13" y="-38" width="11" height="38" rx="4" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"></rect><rect x="2" y="-38" width="11" height="38" rx="4" fill="#F7F8F9" stroke="#1E2430" stroke-width="3"></rect><g class="dv-scoop" transform="rotate(-40 -10 -60)"><rect x="-14" y="-140" width="8" height="90" fill="#D9A43A" stroke="#1E2430" stroke-width="3"></rect><path d="M-28 -50 h36 l-6 26 h-24z" fill="#9AA3AF" stroke="#1E2430" stroke-width="4"></path></g></g>` +
     `<g id="sh-toss" class="dv-burst-a" fill="#A9ADBB" stroke="#1E2430" stroke-width="2.5"><circle cx="672" cy="300" r="8"></circle><circle cx="650" cy="276" r="6"></circle><circle cx="692" cy="270" r="5"></circle><circle cx="630" cy="300" r="4"></circle></g>` +
     `</svg>` +
     `<div style="position: absolute; left: 20px; bottom: 20px; display: flex; gap: 10px; align-items: center; padding: 8px 14px; border-radius: 10px; background: rgba(14,20,36,0.88); color: #F3F4F6; font-size: 16px; font-weight: 600"><span style="width: 26px; border-top: 4px dashed #F26A1B"></span>Fill to the dashed line<span style="width: 14px; height: 14px; border-radius: 50%; background: #F26A1B; margin-left: 8px"></span>Sun rays stop at the dirt</div>` +
@@ -123,6 +124,7 @@ export function mount(api) {
     }
     count += 1;
     api.sfx("scoop");
+    api.good();
     speed += api.easy ? 8 : 14;
     zw = Math.max(13, zw - 1.8);
     placeZone();

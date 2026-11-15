@@ -5,6 +5,7 @@ const SCREENS = {
   title: "./screens/title.js",
   choose: "./screens/choose.js",
   briefing: "./screens/briefing.js",
+  landing: "./screens/landing.js",
   game: "./screens/game.js",
   win: "./screens/win.js",
   lose: "./screens/lose.js",

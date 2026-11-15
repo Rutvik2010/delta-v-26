@@ -17,7 +17,7 @@ export function mount(api) {
   const idxs = [0, 1, 2, 3, 4, 5].sort(() => Math.random() - 0.5);
   const level = SP.map(() => 60 + Math.random() * 40);
   idxs.slice(0, 2).forEach((i) => { level[i] = 30 + Math.random() * 8; });
-  const drain = SP.map(() => (7.5 + Math.random() * 6) * (api.easy ? 0.75 : 1));
+  const drain = SP.map(() => (7.5 + Math.random() * 6) * (api.easy ? 0.75 : 1) * (api.practice ? 0.5 : 1));
   let drinks = 0;
 
   const plantHtml = (i, entrance) => {
@@ -53,7 +53,7 @@ export function mount(api) {
     `<rect id="gd-tank" class="dv-geo" x="878" y="163" width="94" height="49" rx="12" fill="#4BA3F0"></rect>` +
     `<rect x="880" y="40" width="90" height="28" rx="5" fill="#1E2430"></rect>` +
     `<text x="925" y="60" text-anchor="middle" font-family="Lexend" font-weight="800" font-size="16" fill="#F7F8F9">WATER</text>` +
-    `<g class="dv-breathe" transform="translate(1060 470)"><circle cx="0" cy="-150" r="22" fill="#8ED16C" stroke="#1E2430" stroke-width="4"></circle><rect x="-16" y="-158" width="32" height="16" rx="8" fill="#1E2430"></rect><path d="M-6 -152 h10" stroke="#8FD9F0" stroke-width="4" stroke-linecap="round"></path><rect x="-24" y="-126" width="48" height="68" rx="14" fill="#8ED16C" stroke="#1E2430" stroke-width="4"></rect><rect x="-22" y="-62" width="18" height="62" rx="6" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"></rect><rect x="4" y="-62" width="18" height="62" rx="6" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"></rect><path d="M-24 -110 l-30 22" stroke="#1E2430" stroke-width="6" stroke-linecap="round"></path><g transform="translate(-92 -96)"><path d="M0 0 h44 v34 a6 6 0 0 1 -6 6 h-32 a6 6 0 0 1 -6 -6z" fill="#F26A1B" stroke="#1E2430" stroke-width="4"></path><path d="M0 8 l-30 -18" stroke="#1E2430" stroke-width="5" stroke-linecap="round"></path><path d="M44 6 a14 14 0 0 1 0 22" fill="none" stroke="#1E2430" stroke-width="4"></path><g fill="#4BA3F0"><circle class="dv-fall" cx="-36" cy="-6" r="3"></circle><circle class="dv-fall-b" cx="-40" cy="4" r="3"></circle><circle class="dv-fall-c" cx="-32" cy="10" r="3"></circle></g></g></g>` +
+    `<g class="dv-breathe" transform="translate(1060 470)"><circle cx="0" cy="-150" r="22" fill="${api.color || "#8ED16C"}" stroke="#1E2430" stroke-width="4"></circle><rect x="-16" y="-158" width="32" height="16" rx="8" fill="#1E2430"></rect><path d="M-6 -152 h10" stroke="#8FD9F0" stroke-width="4" stroke-linecap="round"></path><rect x="-24" y="-126" width="48" height="68" rx="14" fill="${api.color || "#8ED16C"}" stroke="#1E2430" stroke-width="4"></rect><rect x="-22" y="-62" width="18" height="62" rx="6" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"></rect><rect x="4" y="-62" width="18" height="62" rx="6" fill="#F7F8F9" stroke="#1E2430" stroke-width="4"></rect><path d="M-24 -110 l-30 22" stroke="#1E2430" stroke-width="6" stroke-linecap="round"></path><g transform="translate(-92 -96)"><path d="M0 0 h44 v34 a6 6 0 0 1 -6 6 h-32 a6 6 0 0 1 -6 -6z" fill="#F26A1B" stroke="#1E2430" stroke-width="4"></path><path d="M0 8 l-30 -18" stroke="#1E2430" stroke-width="5" stroke-linecap="round"></path><path d="M44 6 a14 14 0 0 1 0 22" fill="none" stroke="#1E2430" stroke-width="4"></path><g fill="#4BA3F0"><circle class="dv-fall" cx="-36" cy="-6" r="3"></circle><circle class="dv-fall-b" cx="-40" cy="4" r="3"></circle><circle class="dv-fall-c" cx="-32" cy="10" r="3"></circle></g></g></g>` +
     `</svg>` +
     `<div id="gd-grid" style="position: relative; width: 860px; box-sizing: border-box; padding: 32px 40px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 210px 210px; column-gap: 28px; row-gap: 38px">${SP.map((s, i) => plantHtml(i, true)).join("")}</div>` +
     `<div style="position: absolute; right: 180px; top: 236px; width: 120px; padding: 10px; border-radius: 12px; background: #13211D; box-shadow: inset 0 0 0 3px #2B3833; color: #A8F5C2; font-size: 13px; line-height: 1.4"><b style="color: #E4FFEC; font-size: 14px">Garden</b><br>Lights: on<br>Thirsty: <span id="gd-n" style="font-variant-numeric: tabular-nums">2</span></div>` +
@@ -95,6 +95,7 @@ export function mount(api) {
     level[i] = 100;
     drinks += 1;
     api.sfx("splash");
+    api.good();
     wasDry[i] = false;
     repaint(i);
     counters();
@@ -111,7 +112,7 @@ export function mount(api) {
       level[i] = Math.max(0, level[i] - drain[i] * (1 + t * 0.05) * dt); // drying speeds up a little
       if (level[i] <= 0) { say("Oh no, the " + SP[i].name.toLowerCase() + " wilted!"); repaint(i); api.fail(); return; }
       const dry = level[i] < DRY;
-      if (dry !== wasDry[i]) { wasDry[i] = dry; repaint(i); counters(); if (dry) say(SP[i].name + " is thirsty!"); }
+      if (dry !== wasDry[i]) { wasDry[i] = dry; repaint(i); counters(); if (dry) { say(SP[i].name + " is thirsty!"); api.point($('[data-p="' + i + '"]')); } }
       else {
         const bar = $('[data-p="' + i + '"] .dv-fillbar');
         if (bar) bar.style.width = Math.round(level[i]) + "%";

@@ -35,7 +35,7 @@ export function mount(api) {
     `<path d="M260 548 L590 230 L670 230 L960 548Z" fill="#525C76" opacity="0.5"></path>` +
     `<g fill="#2A3044"><ellipse cx="160" cy="300" rx="50" ry="10"></ellipse><ellipse cx="1040" cy="340" rx="60" ry="12"></ellipse><ellipse cx="90" cy="470" rx="40" ry="8"></ellipse></g>` +
     `<g fill="none" stroke="#3A4258" stroke-width="3" stroke-linecap="round"><path d="M520 530 l8 -14 M548 520 l8 -14 M560 496 l8-14 M588 486 l8-14"></path></g>` +
-    `<g class="dv-breathe" transform="translate(626 210)"><circle cx="0" cy="-40" r="14" fill="#B99AF5" stroke="#1E2430" stroke-width="3"></circle><rect x="-10" y="-44" width="20" height="10" rx="5" fill="#1E2430"></rect><circle class="dv-glow" cx="10" cy="-46" r="4" fill="#F5C518" stroke="#1E2430" stroke-width="2"></circle><rect x="-12" y="-26" width="24" height="30" rx="7" fill="#B99AF5" stroke="#1E2430" stroke-width="3"></rect><path d="M12 -18 l18 6" stroke="#1E2430" stroke-width="4" stroke-linecap="round"></path><rect x="28" y="-18" width="16" height="10" rx="2" fill="#13211D" stroke="#1E2430" stroke-width="2"></rect></g>` +
+    `<g class="dv-breathe" transform="translate(626 210)"><circle cx="0" cy="-40" r="14" fill="${api.color || "#B99AF5"}" stroke="#1E2430" stroke-width="3"></circle><rect x="-10" y="-44" width="20" height="10" rx="5" fill="#1E2430"></rect><circle class="dv-glow" cx="10" cy="-46" r="4" fill="#F5C518" stroke="#1E2430" stroke-width="2"></circle><rect x="-12" y="-26" width="24" height="30" rx="7" fill="${api.color || "#B99AF5"}" stroke="#1E2430" stroke-width="3"></rect><path d="M12 -18 l18 6" stroke="#1E2430" stroke-width="4" stroke-linecap="round"></path><rect x="28" y="-18" width="16" height="10" rx="2" fill="#13211D" stroke="#1E2430" stroke-width="2"></rect></g>` +
     `</svg>` +
     `<div style="position: absolute; left: 20px; top: 216px; width: 220px; padding: 12px 14px; border-radius: 12px; background: #13211D; box-shadow: inset 0 0 0 3px #2B3833; color: #A8F5C2; font-size: 14px; line-height: 1.45"><b style="color: #E4FFEC; font-size: 15px">Zuri's ${mars ? "rock" : "ice"} scanner</b><br>${mars ? "Water clue" : "Cold spot"}: <b class="dv-blink" style="color: #E4FFEC">nearby!</b><br>One rock glints now and then.</div>` +
     `<p style="position: absolute; right: 20px; top: 222px; margin: 0; padding: 8px 12px; border-radius: 10px; background: rgba(11,15,28,0.85); color: #C9D2E3; font-size: 14px; max-width: 220px; line-height: 1.4">${mars ? "Jezero was a lake long ago. Rocks that touched water look different!" : "This part of the crater never sees the Sun. It's extra cold!"}</p>` +
@@ -102,6 +102,7 @@ export function mount(api) {
     api.sfx("click");
     const btn = rocksEl ? rocksEl.querySelector('[data-r="' + i + '"]') : null;
     if (i === iceAt[round - 1]) {
+      api.good();
       round += 1;
       miss = false;
       pips();
