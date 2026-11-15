@@ -34,10 +34,12 @@ export function mount(api) {
   const mars = api.mars;
   const SOIL = mars ? ["#C27447", "#A9603A"] : ["#A9ADBB", "#8D93A3"];
   const flares = !api.practice;
-  const rayEvery = api.easy ? 3.6 : 2.7;  // seconds between flares
+  const rayEvery = api.easy ? 4 : 3.1;    // seconds between flares
   const rayTravel = api.easy ? 2.8 : 2.2; // seconds for a ray to fly in (after a 0.9 s warning)
   let lights = 3, patched = 0;
   const state = Array(SEGS).fill("ok"); // "ok" | "crack"
+  const openedAt = Array(SEGS).fill(0); // when each crack opened (round seconds)
+  let clock = 0;
   let craneX = CX, craneTarget = null, vel = 0, hold = 0, dropping = false;
   const rays = []; // { seg, t, el, warn }
 
@@ -143,7 +145,9 @@ export function mount(api) {
     const free = state.map((s, i) => i).filter((i) => state[i] === "ok" && Math.abs(i - under(craneX).seg) >= 2);
     const pool = free.length ? free : state.map((s, i) => i).filter((i) => state[i] === "ok");
     if (!pool.length) return;
-    state[pool[Math.floor(Math.random() * pool.length)]] = "crack";
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    state[pick] = "crack";
+    openedAt[pick] = clock;
     drawSegs(); drawCrane();
   }
   const openCount = () => state.filter((s) => s === "crack").length;
@@ -206,7 +210,8 @@ export function mount(api) {
   // ---- solar flares ----
   let nextRay = 3.5; // the first flare waits a little, so you can get your bearings
   function fireRay() {
-    const open = state.map((s, i) => i).filter((i) => state[i] === "crack" && !rays.some((r) => r.seg === i));
+    // flares only aim at cracks that have been open for 2 s or more, so a new crack is never an instant hit
+    const open = state.map((s, i) => i).filter((i) => state[i] === "crack" && clock - openedAt[i] >= 2 && !rays.some((r) => r.seg === i));
     if (!open.length) return;
     const seg = open[Math.floor(Math.random() * open.length)];
     const [tx, ty] = segMid(seg);
@@ -250,10 +255,21 @@ export function mount(api) {
 
   // ---- moving the crane: hold buttons/keys, or drag on the scene ----
   const SPEED = 380; // scene units per second
+  // a quick tap moves the crane one block; holding keeps it moving; Enter/Space on the button also steps
+  const STEP = 61; // about one dirt block
+  const stepTo = (d) => { craneTarget = Math.max(X_MIN, Math.min(X_MAX, (craneTarget ?? craneX) + d * STEP)); };
   const holdBtn = (btn, d) => {
-    btn.addEventListener("pointerdown", (e) => { e.preventDefault(); hold = d; craneTarget = null; });
-    ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => btn.addEventListener(ev, () => { if (hold === d) hold = 0; }));
-    btn.addEventListener("click", (e) => { if (e.detail === 0) { craneTarget = Math.max(X_MIN, Math.min(X_MAX, craneX + d * 60)); } }); // keyboard on the button
+    let downAt = 0, stepped = false;
+    btn.addEventListener("pointerdown", (e) => { e.preventDefault(); downAt = performance.now(); stepped = false; hold = 0; craneTarget = null;
+      api.later(() => { if (downAt && !stepped) hold = d; }, 220); });
+    const up = () => {
+      if (!downAt) return;
+      if (hold === d) hold = 0; else if (performance.now() - downAt < 240) { stepTo(d); stepped = true; }
+      downAt = 0;
+    };
+    ["pointerup", "pointercancel"].forEach((ev) => btn.addEventListener(ev, up));
+    btn.addEventListener("pointerleave", () => { if (hold === d) hold = 0; downAt = 0; });
+    btn.addEventListener("click", (e) => { if (e.detail === 0) stepTo(d); }); // keyboard on the button
   };
   holdBtn($("ds-left"), -1);
   holdBtn($("ds-right"), 1);
@@ -264,15 +280,21 @@ export function mount(api) {
   scene.addEventListener("pointerdown", (e) => { dragging = true; scene.setPointerCapture(e.pointerId); craneTarget = Math.max(X_MIN, Math.min(X_MAX, toScene(e))); });
   scene.addEventListener("pointermove", (e) => { if (dragging) craneTarget = Math.max(X_MIN, Math.min(X_MAX, toScene(e))); });
   ["pointerup", "pointercancel"].forEach((ev) => scene.addEventListener(ev, () => { dragging = false; }));
-  const keys = new Set();
+  const keys = new Set(), keyDown = {};
   api.onKey((e) => {
     const k = e.key;
-    if (k === "ArrowLeft" || k === "a" || k === "A") { keys.add("L"); craneTarget = null; return true; }
-    if (k === "ArrowRight" || k === "d" || k === "D") { keys.add("R"); craneTarget = null; return true; }
+    // a tap steps one block; holding the key keeps the crane moving (after a short pause)
+    const d = (k === "ArrowLeft" || k === "a" || k === "A") ? -1 : (k === "ArrowRight" || k === "d" || k === "D") ? 1 : 0;
+    if (d) {
+      const name = d < 0 ? "L" : "R";
+      if (!e.repeat) { stepTo(d); keyDown[name] = performance.now(); }
+      else if (performance.now() - (keyDown[name] || 0) > 200) { keys.add(name); craneTarget = null; }
+      return true;
+    }
     if ((k === " " || k === "Enter") && !(e.target && e.target.tagName === "BUTTON")) { if (!e.repeat) drop(); return true; }
     return false;
   });
-  const onUp = (e) => { if (["ArrowLeft", "a", "A"].includes(e.key)) keys.delete("L"); if (["ArrowRight", "d", "D"].includes(e.key)) keys.delete("R"); };
+  const onUp = (e) => { if (["ArrowLeft", "a", "A"].includes(e.key)) { keys.delete("L"); keyDown.L = 0; } if (["ArrowRight", "d", "D"].includes(e.key)) { keys.delete("R"); keyDown.R = 0; } };
   document.addEventListener("keyup", onUp);
 
   // ---- the loop ----
@@ -281,6 +303,7 @@ export function mount(api) {
     if (api.done) { clearInterval(loopId); document.removeEventListener("keyup", onUp); return; }
     const now = performance.now(), dt = Math.min(0.12, (now - last) / 1000);
     last = now;
+    clock += dt;
     const dir = hold || (keys.has("R") ? 1 : 0) - (keys.has("L") ? 1 : 0);
     const before = craneX;
     if (dir) craneX += dir * SPEED * dt;
