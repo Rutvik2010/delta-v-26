@@ -205,7 +205,17 @@ export function runTask(ctx, actionId, crewId) {
             say(P.retry || "Oops! Let's try that again.");
             timeouts.add(setTimeout(() => { if (!done) newRound(true); }, 1300));
           },
-          good: () => { if (me.dead || !practice) return; goods += 1; if (goods >= (P.goal || 1)) practiceDone(); else say(P.more || "Nice! Once more."); },
+          good: () => {
+            if (me.dead || !practice) return;
+            goods += 1;
+            if (goods >= (P.goal || 1)) practiceDone();
+            else {
+              say(P.more || "Nice! Once more.", null, goods); stamp(); ctx.sfx("good");
+              // move the demo hand to the next thing to do (or hide it if there is none yet)
+              hand.classList.remove("on");
+              timeouts.add(setTimeout(() => { if (round === me && !me.dead && P.hand) pointAt(body.querySelector(P.hand)); }, 350));
+            }
+          },
           penalty: (sec) => {
             if (me.dead || practice || done) return;
             lost += sec;
@@ -230,18 +240,24 @@ export function runTask(ctx, actionId, crewId) {
         if (practice) {
           setClock("Try", "Practice: no timer");
           tbar.style.transform = "scaleX(1)";
-          say(P.how);
+          say(P.how, null, 0);
           // point at the main control once the game has drawn it
           timeouts.add(setTimeout(() => { if (round === me && P.hand && !me.dead) pointAt(body.querySelector(P.hand)); }, 450));
         } else startClock();
         if (!root.contains(document.activeElement) || document.activeElement === root) root.focus();
       }
-      function say(text, btn) {
-        coach.innerHTML = `<div class="tk-coach-who">${helmet("#B99AF5", 44)}</div><p class="tk-coach-text"><b>Practice:</b> ${esc(text)}</p>` +
+      function say(text, btn, got) {
+        const goal = (P && P.goal) || 1;
+        const dots = got == null ? "" : `<span class="tk-coach-dots" aria-label="${got} of ${goal} done">${Array.from({ length: goal }, (_, n) => `<i class="${n < got ? "on" : ""}"></i>`).join("")}</span>`;
+        coach.innerHTML = `<div class="tk-coach-who">${helmet("#B99AF5", 52)}</div><div class="tk-coach-main"><p class="tk-coach-head"><b>${btn ? "You did it!" : "Practice"}</b>${dots}</p><p class="tk-coach-text">${esc(text)}</p></div><span class="tk-stamp" aria-hidden="true">Nice!</span>` +
           (btn ? `<button type="button" class="tk-coach-go dv-key">${esc(btn)}</button>` : `<button type="button" class="tk-coach-skip">Skip practice</button>`);
         const b = coach.querySelector("button");
         b.addEventListener("click", countdown);
         if (btn) b.focus({ preventScroll: true });
+      }
+      function stamp() {
+        const st = coach.querySelector(".tk-stamp");
+        if (st) { st.classList.remove("go"); void st.offsetWidth; st.classList.add("go"); }
       }
       function practiceDone() {
         if (!round || round.dead) return;
@@ -249,7 +265,8 @@ export function runTask(ctx, actionId, crewId) {
         hand.classList.remove("on");
         ctx.sfx("good");
         markPracticed(actionId);
-        say(P.done || "You've got it! Now the real one, with the clock running.", "I'm ready!");
+        say(P.done || "You've got it! Now the real one, with the clock running.", "I'm ready!", (P && P.goal) || 1);
+        stamp();
       }
       function countdown() {
         if (done) return;
